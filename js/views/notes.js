@@ -35,6 +35,7 @@ function renderEditor() {
   renderListEditor();
   fillLinkSelect($('#noteLink'), e.link);
   $('#btnCancelNote').hidden = !e.id;
+  $('#btnDelNote').hidden = !e.id;
   updateCount();
 }
 

@@ -27,6 +27,8 @@
 .note-read .btn-primary { display: inline-flex; align-items: center; gap: 6px; }
 .editor-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 4px; }
 .editor-foot .btn-primary { margin-left: auto; }
+.editor-foot .btn-ghost + .btn-primary { margin-left: 0; }
+.editor-foot .btn-danger + .btn-ghost { margin-left: auto; }
 .save-status { font-size: .78rem; padding: 4px 10px; border-radius: 99px; background: color-mix(in srgb, var(--sched) 18%, transparent); color: var(--sched); transition: all .2s; }
 .save-status.saving { background: color-mix(in srgb, var(--task) 20%, transparent); color: var(--task); }
 .icon-btn.mini { width: 26px; height: 26px; border: 0; background: transparent; }

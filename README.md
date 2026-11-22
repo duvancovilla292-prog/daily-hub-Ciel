@@ -6,6 +6,9 @@ HTML + CSS + JavaScript puro, sin dependencias. Todo se guarda en `localStorage`
 ## Cómo usarla
 Abre `index.html` en el navegador (no necesita servidor). Mantén las carpetas junto a él.
 
+## Publicar cambios
+`index.html` carga cada CSS/JS con `?v=…`. Al subir cambios, cambia ese número en **todos** los archivos para que el navegador descargue las versiones nuevas y no mezcle archivos viejos con nuevos.
+
 ## Estructura
 ```
 daily-hub/

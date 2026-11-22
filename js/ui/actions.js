@@ -2,6 +2,12 @@
    Script clásico: comparte el ámbito global con los demás archivos de /js (ver el orden en index.html). */
 'use strict';
 
+/** Si la nota que se está editando tiene cambios sin guardar, pregunta antes de perderlos. */
+async function confirmDiscard() {
+  if (!ui.editor.dirty) return true;
+  return modal({ title: 'Descartar cambios', body: 'Hay cambios sin guardar en la nota que estás editando. ¿Quieres descartarlos?', actions: [{ label: 'Seguir editando', value: false }, { label: 'Descartar', value: true, cls: 'btn-danger' }] });
+}
+
 const actions = {
   'go-tab': el => goTab(el.dataset.tab),
   'date-rel': el => setActive(D.add(ui.today, +el.dataset.offset)),
@@ -95,8 +101,9 @@ const actions = {
 
   /* notas */
   'notes-mode': el => { flushScratch(); ui.notesMode = el.dataset.v; renderNotes(); },
-  'new-note': () => { ui.editor = newEditor(ui.active); renderNotes(); },
-  'open-note': el => {
+  'new-note': async () => { if (!(await confirmDiscard())) return; ui.editor = newEditor(ui.active); renderNotes(); },
+  'open-note': async el => {
+    if (!(await confirmDiscard())) { if (ui.tab !== 'notes') goTab('notes'); return; }
     flushScratch();
     const key = el.dataset.key;
     if (el.dataset.id) {
@@ -125,10 +132,7 @@ const actions = {
   'edit-note': () => { ui.editor.reading = false; renderNotes(); $('#noteTitle').focus(); },
   'cancel-note': async () => {
     const e = ui.editor; if (!e.id) return;
-    if (e.dirty) {
-      const ok = await modal({ title: 'Descartar cambios', body: 'Hay cambios sin guardar en esta nota. ¿Quieres descartarlos?', actions: [{ label: 'Seguir editando', value: false }, { label: 'Descartar', value: true, cls: 'btn-danger' }] });
-      if (!ok) return;
-    }
+    if (!(await confirmDiscard())) return;
     const n = Object.entries(state.notes).flatMap(([k, arr]) => arr.map(x => [k, x])).find(([, x]) => x.id === e.id);
     ui.editor = n ? editorFrom(n[1], n[0]) : newEditor(ui.active);
     renderNotes();
