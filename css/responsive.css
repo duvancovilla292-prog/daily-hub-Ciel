@@ -30,7 +30,7 @@
   #toasts { bottom: 84px; left: 12px; right: 12px; align-items: stretch; }
   .toast { max-width: none; }
   .hr { grid-template-columns: 84px minmax(0, 1fr); }
-  .tl-h .hl { width: 84px; }
+  .tl-line .hl { width: 84px; }
   .tl > .tl-acts { left: 92px; }
   .period b { min-width: 0; flex: 1; }
 }

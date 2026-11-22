@@ -33,11 +33,11 @@
 .hl { background: var(--card); border-radius: 7px; padding: 5px 8px; font-size: .76rem; font-weight: 600; text-align: center; white-space: nowrap; }
 .hc { display: flex; flex-direction: column; gap: 5px; min-height: 24px; }
 /* Línea de tiempo (diario y semanal): cada actividad mide lo que dura */
-.tl { position: relative; padding-top: 7px; }
-.tl-h { position: absolute; left: 0; right: 0; margin-top: 7px; border-top: 2px dotted color-mix(in srgb, var(--text) 40%, transparent); padding-top: 6px; }
-.tl-h:first-child { border-top-color: transparent; }
-.tl-h .hl { display: block; width: 100px; }
-.tl > .tl-acts { left: 110px; top: 7px; }
+.tl { position: relative; margin: 16px 0 18px; }
+.tl-line { position: absolute; left: 0; right: 0; height: 0; display: flex; align-items: center; }
+.tl-line .hl { flex: none; width: 100px; }
+.tl-line::after { content: ""; flex: 1; margin-left: 10px; border-top: 2px dotted color-mix(in srgb, var(--text) 40%, transparent); }
+.tl > .tl-acts { left: 110px; }
 .tl-acts { position: absolute; top: 0; right: 0; bottom: 0; left: 0; }
 .tl-act { position: absolute; overflow: hidden; z-index: 1; }
 .tl-act.short { flex-direction: row; align-items: baseline; gap: 6px; padding-top: 3px; padding-bottom: 3px; }

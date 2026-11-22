@@ -33,8 +33,7 @@ const toMin = t => hourOf(t) * 60 + +t.slice(3, 5);
 const endMin = it => it.end && it.end > it.start ? toMin(it.end) : toMin(it.start) + 30;   // sin hora de fin: se dibuja de 30 min
 
 /** Bloques posicionados (top/alto según la hora). Las actividades que se cruzan se reparten en columnas. */
-function timelineBlocks(s, its, a, b, key) {
-  const lo = a * 60, hi = (b + 1) * 60;
+function timelineBlocks(s, its, lo, hi, key) {   // lo/hi: minutos del borde superior e inferior
   const list = its.filter(it => it.start).map(it => ({ it, s0: Math.max(toMin(it.start), lo), e0: Math.min(endMin(it), hi) }))
     .filter(x => x.e0 > x.s0).sort((x, y) => x.s0 - y.s0 || y.e0 - x.e0);
   // grupos de actividades que se solapan; dentro de cada grupo, cada una toma la primera columna libre
@@ -48,7 +47,7 @@ function timelineBlocks(s, its, a, b, key) {
   });
   flush();
   return list.map(x => {
-    const top = (x.s0 - lo) * HOUR_PX / 60, h = Math.max((x.e0 - x.s0) * HOUR_PX / 60, 24);
+    const top = (x.s0 - lo) * HOUR_PX / 60 + 1, h = Math.max((x.e0 - x.s0) * HOUR_PX / 60, 24);
     const cls = h < 44 ? 'act tl-act short' : 'act tl-act';
     return `<div class="${cls}" style="--c:${s.color};top:${top}px;height:${h - 3}px;left:calc(${x.c} * 100% / ${x.n});width:calc(100% / ${x.n} - 4px)" title="${esc(x.it.title)} · ${esc(timeLabel(x.it))}"><b>${esc(x.it.title)}</b><small>${timeLabel(x.it)}</small>${linkTags(s.id, x.it.id, key)}</div>`;
   }).join('');
@@ -65,9 +64,13 @@ function dailyView(s, key) {
   const allDay = occ.filter(it => !it.start);
   let rows = '';
   if (allDay.length) rows += `<div class="hr"><span class="hl">Todo el día</span><div class="hc">${allDay.map(it => actHtml(s, it, key)).join('')}</div></div>`;
+  // Cada hora es una línea con su etiqueta encima; la tabla termina en la hora final (o donde termine la última actividad)
+  let end = Math.max(s.hourEnd, a + 1);
+  occ.forEach(it => { if (it.start) end = Math.max(end, Math.ceil(endMin(it) / 60)); });
+  end = Math.min(end, 24);
   let lines = '';
-  for (let h = a; h <= b; h++) lines += `<div class="tl-h" style="top:${(h - a) * HOUR_PX}px;height:${HOUR_PX}px"><span class="hl">${hourLabel(h)}</span></div>`;
-  rows += `<div class="tl" style="height:${(b - a + 1) * HOUR_PX}px">${lines}<div class="tl-acts">${timelineBlocks(s, occ, a, b, key)}</div></div>`;
+  for (let h = a; h <= end; h++) lines += `<div class="tl-line" style="top:${(h - a) * HOUR_PX}px"><span class="hl">${hourLabel(h % 24)}</span></div>`;
+  rows += `<div class="tl" style="height:${(end - a) * HOUR_PX}px">${lines}<div class="tl-acts">${timelineBlocks(s, occ, a * 60, end * 60, key)}</div></div>`;
   const tasks = Cal.tasksOn(key), notes = Cal.notesOn(key);
   return `<div class="daily">
     <aside class="d-side">
@@ -94,7 +97,7 @@ function weeklyView(s, key) {
   // Una fila con la columna de horas y, por cada día, una línea de tiempo del mismo alto
   const H = (b - a + 1) * HOUR_PX, slots = cls => Array.from({ length: b - a + 1 }, (_, i) => `<div class="${cls}" style="top:${i * HOUR_PX}px;height:${HOUR_PX - 8}px">${cls === 'wk-t' ? hourLabel(a + i) : ''}</div>`).join('');
   h += `<div class="wk-col" style="height:${H}px">${slots('wk-t')}</div>`;
-  h += days.map(k => `<div class="wk-col wk-day ${inRange(s, k) ? '' : 'off'}" style="height:${H}px">${slots('wk-c')}<div class="tl-acts">${timelineBlocks(s, s.items.filter(it => occurs(s, it, k)), a, b, k)}</div></div>`).join('');
+  h += days.map(k => `<div class="wk-col wk-day ${inRange(s, k) ? '' : 'off'}" style="height:${H}px">${slots('wk-c')}<div class="tl-acts">${timelineBlocks(s, s.items.filter(it => occurs(s, it, k)), a * 60, (b + 1) * 60, k)}</div></div>`).join('');
   return h + '</div></div>';
 }
 
