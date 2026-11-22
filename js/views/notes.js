@@ -17,6 +17,14 @@ function renderNotes() {
 
 function renderEditor() {
   const e = ui.editor;
+  const reading = !!(e.id && e.reading);
+  $('#noteRead').hidden = !reading;
+  $('#noteForm').hidden = reading;
+  if (reading) {
+    $('#editorTitle').textContent = 'Nota';
+    renderNoteRead();
+    return;
+  }
   $('#editorTitle').textContent = e.id ? 'Editar nota' : 'Nueva nota';
   $('#noteTitle').value = e.title;
   $('#noteDate').value = e.date;
@@ -26,8 +34,25 @@ function renderEditor() {
   $('#noteArea').value = e.content;
   renderListEditor();
   fillLinkSelect($('#noteLink'), e.link);
-  $('#btnDelNote').hidden = !e.id;
+  $('#btnCancelNote').hidden = !e.id;
   updateCount();
+}
+
+/* Vista de solo lectura de una nota guardada */
+function renderNoteRead() {
+  const e = ui.editor, lk = linkLabel(parseLink(e.link));
+  const label = e.title || noteLabel({ title: '', type: e.type, content: e.content, items: e.items });
+  const body = e.type === 'list'
+    ? (e.items.length ? `<ul class="read-list">${e.items.map(i => `<li class="${i.done ? 'done' : ''}"><span class="mk">${i.done ? '✓' : '○'}</span><span>${esc(i.text)}</span></li>`).join('')}</ul>` : '<p class="empty-note">Lista vacía.</p>')
+    : (e.content.trim() ? `<div class="read-text">${esc(e.content)}</div>` : '<p class="empty-note">Sin contenido.</p>');
+  $('#noteRead').innerHTML = `
+    <h3 class="read-title">${e.type === 'list' ? '☑' : '📝'} ${esc(label)}</h3>
+    <p class="muted small">${esc(cap(D.long(e.date)))}${lk ? ` · <span class="lk-mini">🔗 ${esc(lk)}</span>` : ''}</p>
+    ${body}
+    <div class="editor-foot">
+      <button class="btn btn-danger" data-action="del-note">Eliminar</button>
+      <button class="btn btn-primary" data-action="edit-note">${ICON_EDIT} Editar</button>
+    </div>`;
 }
 
 function renderListEditor() {

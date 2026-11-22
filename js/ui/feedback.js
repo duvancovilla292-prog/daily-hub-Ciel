@@ -50,11 +50,3 @@ function formModal({ title, desc, fields, submit, check }) {
     const first = f.querySelector('input,select'); if (first) first.focus();
   });
 }
-
-const linkModal = (opts, current) => formModal({
-  title: 'Vincular al horario',
-  desc: 'Elige la actividad con la que se entrelaza (la hora, el día de la semana o el día del mes).',
-  fields: `<select name="link"><option value="">Sin vincular</option>${opts.map(o => `<option value="${o.value}" ${o.value === current ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}</select>`,
-  submit: 'Guardar',
-  check: () => true
-}).then(f => f ? f.elements.link.value : null);

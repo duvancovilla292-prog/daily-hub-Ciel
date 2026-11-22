@@ -7,9 +7,10 @@ function taskRow(t) {
   return `<li class="task ${t.completed ? 'done' : ''}" data-id="${t.id}">
     <label class="check"><input type="checkbox" data-change="toggle-task" data-id="${t.id}" ${t.completed ? 'checked' : ''} aria-label="Completar"><span class="box"></span></label>
     <span class="t-title">${esc(t.title)}</span>
-    <span class="t-acts"><button class="link-chip ${lk ? 'on' : ''}" data-action="relink" data-id="${t.id}" title="Vincular a una actividad del horario">🔗${lk ? ' ' + esc(lk) : ''}</button>
-    <button class="prio ${t.priority}" data-action="cycle-prio" data-id="${t.id}" title="Cambiar prioridad">${PRIO[t.priority].label}</button>
-    <button class="icon-btn" data-action="del-task" data-id="${t.id}" aria-label="Eliminar tarea">${ICON_X}</button></span>
+    <span class="t-acts">${lk ? `<span class="link-chip on" title="Vinculada a: ${esc(lk)}">🔗 ${esc(lk)}</span>` : ''}
+    <span class="prio ${t.priority}" title="Prioridad">${PRIO[t.priority].label}</span>
+    <button class="icon-btn edit" data-action="edit-task" data-id="${t.id}" aria-label="Editar tarea" title="Editar">${ICON_EDIT}</button>
+    <button class="icon-btn" data-action="del-task" data-id="${t.id}" aria-label="Eliminar tarea" title="Eliminar">${ICON_X}</button></span>
   </li>`;
 }
 

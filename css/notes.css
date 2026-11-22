@@ -17,10 +17,19 @@
 .li { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .li .li-text { flex: 1; }
 .li .check input:checked ~ .box { background: var(--sched); }
+.note-read { display: flex; flex-direction: column; gap: 10px; }
+.read-title { font-size: 1.1rem; overflow-wrap: anywhere; }
+.read-text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; background: var(--card2); border: 1px solid var(--line); border-radius: 13px; padding: 12px 14px; min-height: 120px; }
+.read-list { list-style: none; margin: 0; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; background: var(--card2); border: 1px solid var(--line); border-radius: 13px; }
+.read-list li { display: flex; gap: 8px; overflow-wrap: anywhere; }
+.read-list .mk { color: var(--sched); flex: none; }
+.read-list li.done span:last-child { text-decoration: line-through; color: var(--muted); }
+.note-read .btn-primary { display: inline-flex; align-items: center; gap: 6px; }
 .editor-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 4px; }
 .editor-foot .btn-primary { margin-left: auto; }
 .save-status { font-size: .78rem; padding: 4px 10px; border-radius: 99px; background: color-mix(in srgb, var(--sched) 18%, transparent); color: var(--sched); transition: all .2s; }
 .save-status.saving { background: color-mix(in srgb, var(--task) 20%, transparent); color: var(--task); }
 .icon-btn.mini { width: 26px; height: 26px; border: 0; background: transparent; }
 .icon-btn.mini:hover { color: var(--danger); }
+.icon-btn.mini.edit:hover { color: var(--accent); }
 

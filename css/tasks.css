@@ -28,7 +28,7 @@
 .check input:checked + .box::after { content: ""; width: 5px; height: 10px; border: solid #04121f; border-width: 0 2px 2px 0; transform: rotate(45deg) translate(-1px, -1px); }
 .check input:focus-visible + .box { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
 .task .t-acts { display: flex; align-items: center; gap: 10px; flex: 0 1 auto; min-width: 0; max-width: 100%; margin-left: auto; }
-.task .link-chip { flex: 0 1 auto; min-width: 0; }
+.task .link-chip { flex: 0 1 auto; min-width: 0; display: inline-block; }
 .task .prio, .task .icon-btn { flex: none; }
 .prio { border: 0; font-size: .7rem; font-weight: 700; padding: 3px 9px; border-radius: 99px; }
 .prio.low { background: color-mix(in srgb, var(--sched) 22%, transparent); color: var(--sched); }
@@ -36,5 +36,6 @@
 .prio.high { background: color-mix(in srgb, var(--danger) 22%, transparent); color: var(--danger); }
 .task .icon-btn { width: 30px; height: 30px; border: 0; background: transparent; }
 .task .icon-btn:hover { color: var(--danger); }
+.task .icon-btn.edit:hover { color: var(--accent); }
 .empty { text-align: center; padding: 34px 10px; color: var(--muted); }
 

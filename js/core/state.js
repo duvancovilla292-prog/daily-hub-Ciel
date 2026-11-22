@@ -5,10 +5,11 @@
 let state = Store.load();
 const t0 = D.today();
 
-const newEditor = date => ({ id: null, date, title: '', type: 'text', content: '', items: [], link: '', dirty: false });
+const newEditor = date => ({ id: null, date, title: '', type: 'text', content: '', items: [], link: '', dirty: false, reading: false });
 const linkValue = l => l ? l.sid + '|' + l.iid : '';
 const parseLink = v => { if (!v) return null; const [sid, iid] = String(v).split('|'); return sid && iid ? { sid, iid } : null; };
-const editorFrom = (n, date) => ({ id: n.id, date, title: n.title, type: n.type, content: n.content, items: clone(n.items), link: linkValue(n.link), dirty: false });
+// Una nota guardada se abre en modo lectura: solo se edita con el botón "Editar"
+const editorFrom = (n, date) => ({ id: n.id, date, title: n.title, type: n.type, content: n.content, items: clone(n.items), link: linkValue(n.link), dirty: false, reading: true });
 
 const ui = {
   tab: 'calendar',

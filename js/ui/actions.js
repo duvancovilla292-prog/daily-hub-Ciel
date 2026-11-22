@@ -22,23 +22,27 @@ const actions = {
   },
 
   'task-status': el => { ui.taskStatus = el.dataset.v; renderTasks(); },
-  'cycle-prio': el => {
+  'edit-task': async el => {
     const t = state.tasks.find(x => x.id === el.dataset.id); if (!t) return;
-    t.priority = t.priority === 'low' ? 'medium' : t.priority === 'medium' ? 'high' : 'low';
-    commit(); render();
+    const cur = linkValue(t.link);
+    const f = await formModal({
+      title: 'Editar tarea', desc: '',
+      fields: `<label>Título <input name="title" required maxlength="140" value="${esc(t.title)}"></label>
+        <div class="row2">
+          <label>Fecha <input type="date" name="date" required value="${t.date}"></label>
+          <label>Prioridad <select name="priority">${Object.entries(PRIO).map(([k, p]) => `<option value="${k}" ${k === t.priority ? 'selected' : ''}>${p.label}</option>`).join('')}</select></label>
+        </div>
+        <label>Vincular al horario <select name="link"><option value="">Sin vincular</option>${linkOptions().map(o => `<option value="${o.value}" ${o.value === cur ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}</select></label>`,
+      submit: 'Guardar cambios',
+      check: form => !form.elements.title.value.trim() ? 'Escribe el título' : !D.isValidKey(form.elements.date.value) ? 'Elige una fecha válida' : true
+    });
+    if (!f) return;
+    Object.assign(t, { title: f.elements.title.value.trim(), date: f.elements.date.value, priority: f.elements.priority.value, link: parseLink(f.elements.link.value) });
+    commit(); render(); toast('Tarea actualizada', 'ok');
   },
   'del-task': el => {
     el.closest('.task')?.classList.add('removing');
     setTimeout(() => { state.tasks = state.tasks.filter(t => t.id !== el.dataset.id); commit(); render(); }, 220);
-  },
-  'relink': async el => {
-    const t = state.tasks.find(x => x.id === el.dataset.id); if (!t) return;
-    const opts = linkOptions();
-    if (!opts.length) return toast('Primero crea un horario con actividades para poder vincular', 'error');
-    const v = await linkModal(opts, linkValue(t.link));
-    if (v === null) return;
-    t.link = parseLink(v); commit(); render();
-    toast(v ? 'Tarea vinculada al horario' : 'Vínculo quitado', 'ok');
   },
 
   'del-bday': async el => {
@@ -103,6 +107,7 @@ const actions = {
     setActiveSilent(key);
     ui.editor.date = key;
     goTab('notes');
+    if (matchMedia('(max-width: 1000px)').matches) $('.editor-card').scrollIntoView({ behavior: 'smooth', block: 'start' });   // en celular la nota queda debajo de la lista
   },
   'note-type': el => {
     const e = ui.editor, v = el.dataset.v;
@@ -117,6 +122,17 @@ const actions = {
   'li-add': () => { ui.editor.items.push({ id: uid(), text: '', done: false }); markDirty(); renderListEditor(); const r = $$('.li-text'); r[r.length - 1]?.focus(); },
   'li-del': el => { ui.editor.items.splice(+el.dataset.i, 1); markDirty(); renderListEditor(); updateCount(); },
   'save-note': saveNote,
+  'edit-note': () => { ui.editor.reading = false; renderNotes(); $('#noteTitle').focus(); },
+  'cancel-note': async () => {
+    const e = ui.editor; if (!e.id) return;
+    if (e.dirty) {
+      const ok = await modal({ title: 'Descartar cambios', body: 'Hay cambios sin guardar en esta nota. ¿Quieres descartarlos?', actions: [{ label: 'Seguir editando', value: false }, { label: 'Descartar', value: true, cls: 'btn-danger' }] });
+      if (!ok) return;
+    }
+    const n = Object.entries(state.notes).flatMap(([k, arr]) => arr.map(x => [k, x])).find(([, x]) => x.id === e.id);
+    ui.editor = n ? editorFrom(n[1], n[0]) : newEditor(ui.active);
+    renderNotes();
+  },
   'del-note': async () => {
     const e = ui.editor; if (!e.id) return;
     const ok = await modal({ title: 'Eliminar nota', body: 'Se eliminará esta nota. No se puede deshacer.', actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
@@ -142,6 +158,32 @@ const actions = {
     cleanLinks(s.id);
     state.schedules = state.schedules.filter(x => x.id !== s.id);
     commit(); render(); toast('Horario eliminado');
+  },
+  'edit-item': async el => {
+    const s = state.schedules.find(x => x.id === el.dataset.sid); if (!s) return;
+    const it = s.items.find(i => i.id === el.dataset.iid); if (!it) return;
+    let data;
+    const extra = s.type === 'weekly'
+      ? `<div><span class="lbl">Días</span><div class="daychecks">${WD_SHORT.map((n, i) => `<label class="daychk"><input type="checkbox" name="days" value="${i}" ${it.days.includes(i) ? 'checked' : ''}><span>${n}</span></label>`).join('')}</div></div>`
+      : s.type === 'monthly' ? `<label>Día del mes <input type="number" name="day" min="1" max="31" required value="${it.day}"></label>` : '';
+    const f = await formModal({
+      title: 'Editar actividad', desc: esc(s.name),
+      fields: `<label>Actividad <input name="title" required maxlength="100" value="${esc(it.title)}"></label>
+        <div class="row2"><label>Inicio <input type="time" name="start" value="${it.start}"></label><label>Fin <input type="time" name="end" value="${it.end}"></label></div>${extra}`,
+      submit: 'Guardar cambios',
+      check: form => {
+        const fd = new FormData(form);
+        const title = String(fd.get('title')).trim(), start = String(fd.get('start') || ''), end = String(fd.get('end') || '');
+        if (!title) return 'Escribe el nombre de la actividad';
+        if (start && end && end < start) return 'La hora de fin es anterior a la de inicio';
+        data = { title, start, end };
+        if (s.type === 'weekly') { data.days = fd.getAll('days').map(Number); if (!data.days.length) return 'Elige al menos un día de la semana'; }
+        if (s.type === 'monthly') { data.day = +fd.get('day'); if (!Number.isInteger(data.day) || data.day < 1 || data.day > 31) return 'Día del mes inválido'; }
+        return true;
+      }
+    });
+    if (!f) return;
+    Object.assign(it, data); commit(); render(); toast('Actividad actualizada', 'ok');
   },
   'del-item': async el => {
     const s = state.schedules.find(x => x.id === el.dataset.sid); if (!s) return;

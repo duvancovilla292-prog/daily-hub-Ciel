@@ -234,7 +234,8 @@
               <h2 id="editorTitle">Nueva nota</h2>
               <button class="btn btn-ghost" data-action="new-note">+ Nueva nota</button>
             </div>
-            <div class="stack">
+            <div id="noteRead" class="note-read" hidden></div>
+            <div class="stack" id="noteForm">
               <div class="row2">
                 <label>Título <input id="noteTitle" maxlength="80" placeholder="Opcional"></label>
                 <label>Fecha <input type="date" id="noteDate" data-change="note-date"></label>
@@ -251,7 +252,7 @@
               <label>Vincular al horario <select id="noteLink" data-change="note-link"></select></label>
               <p id="noteCount" class="muted small"></p>
               <div class="editor-foot">
-                <button class="btn btn-danger" id="btnDelNote" data-action="del-note" hidden>Eliminar</button>
+                <button class="btn btn-ghost" id="btnCancelNote" data-action="cancel-note" hidden>Cancelar</button>
                 <button class="btn btn-primary" data-action="save-note">Guardar nota</button>
               </div>
             </div>

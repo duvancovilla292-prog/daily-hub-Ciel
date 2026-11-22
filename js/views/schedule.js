@@ -119,7 +119,7 @@ function schedCard(s) {
   const a = anchorOf(s);
   const view = s.type === 'daily' ? dailyView(s, a) : s.type === 'weekly' ? weeklyView(s, a) : monthlyView(s, a);
   const items = s.items.length
-    ? `<div class="it-list">${s.items.slice().sort(byStart).map(it => `<span class="it-chip" style="--c:${s.color}"><b>${esc(it.title)}</b> · ${esc(itemWhen(s, it))}<button class="icon-btn mini" data-action="del-item" data-sid="${s.id}" data-iid="${it.id}" aria-label="Eliminar actividad">${ICON_X}</button></span>`).join('')}</div>`
+    ? `<div class="it-list">${s.items.slice().sort(byStart).map(it => `<span class="it-chip" style="--c:${s.color}"><b>${esc(it.title)}</b> · ${esc(itemWhen(s, it))}<button class="icon-btn mini edit" data-action="edit-item" data-sid="${s.id}" data-iid="${it.id}" aria-label="Editar actividad" title="Editar">${ICON_EDIT}</button><button class="icon-btn mini" data-action="del-item" data-sid="${s.id}" data-iid="${it.id}" aria-label="Eliminar actividad">${ICON_X}</button></span>`).join('')}</div>`
     : '<p class="empty-note">Aún no tiene actividades. Agrégalas con el botón de abajo.</p>';
 
   const extra = s.type === 'weekly'

@@ -44,8 +44,8 @@ daily-hub/
 
 ## Apartados
 - **Calendario:** mes actual por defecto, con flechas para cambiar de mes. Filtros (todo / tareas / notas / cumpleaños / horarios), búsqueda y ventana de detalle al tocar un día.
-- **Tareas:** con prioridad, filtros y vínculo opcional a una actividad de un horario.
-- **Notas:** varias por día, de texto o lista, con botón *Guardar nota* y vínculo opcional al horario. Incluye el bloc rápido (autoguardado).
+- **Tareas:** con prioridad, filtros y vínculo opcional a una actividad de un horario. Se editan solo con el botón ✏️ (título, fecha, prioridad y vínculo).
+- **Notas:** se abren en modo lectura y solo se modifican con **Editar** (con **Cancelar** para descartar). Varias por día, de texto o lista, con botón *Guardar nota* y vínculo opcional al horario. Incluye el bloc rápido (autoguardado).
 - **Cumpleaños:** alertas del día y de los próximos 7 días. Cada cumpleaños se puede editar (✏️), pide confirmación antes de eliminarse y puede tener una **categoría** (creada por el administrador, ej. Familia, Amigos) y una **etiqueta** libre opcional. Se filtran por categoría.
 - **Horario:** diario, semanal o mensual, con fecha de inicio y fin. Las horas visibles van por defecto de 6:00 AM a 9:00 PM y se pueden cambiar al crear el horario o después (la tabla se amplía sola si una actividad queda fuera).
 
