@@ -18,8 +18,40 @@ const vigencia = s => `${s.startDate ? 'Desde ' + D.full(s.startDate) : 'Sin fec
     ampliado automáticamente si alguna actividad queda fuera. */
 function hourRange(s) {
   let a = s.hourStart, b = s.hourEnd;
-  s.items.forEach(it => { if (it.start) { a = Math.min(a, hourOf(it.start)); b = Math.max(b, hourOf(it.end || it.start)); } });
+  s.items.forEach(it => {
+    if (!it.start) return;
+    a = Math.min(a, hourOf(it.start));
+    const e = it.end && it.end > it.start ? toMin(it.end) - 1 : toMin(it.start);
+    b = Math.max(b, Math.floor(e / 60));
+  });
   return [a, Math.min(b, 23)];
+}
+
+/* --- Línea de tiempo: cada actividad ocupa el alto de su duración --- */
+const HOUR_PX = 72;                                   // alto de una hora en la línea de tiempo
+const toMin = t => hourOf(t) * 60 + +t.slice(3, 5);
+const endMin = it => it.end && it.end > it.start ? toMin(it.end) : toMin(it.start) + 30;   // sin hora de fin: se dibuja de 30 min
+
+/** Bloques posicionados (top/alto según la hora). Las actividades que se cruzan se reparten en columnas. */
+function timelineBlocks(s, its, a, b, key) {
+  const lo = a * 60, hi = (b + 1) * 60;
+  const list = its.filter(it => it.start).map(it => ({ it, s0: Math.max(toMin(it.start), lo), e0: Math.min(endMin(it), hi) }))
+    .filter(x => x.e0 > x.s0).sort((x, y) => x.s0 - y.s0 || y.e0 - x.e0);
+  // grupos de actividades que se solapan; dentro de cada grupo, cada una toma la primera columna libre
+  let group = [], groupEnd = -1, cols = [];
+  const flush = () => { const n = cols.length; group.forEach(x => { x.n = n; }); group = []; cols = []; };
+  list.forEach(x => {
+    if (x.s0 >= groupEnd) { flush(); groupEnd = -1; }
+    let c = cols.findIndex(end => end <= x.s0);
+    if (c < 0) { c = cols.length; cols.push(0); }
+    cols[c] = x.e0; x.c = c; group.push(x); groupEnd = Math.max(groupEnd, x.e0);
+  });
+  flush();
+  return list.map(x => {
+    const top = (x.s0 - lo) * HOUR_PX / 60, h = Math.max((x.e0 - x.s0) * HOUR_PX / 60, 24);
+    const cls = h < 44 ? 'act tl-act short' : 'act tl-act';
+    return `<div class="${cls}" style="--c:${s.color};top:${top}px;height:${h - 3}px;left:calc(${x.c} * 100% / ${x.n});width:calc(100% / ${x.n} - 4px)" title="${esc(x.it.title)} · ${esc(timeLabel(x.it))}"><b>${esc(x.it.title)}</b><small>${timeLabel(x.it)}</small>${linkTags(s.id, x.it.id, key)}</div>`;
+  }).join('');
 }
 const hourOptions = sel => Array.from({ length: 24 }, (_, h) => `<option value="${h}" ${h === sel ? 'selected' : ''}>${hourLabel(h)}</option>`).join('');
 
@@ -33,10 +65,9 @@ function dailyView(s, key) {
   const allDay = occ.filter(it => !it.start);
   let rows = '';
   if (allDay.length) rows += `<div class="hr"><span class="hl">Todo el día</span><div class="hc">${allDay.map(it => actHtml(s, it, key)).join('')}</div></div>`;
-  for (let h = a; h <= b; h++) {
-    const its = occ.filter(it => it.start && hourOf(it.start) === h);
-    rows += `<div class="hr"><span class="hl">${hourLabel(h)}</span><div class="hc">${its.map(it => actHtml(s, it, key)).join('')}</div></div>`;
-  }
+  let lines = '';
+  for (let h = a; h <= b; h++) lines += `<div class="tl-h" style="top:${(h - a) * HOUR_PX}px;height:${HOUR_PX}px"><span class="hl">${hourLabel(h)}</span></div>`;
+  rows += `<div class="tl" style="height:${(b - a + 1) * HOUR_PX}px">${lines}<div class="tl-acts">${timelineBlocks(s, occ, a, b, key)}</div></div>`;
   const tasks = Cal.tasksOn(key), notes = Cal.notesOn(key);
   return `<div class="daily">
     <aside class="d-side">
@@ -60,9 +91,10 @@ function weeklyView(s, key) {
   const cell = (k, its) => `<div class="wk-c ${inRange(s, k) ? '' : 'off'}">${its.map(it => actHtml(s, it, k)).join('')}</div>`;
   const allDayAny = days.some(k => s.items.some(it => !it.start && occurs(s, it, k)));
   if (allDayAny) h += `<div class="wk-t">Todo el día</div>` + days.map(k => cell(k, s.items.filter(it => !it.start && occurs(s, it, k)))).join('');
-  for (let hr = a; hr <= b; hr++) {
-    h += `<div class="wk-t">${hourLabel(hr)}</div>` + days.map(k => cell(k, s.items.filter(it => it.start && hourOf(it.start) === hr && occurs(s, it, k)).sort(byStart))).join('');
-  }
+  // Una fila con la columna de horas y, por cada día, una línea de tiempo del mismo alto
+  const H = (b - a + 1) * HOUR_PX, slots = cls => Array.from({ length: b - a + 1 }, (_, i) => `<div class="${cls}" style="top:${i * HOUR_PX}px;height:${HOUR_PX - 8}px">${cls === 'wk-t' ? hourLabel(a + i) : ''}</div>`).join('');
+  h += `<div class="wk-col" style="height:${H}px">${slots('wk-t')}</div>`;
+  h += days.map(k => `<div class="wk-col wk-day ${inRange(s, k) ? '' : 'off'}" style="height:${H}px">${slots('wk-c')}<div class="tl-acts">${timelineBlocks(s, s.items.filter(it => occurs(s, it, k)), a, b, k)}</div></div>`).join('');
   return h + '</div></div>';
 }
 

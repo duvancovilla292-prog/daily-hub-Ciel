@@ -32,6 +32,18 @@
 .hr:last-child { border-bottom: 0; }
 .hl { background: var(--card); border-radius: 7px; padding: 5px 8px; font-size: .76rem; font-weight: 600; text-align: center; white-space: nowrap; }
 .hc { display: flex; flex-direction: column; gap: 5px; min-height: 24px; }
+/* Línea de tiempo (diario y semanal): cada actividad mide lo que dura */
+.tl { position: relative; padding-top: 7px; }
+.tl-h { position: absolute; left: 0; right: 0; margin-top: 7px; border-top: 2px dotted color-mix(in srgb, var(--text) 40%, transparent); padding-top: 6px; }
+.tl-h:first-child { border-top-color: transparent; }
+.tl-h .hl { display: block; width: 100px; }
+.tl > .tl-acts { left: 110px; top: 7px; }
+.tl-acts { position: absolute; top: 0; right: 0; bottom: 0; left: 0; }
+.tl-act { position: absolute; overflow: hidden; z-index: 1; }
+.tl-act.short { flex-direction: row; align-items: baseline; gap: 6px; padding-top: 3px; padding-bottom: 3px; }
+.tl-act.short b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.tl-act.short small { white-space: nowrap; }
+.tl-act.short .lk { display: none; }
 .off-msg { font-size: .82rem; color: var(--muted); padding: 4px 4px 10px; }
 
 /* Semanal: estilo "Horarios semanales" */
@@ -43,6 +55,10 @@
 .wk-h.today b { color: inherit; }
 .wk-t { background: var(--pill); border-radius: 99px; text-align: center; padding: 0 8px; font-size: .8rem; display: grid; place-items: center; min-height: 54px; }
 .wk-c { background: var(--pill); border-radius: 26px; min-height: 54px; padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+.wk-col { position: relative; }
+.wk-col .wk-t, .wk-col .wk-c { position: absolute; left: 0; right: 0; min-height: 0; }
+.wk-day .tl-act { margin-left: 2px; }
+.wk-day.off { opacity: .4; }
 .wk-c.off { opacity: .4; background: repeating-linear-gradient(135deg, var(--pill) 0 8px, transparent 8px 9px); }
 
 /* Mensual: reutiliza el estilo del calendario */
