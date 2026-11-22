@@ -6,6 +6,27 @@ HTML + CSS + JavaScript puro, sin dependencias. Todo se guarda en `localStorage`
 ## Cómo usarla
 Abre `index.html` en el navegador (no necesita servidor). Mantén las carpetas junto a él.
 
+## Sincronización con la nube (Firebase)
+El botón ☁ de la barra superior permite entrar con Google. Con sesión iniciada, los datos se guardan en Firestore (documento `users/{uid}`) y en el navegador, y los cambios se sincronizan solos entre dispositivos. Sin sesión, o sin conexión, la app funciona igual con el almacenamiento del navegador. El punto del botón indica el estado: verde sincronizado, azul guardando, amarillo sin conexión, rojo error.
+
+La configuración está en `js/core/cloud.js`. En la consola de Firebase hace falta:
+1. **Authentication → Método de acceso:** activar **Google**.
+2. **Authentication → Configuración → Dominios autorizados:** agregar `duvancovilla292-prog.github.io`.
+3. **Firestore Database:** crear la base de datos y poner estas reglas (cada usuario solo puede leer y escribir lo suyo):
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
+```
+
+## Deshacer
+Al eliminar algo (tarea, nota, cumpleaños, actividad, horario, categoría o *Vaciar todo*) aparece un aviso con **Deshacer** durante unos segundos.
+
 ## Publicar cambios
 `index.html` carga cada CSS/JS con `?v=…`. Al subir cambios, cambia ese número en **todos** los archivos para que el navegador descargue las versiones nuevas y no mezcle archivos viejos con nuevos.
 

@@ -1,6 +1,13 @@
 /* ===== admin.css — panel de administrador (ventana emergente) y mini dashboard ===== */
 .admin-btn { display: inline-flex; align-items: center; gap: 7px; }
 .admin-btn.unlocked { border-color: var(--sched); color: var(--sched); }
+.cloud-btn { position: relative; }
+.cloud-dot { position: absolute; right: 5px; bottom: 5px; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); border: 2px solid var(--card); }
+.cloud-btn[data-status="ok"] .cloud-dot { background: var(--sched); }
+.cloud-btn[data-status="syncing"] .cloud-dot, .cloud-btn[data-status="loading"] .cloud-dot { background: var(--accent); animation: pulse 1s infinite alternate; }
+.cloud-btn[data-status="offline"] .cloud-dot { background: var(--task); }
+.cloud-btn[data-status="error"] .cloud-dot, .cloud-btn[data-status="unavailable"] .cloud-dot { background: var(--danger); }
+@keyframes pulse { to { opacity: .35; } }
 .fontbtn { font-weight: 700; font-size: .95rem; }
 .fontbtn.on { background: var(--accent); color: #04121f; border-color: var(--accent); }
 .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }

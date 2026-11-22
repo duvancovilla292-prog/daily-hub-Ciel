@@ -14,6 +14,7 @@ const actions = {
   'select-day': el => { ui.sheet = true; setActive(el.dataset.key); },
   'close-sheet': () => { ui.sheet = false; renderSheet(); },
   'clear-search': () => { $('#searchInput').value = ''; ui.query = ''; ui.queryRaw = ''; render(); },
+  'cloud': () => window.Cloud ? window.Cloud.open() : toast('La sincronización no está disponible aquí. Abre la app desde su página web (no desde el archivo en la carpeta).', 'error'),
   'theme': () => { state.settings.theme = state.settings.theme === 'dark' ? 'light' : 'dark'; applyTheme(); commit(); renderHeader(); },
 
   'cal-nav': el => { const d = new Date(ui.cal.y, ui.cal.m + +el.dataset.d, 1); ui.cal = { y: d.getFullYear(), m: d.getMonth() }; renderCalendar(); },
@@ -46,16 +47,21 @@ const actions = {
     Object.assign(t, { title: f.elements.title.value.trim(), date: f.elements.date.value, priority: f.elements.priority.value, link: parseLink(f.elements.link.value) });
     commit(); render(); toast('Tarea actualizada', 'ok');
   },
-  'del-task': el => {
+  'del-task': async el => {
+    const t = state.tasks.find(x => x.id === el.dataset.id); if (!t) return;
+    const ok = await modal({ title: 'Eliminar tarea', body: `¿Seguro que quieres eliminar la tarea <b>${esc(t.title)}</b>?`, actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
+    if (!ok) return;
+    const snap = snapshot();
     el.closest('.task')?.classList.add('removing');
-    setTimeout(() => { state.tasks = state.tasks.filter(t => t.id !== el.dataset.id); commit(); render(); }, 220);
+    setTimeout(() => { state.tasks = state.tasks.filter(x => x.id !== t.id); commit(); render(); offerUndo(snap, 'Tarea eliminada'); }, 220);
   },
 
   'del-bday': async el => {
     const b = state.birthdays.find(x => x.id === el.dataset.id); if (!b) return;
-    const ok = await modal({ title: 'Eliminar cumpleaños', body: `¿Seguro que quieres eliminar el cumpleaños de <b>${esc(b.name)}</b> (${b.day} de ${MONTHS[b.month - 1]})? No se puede deshacer.`, actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
+    const ok = await modal({ title: 'Eliminar cumpleaños', body: `¿Seguro que quieres eliminar el cumpleaños de <b>${esc(b.name)}</b> (${b.day} de ${MONTHS[b.month - 1]})?`, actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
     if (!ok) return;
-    state.birthdays = state.birthdays.filter(x => x.id !== b.id); commit(); render(); toast('Cumpleaños eliminado');
+    const snap = snapshot();
+    state.birthdays = state.birthdays.filter(x => x.id !== b.id); commit(); render(); offerUndo(snap, 'Cumpleaños eliminado');
   },
   'edit-bday': async el => {
     const b = state.birthdays.find(x => x.id === el.dataset.id); if (!b) return;
@@ -94,9 +100,10 @@ const actions = {
     const n = state.birthdays.filter(b => b.category === c.id).length;
     const ok = await modal({ title: 'Eliminar categoría', body: `Se eliminará la categoría <b>${esc(c.name)}</b>.${n ? ` ${plural(n, 'cumpleaños quedará', 'cumpleaños quedarán')} sin categoría (no se borran).` : ''}`, actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
     if (!ok) return;
+    const snap = snapshot();
     state.birthdays.forEach(b => { if (b.category === c.id) b.category = null; });
     state.birthdayCategories = state.birthdayCategories.filter(x => x.id !== c.id);
-    commit(); render(); toast('Categoría eliminada');
+    commit(); render(); offerUndo(snap, 'Categoría eliminada');
   },
 
   /* notas */
@@ -139,10 +146,11 @@ const actions = {
   },
   'del-note': async () => {
     const e = ui.editor; if (!e.id) return;
-    const ok = await modal({ title: 'Eliminar nota', body: 'Se eliminará esta nota. No se puede deshacer.', actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
+    const ok = await modal({ title: 'Eliminar nota', body: 'Se eliminará esta nota.', actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
     if (!ok) return;
+    const snap = snapshot();
     Object.keys(state.notes).forEach(k => { state.notes[k] = state.notes[k].filter(n => n.id !== e.id); if (!state.notes[k].length) delete state.notes[k]; });
-    commit(); ui.editor = newEditor(ui.active); renderNotes(); toast('Nota eliminada');
+    commit(); ui.editor = newEditor(ui.active); renderNotes(); offerUndo(snap, 'Nota eliminada');
   },
 
   /* horarios */
@@ -159,9 +167,10 @@ const actions = {
     const s = state.schedules.find(x => x.id === el.dataset.id); if (!s) return;
     const ok = await modal({ title: 'Eliminar horario', body: `Se eliminará “${esc(s.name)}” con sus ${plural(s.items.length, 'actividad', 'actividades')}. Las tareas y notas vinculadas se conservan, sin vínculo.`, actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
     if (!ok) return;
+    const snap = snapshot();
     cleanLinks(s.id);
     state.schedules = state.schedules.filter(x => x.id !== s.id);
-    commit(); render(); toast('Horario eliminado');
+    commit(); render(); offerUndo(snap, 'Horario eliminado');
   },
   'edit-item': async el => {
     const s = state.schedules.find(x => x.id === el.dataset.sid); if (!s) return;
@@ -194,9 +203,10 @@ const actions = {
     const it = s.items.find(i => i.id === el.dataset.iid); if (!it) return;
     const ok = await modal({ title: 'Eliminar actividad', body: `Se quitará “${esc(it.title)}” de todas las fechas del horario.`, actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
     if (!ok) return;
+    const snap = snapshot();
     cleanLinks(s.id, it.id);
     s.items = s.items.filter(i => i.id !== it.id);
-    commit(); renderSchedule();
+    commit(); renderSchedule(); offerUndo(snap, 'Actividad eliminada');
   },
 
   /* administrador */
@@ -242,16 +252,17 @@ const actions = {
     if (!ui.admin) return;
     const f = await formModal({
       title: 'Vaciar todo',
-      desc: 'Se borrarán <b>todas</b> las tareas, notas, cumpleaños, horarios y el bloc rápido. No se puede deshacer: descarga un respaldo antes si lo necesitas.',
+      desc: 'Se borrarán <b>todas</b> las tareas, notas, cumpleaños, horarios y el bloc rápido. Podrás deshacerlo solo durante unos segundos: descarga un respaldo antes si lo necesitas.',
       fields: '<label>Escribe <b>VACIAR</b> para confirmar <input name="word" autocomplete="off"></label>',
       submit: 'Vaciar todo',
       check: f => f.elements.word.value.trim().toUpperCase() === 'VACIAR' || 'Escribe VACIAR para confirmar'
     });
     if (!f) return;
     clearTimeout(scratchTimer); pendingScratch = null;
+    const snap = snapshot();
     state.tasks = []; state.notes = {}; state.birthdays = []; state.schedules = []; state.scratchpad = '';
     ui.editor = newEditor(ui.active); ui.anchors = {}; ui.openForms.clear(); ui.sheet = false;
-    commit(); render(); toast('Todos los datos fueron eliminados', 'ok');
+    commit(); render(); offerUndo(snap, 'Todos los datos fueron eliminados');
   }
 };
 
