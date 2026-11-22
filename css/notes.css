@@ -6,7 +6,8 @@
 .note-item { text-align: left; background: var(--card2); border: 1px solid var(--line); border-radius: 13px; padding: 10px 12px; transition: border-color .2s; display: flex; flex-direction: column; gap: 3px; }
 .note-item:hover { border-color: var(--accent); }
 .note-item.on { border-color: var(--accent2); background: color-mix(in srgb, var(--accent2) 12%, var(--card2)); }
-.note-item b { font-size: .86rem; }
+.note-item b { font-size: .86rem; overflow-wrap: anywhere; }
+.note-item { min-width: 0; }
 .note-item span { font-size: .8rem; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .lk-mini { font-style: normal; font-size: .7rem; color: var(--accent); }
 .editor-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 8px; }

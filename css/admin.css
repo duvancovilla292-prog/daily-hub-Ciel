@@ -1,17 +1,12 @@
-/* ===== admin.css — panel de administrador desplegable y mini dashboard ===== */
+/* ===== admin.css — panel de administrador (ventana emergente) y mini dashboard ===== */
 .admin-btn { display: inline-flex; align-items: center; gap: 7px; }
-.admin-btn .chev { transition: transform .25s; }
-.admin-btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
 .admin-btn.unlocked { border-color: var(--sched); color: var(--sched); }
 .fontbtn { font-weight: 700; font-size: .95rem; }
 .fontbtn.on { background: var(--accent); color: #04121f; border-color: var(--accent); }
 .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
 
-.admin-panel { display: grid; grid-template-rows: 0fr; margin-bottom: 0; transition: grid-template-rows .3s ease, margin-bottom .3s ease; }
-.admin-panel.open { grid-template-rows: 1fr; margin-bottom: 14px; }
-.admin-inner { min-height: 0; overflow: hidden; visibility: hidden; transition: visibility 0s .3s; }
-.admin-panel.open .admin-inner { visibility: visible; transition-delay: 0s; }
-.admin-card { margin: 2px; }
+.admin-modal { max-width: 820px; max-height: calc(100dvh - 32px); overflow: auto; position: relative; }
+body.no-scroll { overflow: hidden; }
 .admin-grid { display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 22px; }
 .admin-access h2 { margin-bottom: 12px; }
 .admin-tools { display: flex; flex-direction: column; gap: 14px; }
@@ -25,3 +20,14 @@
 .tile small { color: var(--muted); font-size: .72rem; }
 .tile.wide { grid-column: 1 / -1; gap: 8px; }
 .admin-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Categorías de cumpleaños */
+.cat-admin { border-top: 1px solid var(--line); padding-top: 14px; }
+.cat-admin h3 { font-size: .95rem; margin-bottom: 8px; }
+.cat-list { display: flex; flex-direction: column; gap: 6px; }
+.cat-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: var(--card2); border: 1px solid var(--line); border-radius: 12px; }
+.cat-row .muted { flex: 1; min-width: 0; }
+.cat-row .icon-btn, .bday-row .icon-btn { width: 30px; height: 30px; border: 0; background: transparent; flex: none; }
+.cat-row .icon-btn.del:hover, .bday-row .icon-btn.del:hover { color: var(--danger); }
+.cat-admin .quick input { flex: 1; min-width: 0; }
+.admin-tools.locked .cat-admin { opacity: .5; }

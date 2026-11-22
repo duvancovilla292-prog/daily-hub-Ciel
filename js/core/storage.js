@@ -2,11 +2,14 @@
    Script clásico: comparte el ámbito global con los demás archivos de /js (ver el orden en index.html). */
 'use strict';
 
+const DEFAULT_BDAY_CATS = () => [{ id: 'cat-familia', name: 'Familia' }, { id: 'cat-amigos', name: 'Amigos' }];
+
 const defaultState = () => ({
-  meta: { version: '1.2', lastUpdated: new Date().toISOString() },
+  meta: { version: '1.3', lastUpdated: new Date().toISOString() },
   tasks: [],            // { id, title, date, completed, priority, link:{sid,iid}|null }
   notes: {},            // { "YYYY-MM-DD": [ { id, title, type:'text'|'list', content, items:[{id,text,done}], link, updatedAt } ] }
-  birthdays: [],
+  birthdays: [],         // { id, name, month, day, year|null, category: id|null, tag: '' }
+  birthdayCategories: DEFAULT_BDAY_CATS(),   // { id, name } — las crea el administrador
   schedules: [],        // { id, name, type, color, startDate, endDate, weekdays:[0-6], hourStart, hourEnd, items:[{id,title,start,end,days,day}] }
   scratchpad: '',
   settings: { theme: 'dark', filters: [...TYPES], font: 'normal' }
@@ -41,6 +44,7 @@ const Store = {
     if (!Array.isArray(raw.tasks)) throw new Error('falta la lista "tasks"');
     if (!raw.notes || typeof raw.notes !== 'object' || Array.isArray(raw.notes)) throw new Error('falta el objeto "notes"');
     if (!Array.isArray(raw.birthdays)) throw new Error('falta la lista "birthdays"');
+    if (raw.birthdayCategories !== undefined && !Array.isArray(raw.birthdayCategories)) throw new Error('"birthdayCategories" debe ser una lista');
     if (raw.schedules !== undefined && !Array.isArray(raw.schedules)) throw new Error('"schedules" debe ser una lista');
     if (raw.scratchpad !== undefined && typeof raw.scratchpad !== 'string') throw new Error('"scratchpad" debe ser texto');
     return Store.normalize(raw, true);
@@ -73,13 +77,28 @@ const Store = {
       (Array.isArray(v) ? v : [v]).forEach(n => { const note = readNote(n, k); if (note) (out.notes[k] = out.notes[k] || []).push(note); });
     });
 
+    // Categorías de cumpleaños (los respaldos antiguos no las traen: se usan las de fábrica)
+    if (Array.isArray(raw.birthdayCategories)) {
+      out.birthdayCategories = [];
+      const seen = new Set();
+      raw.birthdayCategories.forEach(c => {
+        const name = c && typeof c.name === 'string' ? c.name.trim().slice(0, 30) : '';
+        if (!name || seen.has(norm(name))) return;
+        seen.add(norm(name));
+        out.birthdayCategories.push({ id: String(c.id || uid()), name });
+      });
+    }
+    const catIds = new Set(out.birthdayCategories.map(c => c.id));
+
     (raw.birthdays || []).forEach((b, i) => {
       if (!b || typeof b.name !== 'string' || !b.name.trim()) return bad(`el cumpleaños #${i + 1} no tiene nombre`);
       const m = Number(b.month), d = Number(b.day);
       if (!Number.isInteger(m) || m < 1 || m > 12) return bad(`el cumpleaños #${i + 1} tiene un mes inválido`);
       if (!Number.isInteger(d) || d < 1 || d > D.daysIn(2024, m)) return bad(`el cumpleaños #${i + 1} tiene un día inválido`);
       const y = Number(b.year);
-      out.birthdays.push({ id: String(b.id || uid()), name: b.name.trim(), month: m, day: d, year: Number.isInteger(y) && y >= 1900 && y <= 2100 ? y : null });
+      out.birthdays.push({ id: String(b.id || uid()), name: b.name.trim(), month: m, day: d, year: Number.isInteger(y) && y >= 1900 && y <= 2100 ? y : null,
+        category: catIds.has(String(b.category)) ? String(b.category) : null,
+        tag: typeof b.tag === 'string' ? b.tag.trim().slice(0, 30) : '' });
     });
 
     (raw.schedules || []).forEach((s, i) => {
@@ -142,7 +161,7 @@ const Store = {
       tasks: s.tasks.length, pending: s.tasks.filter(t => !t.completed).length, done: s.tasks.filter(t => t.completed).length,
       overdue: s.tasks.filter(t => !t.completed && t.date < today).length,
       notes: notes.length, lists: notes.filter(n => n.type === 'list').length,
-      birthdays: s.birthdays.length,
+      birthdays: s.birthdays.length, cats: s.birthdayCategories.length,
       schedules: s.schedules.length, daily: count('daily'), weekly: count('weekly'), monthly: count('monthly'),
       items: s.schedules.reduce((a, x) => a + x.items.length, 0),
       links: s.tasks.filter(t => t.link).length + notes.filter(n => n.link).length,
@@ -156,11 +175,12 @@ const Store = {
   merge(cur, inc) {
     const out = clone(cur);
     const stamp = '\n\n— Importado —\n';
-    const rep = { tasks: { add: 0, skip: 0 }, notes: { add: 0, skip: 0 }, birthdays: { add: 0, skip: 0 }, schedules: { add: 0, skip: 0 }, items: { add: 0, skip: 0 }, scratch: false };
+    const rep = { tasks: { add: 0, skip: 0 }, notes: { add: 0, skip: 0 }, birthdays: { add: 0, skip: 0 }, cats: { add: 0, skip: 0 }, schedules: { add: 0, skip: 0 }, items: { add: 0, skip: 0 }, scratch: false };
 
     const used = new Set();
     out.tasks.forEach(t => used.add(t.id));
     out.birthdays.forEach(b => used.add(b.id));
+    out.birthdayCategories.forEach(c => used.add(c.id));
     out.schedules.forEach(x => { used.add(x.id); x.items.forEach(i => used.add(i.id)); });
     Object.values(out.notes).forEach(a => a.forEach(n => used.add(n.id)));
     const freeId = id => { if (!used.has(id)) { used.add(id); return id; } const n = uid(); used.add(n); return n; };
@@ -208,12 +228,19 @@ const Store = {
       if (!list.length) delete out.notes[k];
     });
 
-    /* 4) Cumpleaños */
+    /* 4) Categorías de cumpleaños (por nombre) y cumpleaños */
+    const catMap = {};                                          // idViejo -> idNuevo
+    inc.birthdayCategories.forEach(c => {
+      let ex = out.birthdayCategories.find(x => norm(x.name) === norm(c.name));
+      if (ex) rep.cats.skip++;
+      else { ex = { id: freeId(c.id), name: c.name }; out.birthdayCategories.push(ex); rep.cats.add++; }
+      catMap[c.id] = ex.id;
+    });
     const bSig = b => [norm(b.name), b.month, b.day].join('|');
     const haveB = new Set(out.birthdays.map(bSig));
     inc.birthdays.forEach(b => {
       if (haveB.has(bSig(b))) { rep.birthdays.skip++; return; }
-      out.birthdays.push({ ...b, id: freeId(b.id) }); haveB.add(bSig(b)); rep.birthdays.add++;
+      out.birthdays.push({ ...b, id: freeId(b.id), category: b.category ? catMap[b.category] || null : null }); haveB.add(bSig(b)); rep.birthdays.add++;
     });
 
     /* 5) Bloc rápido */

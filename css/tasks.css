@@ -11,12 +11,14 @@
 .group h3 .late { color: var(--danger); }
 .tasks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .task {
-  display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 9px 10px;
   background: var(--card2); border: 1px solid var(--line); border-radius: 13px;
   transition: opacity .25s, transform .25s, background .25s;
 }
 .task.removing { opacity: 0; transform: translateX(16px); }
-.task .t-title { flex: 1; min-width: 0; word-break: break-word; transition: color .25s; position: relative; }
+/* El título pide al menos ~140px; si no caben los botones al lado, estos bajan a otra línea
+   en vez de aplastar el texto letra por letra */
+.task .t-title { flex: 1 1 140px; min-width: 0; overflow-wrap: anywhere; transition: color .25s; position: relative; }
 .task.done .t-title { color: var(--muted); text-decoration: line-through; }
 .task.done { opacity: .75; }
 .check { flex-direction: row; cursor: pointer; }
@@ -25,6 +27,9 @@
 .check input:checked + .box { background: var(--sched); border-color: var(--sched); }
 .check input:checked + .box::after { content: ""; width: 5px; height: 10px; border: solid #04121f; border-width: 0 2px 2px 0; transform: rotate(45deg) translate(-1px, -1px); }
 .check input:focus-visible + .box { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
+.task .t-acts { display: flex; align-items: center; gap: 10px; flex: 0 1 auto; min-width: 0; max-width: 100%; margin-left: auto; }
+.task .link-chip { flex: 0 1 auto; min-width: 0; }
+.task .prio, .task .icon-btn { flex: none; }
 .prio { border: 0; font-size: .7rem; font-weight: 700; padding: 3px 9px; border-radius: 99px; }
 .prio.low { background: color-mix(in srgb, var(--sched) 22%, transparent); color: var(--sched); }
 .prio.medium { background: color-mix(in srgb, var(--task) 22%, transparent); color: var(--task); }

@@ -11,6 +11,7 @@ const changes = {
     renderHeader();
     setTimeout(render, 280);
   },
+  'bday-cat-filter': el => { ui.bdayCat = el.value; renderBirthdays(); },
   'task-scope': el => { ui.taskScope = el.value; renderTasks(); },
   'date-pick': el => setActive(el.value),
   'note-scope': el => { ui.noteScope = el.value; renderNotesList(); },
@@ -58,7 +59,7 @@ $('#importFile').addEventListener('change', async e => {
     return;
   }
   const { state: merged, report } = Store.merge(state, incoming);
-  const rows = [['Tareas', 'tasks'], ['Notas', 'notes'], ['Cumpleaños', 'birthdays'], ['Horarios', 'schedules'], ['Actividades de horarios', 'items']];
+  const rows = [['Tareas', 'tasks'], ['Notas', 'notes'], ['Cumpleaños', 'birthdays'], ['Categorías de cumpleaños', 'cats'], ['Horarios', 'schedules'], ['Actividades de horarios', 'items']];
   const added = rows.reduce((a, [, k]) => a + report[k].add, 0) + (report.scratch ? 1 : 0);
   if (!added) { toast('No hay nada nuevo: todo lo del archivo ya existe, no se duplicó nada', 'ok'); return; }
   const ok = await modal({
@@ -107,14 +108,18 @@ const forms = {
     $('#dayDetail input[name=title]')?.focus();
   },
   birthday(f) {
-    const fd = new FormData(f);
-    const name = String(fd.get('name')).trim(), day = +fd.get('day'), month = +fd.get('month');
-    const yr = fd.get('year') === '' ? null : +fd.get('year');
+    const b = readBdayForm(f);
+    if (typeof b === 'string') return toast(b, 'error');
+    state.birthdays.push({ id: uid(), ...b });
+    commit(); f.reset(); render(); toast(`Cumpleaños de ${b.name} agregado`, 'ok');
+  },
+  'bday-cat'(f) {
+    if (!ui.admin) return toast('Solo el administrador puede crear categorías', 'error');
+    const name = f.elements.name.value.trim().slice(0, 30);
     if (!name) return;
-    if (!Number.isInteger(day) || day < 1 || day > D.daysIn(2024, month)) return toast(`${cap(MONTHS[month - 1])} no tiene ese día`, 'error');
-    if (yr !== null && (!Number.isInteger(yr) || yr < 1900 || yr > new Date().getFullYear())) return toast('Año inválido', 'error');
-    state.birthdays.push({ id: uid(), name, month, day, year: yr });
-    commit(); f.reset(); render(); toast(`Cumpleaños de ${name} agregado`, 'ok');
+    if (state.birthdayCategories.some(c => norm(c.name) === norm(name))) return toast('Esa categoría ya existe', 'error');
+    state.birthdayCategories.push({ id: uid(), name });
+    commit(); f.reset(); render(); f.elements.name.focus(); toast(`Categoría “${name}” creada`, 'ok');
   },
   schedule(f) {
     const fd = new FormData(f);

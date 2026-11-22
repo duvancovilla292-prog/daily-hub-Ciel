@@ -84,7 +84,7 @@ function detailHtml(k) {
   let h = `<h2>${esc(cap(D.long(k)))}${rel ? `<span class="pill">${rel}</span>` : ''}</h2>`;
 
   h += '<section><h3>Cumpleaños</h3>' + (info.bdays.length
-    ? `<ul class="mini-list">${info.bdays.map(x => `<li>🎂 <b>${esc(x.b.name)}</b>${x.age ? ` — cumple ${x.age} años` : ''}</li>`).join('')}</ul>`
+    ? `<ul class="mini-list">${info.bdays.map(x => `<li>🎂 <b>${esc(x.b.name)}</b>${x.age ? ` — cumple ${x.age} años` : ''}${x.b.category || x.b.tag ? ` <span class="bday-tags" style="display:inline-flex">${bdayTags(x.b)}</span>` : ''}</li>`).join('')}</ul>`
     : '<p class="empty-note">Nadie cumple años este día.</p>') + '</section>';
 
   h += `<section><h3>Tareas</h3>${info.tasks.length ? `<ul class="tasks">${info.tasks.map(taskRow).join('')}</ul>` : '<p class="empty-note">Sin tareas para este día.</p>'}

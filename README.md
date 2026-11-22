@@ -46,15 +46,16 @@ daily-hub/
 - **Calendario:** mes actual por defecto, con flechas para cambiar de mes. Filtros (todo / tareas / notas / cumpleaños / horarios), búsqueda y ventana de detalle al tocar un día.
 - **Tareas:** con prioridad, filtros y vínculo opcional a una actividad de un horario.
 - **Notas:** varias por día, de texto o lista, con botón *Guardar nota* y vínculo opcional al horario. Incluye el bloc rápido (autoguardado).
-- **Cumpleaños:** alertas del día y de los próximos 7 días.
+- **Cumpleaños:** alertas del día y de los próximos 7 días. Cada cumpleaños se puede editar (✏️), pide confirmación antes de eliminarse y puede tener una **categoría** (creada por el administrador, ej. Familia, Amigos) y una **etiqueta** libre opcional. Se filtran por categoría.
 - **Horario:** diario, semanal o mensual, con fecha de inicio y fin. Las horas visibles van por defecto de 6:00 AM a 9:00 PM y se pueden cambiar al crear el horario o después (la tabla se amplía sola si una actividad queda fuera).
 
 ## Administrador
-El botón **Admin** de la barra superior despliega un panel que está siempre visible pero bloqueado hasta iniciar sesión. Ya desbloqueado:
+El botón **Admin** de la barra superior abre una ventana emergente, bloqueada hasta iniciar sesión (se cierra con ✕, Esc o tocando fuera). Ya desbloqueado:
 - **Mini dashboard** con el conteo de tareas, notas, cumpleaños, horarios, actividades y vínculos.
 - **Descargar respaldo** (`backup_YYYY-MM-DD.json`).
 - **Cargar respaldo:** compara con lo que ya existe y solo agrega lo nuevo. Nunca borra ni duplica; los vínculos se reajustan.
-- **Vaciar todo** (pide escribir VACIAR para confirmar).
+- **Vaciar todo** (pide escribir VACIAR para confirmar). Conserva las categorías de cumpleaños.
+- **Categorías de cumpleaños:** crear, renombrar y eliminar (al eliminar una, sus cumpleaños quedan sin categoría). Se guardan en el JSON como `birthdayCategories`; cada cumpleaños guarda `category` (id) y `tag` (texto).
 
 Las credenciales están en `js/core/utils.js` guardadas como hash. Al ser una app 100 % del lado del cliente, esto oculta funciones pero no es seguridad real.
 

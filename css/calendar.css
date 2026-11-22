@@ -96,5 +96,9 @@ button.cal-cell:hover { background: color-mix(in srgb, var(--accent) 9%, transpa
 .bday-list { display: flex; flex-direction: column; gap: 6px; }
 .bday-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--card2); border-radius: 12px; border: 1px solid var(--line); }
 .bday-row .info { flex: 1; min-width: 0; }
-.bday-row .info b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bday-row .info b { display: block; overflow-wrap: anywhere; }
+.bday-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.bt { display: inline-block; font-size: .7rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bt.cat { background: color-mix(in srgb, var(--accent2) 22%, transparent); color: var(--accent2); }
+.bt.tag { border: 1px solid var(--line); color: var(--muted); }
 

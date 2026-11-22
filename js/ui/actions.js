@@ -41,7 +41,53 @@ const actions = {
     toast(v ? 'Tarea vinculada al horario' : 'Vínculo quitado', 'ok');
   },
 
-  'del-bday': el => { state.birthdays = state.birthdays.filter(b => b.id !== el.dataset.id); commit(); render(); toast('Cumpleaños eliminado'); },
+  'del-bday': async el => {
+    const b = state.birthdays.find(x => x.id === el.dataset.id); if (!b) return;
+    const ok = await modal({ title: 'Eliminar cumpleaños', body: `¿Seguro que quieres eliminar el cumpleaños de <b>${esc(b.name)}</b> (${b.day} de ${MONTHS[b.month - 1]})? No se puede deshacer.`, actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
+    if (!ok) return;
+    state.birthdays = state.birthdays.filter(x => x.id !== b.id); commit(); render(); toast('Cumpleaños eliminado');
+  },
+  'edit-bday': async el => {
+    const b = state.birthdays.find(x => x.id === el.dataset.id); if (!b) return;
+    let data;
+    const f = await formModal({
+      title: 'Editar cumpleaños', desc: '',
+      fields: `<label>Nombre <input name="name" required maxlength="60" value="${esc(b.name)}"></label>
+        <div class="row3">
+          <label>Día <input name="day" type="number" min="1" max="31" required value="${b.day}"></label>
+          <label>Mes <select name="month">${MONTHS.map((m, i) => `<option value="${i + 1}" ${i + 1 === b.month ? 'selected' : ''}>${cap(m)}</option>`).join('')}</select></label>
+          <label>Año <input name="year" type="number" min="1900" max="2100" placeholder="Opcional" value="${b.year ?? ''}"></label>
+        </div>
+        <div class="row2">
+          <label>Categoría <select name="category">${catOptions(b.category)}</select></label>
+          <label>Etiqueta <input name="tag" maxlength="30" placeholder="Opcional" value="${esc(b.tag || '')}"></label>
+        </div>`,
+      submit: 'Guardar cambios',
+      check: form => { const r = readBdayForm(form); if (typeof r === 'string') return r; data = r; return true; }
+    });
+    if (!f) return;
+    Object.assign(b, data); commit(); render(); toast('Cumpleaños actualizado', 'ok');
+  },
+  'cat-rename': async el => {
+    const c = state.birthdayCategories.find(x => x.id === el.dataset.id); if (!c || !ui.admin) return;
+    const f = await formModal({
+      title: 'Renombrar categoría', desc: '',
+      fields: `<label>Nombre <input name="name" required maxlength="30" value="${esc(c.name)}"></label>`,
+      submit: 'Guardar',
+      check: form => { const n = form.elements.name.value.trim(); if (!n) return 'Escribe un nombre'; return state.birthdayCategories.some(x => x.id !== c.id && norm(x.name) === norm(n)) ? 'Ya existe una categoría con ese nombre' : true; }
+    });
+    if (!f) return;
+    c.name = f.elements.name.value.trim(); commit(); render(); toast('Categoría renombrada', 'ok');
+  },
+  'cat-del': async el => {
+    const c = state.birthdayCategories.find(x => x.id === el.dataset.id); if (!c || !ui.admin) return;
+    const n = state.birthdays.filter(b => b.category === c.id).length;
+    const ok = await modal({ title: 'Eliminar categoría', body: `Se eliminará la categoría <b>${esc(c.name)}</b>.${n ? ` ${plural(n, 'cumpleaños quedará', 'cumpleaños quedarán')} sin categoría (no se borran).` : ''}`, actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
+    if (!ok) return;
+    state.birthdays.forEach(b => { if (b.category === c.id) b.category = null; });
+    state.birthdayCategories = state.birthdayCategories.filter(x => x.id !== c.id);
+    commit(); render(); toast('Categoría eliminada');
+  },
 
   /* notas */
   'notes-mode': el => { flushScratch(); ui.notesMode = el.dataset.v; renderNotes(); },
@@ -109,6 +155,7 @@ const actions = {
 
   /* administrador */
   'admin-toggle': () => { ui.adminOpen = !ui.adminOpen; renderAdmin(); if (ui.adminOpen && !ui.admin) $('#adminLoginForm input[name=user]').focus(); },
+  'admin-close': () => { ui.adminOpen = false; renderAdmin(); $('#adminBtn').focus(); },
   'admin-lock': () => {
     ui.admin = false;
     try { sessionStorage.removeItem(SESSION_KEY); } catch (e) { /* nada */ }
@@ -155,8 +202,12 @@ document.addEventListener('click', e => {
   if (el && actions[el.dataset.action]) actions[el.dataset.action](el, e);
 });
 $('#daySheet').addEventListener('mousedown', e => { if (e.target.id === 'daySheet') actions['close-sheet'](); });
+$('#adminPanel').addEventListener('mousedown', e => { if (e.target.id === 'adminPanel') actions['admin-close'](); });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && ui.sheet && !$('#modalRoot').firstChild) actions['close-sheet']();
+  if (e.key === 'Escape' && !$('#modalRoot').firstChild) {
+    if (ui.adminOpen) actions['admin-close']();
+    else if (ui.sheet) actions['close-sheet']();
+  }
   const t = e.target;
   if (e.key === 'Enter' && t.classList && t.classList.contains('li-text')) {   // Enter en una lista: nuevo ítem debajo
     e.preventDefault();
