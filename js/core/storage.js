@@ -2,14 +2,12 @@
    Script clásico: comparte el ámbito global con los demás archivos de /js (ver el orden en index.html). */
 'use strict';
 
-const DEFAULT_BDAY_CATS = () => [{ id: 'cat-familia', name: 'Familia' }, { id: 'cat-amigos', name: 'Amigos' }];
-
 const defaultState = () => ({
   meta: { version: '1.3', lastUpdated: new Date().toISOString() },
   tasks: [],            // { id, title, date, completed, priority, link:{sid,iid}|null }
   notes: {},            // { "YYYY-MM-DD": [ { id, title, type:'text'|'list', content, items:[{id,text,done}], link, updatedAt } ] }
   birthdays: [],         // { id, name, month, day, year|null, category: id|null, tag: '' }
-  birthdayCategories: DEFAULT_BDAY_CATS(),   // { id, name } — las crea el administrador
+  birthdayCategories: [],   // { id, name } — las crea el administrador
   schedules: [],        // { id, name, type, color, startDate, endDate, weekdays:[0-6], hourStart, hourEnd, items:[{id,title,start,end,days,day}] }
   scratchpad: '',
   settings: { theme: 'dark', filters: [...TYPES], font: 'normal' }
@@ -77,7 +75,7 @@ const Store = {
       (Array.isArray(v) ? v : [v]).forEach(n => { const note = readNote(n, k); if (note) (out.notes[k] = out.notes[k] || []).push(note); });
     });
 
-    // Categorías de cumpleaños (los respaldos antiguos no las traen: se usan las de fábrica)
+    // Categorías de cumpleaños (los respaldos antiguos no las traen: quedan vacías)
     if (Array.isArray(raw.birthdayCategories)) {
       out.birthdayCategories = [];
       const seen = new Set();

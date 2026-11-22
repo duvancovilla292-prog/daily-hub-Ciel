@@ -53,6 +53,7 @@ daily-hub/
 El botón **Admin** de la barra superior abre una ventana emergente, bloqueada hasta iniciar sesión (se cierra con ✕, Esc o tocando fuera). Ya desbloqueado:
 - **Mini dashboard** con el conteo de tareas, notas, cumpleaños, horarios, actividades y vínculos.
 - **Descargar respaldo** (`backup_YYYY-MM-DD.json`).
+- **Cargar datos de prueba:** agrega los datos de `data/datos-prueba.json` (misma comparación que un respaldo).
 - **Cargar respaldo:** compara con lo que ya existe y solo agrega lo nuevo. Nunca borra ni duplica; los vínculos se reajustan.
 - **Vaciar todo** (pide escribir VACIAR para confirmar). Conserva las categorías de cumpleaños.
 - **Categorías de cumpleaños:** crear, renombrar y eliminar (al eliminar una, sus cumpleaños quedan sin categoría). Se guardan en el JSON como `birthdayCategories`; cada cumpleaños guarda `category` (id) y `tag` (texto).
@@ -63,4 +64,4 @@ Las credenciales están en `js/core/utils.js` guardadas como hash. Al ser una ap
 El botón **Aa** activa/desactiva la fuente en toda la web (clase `aetheri-on` en `<html>`, preferencia guardada). La fuente solo cubre letras, tildes y ¡¿!?; números y demás símbolos usan la tipografía normal.
 
 ## Probar con datos de ejemplo
-Entra como administrador → **Cargar respaldo** → elige `data/datos-prueba.json`. Si lo cargas otra vez, avisa que no hay nada nuevo.
+La app arranca **vacía**: nunca carga sola los datos del repositorio. Para probarla, entra como administrador → **Cargar datos de prueba** (lee `data/datos-prueba.json`). Si abres `index.html` directo desde la carpeta, el navegador no deja leer ese archivo: usa **Cargar respaldo** y elígelo a mano. Si lo cargas otra vez, avisa que no hay nada nuevo.

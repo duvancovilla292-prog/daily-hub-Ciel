@@ -179,6 +179,18 @@ const actions = {
       toast('Respaldo descargado', 'ok');
     } catch (e) { toast('No se pudo descargar: ' + e.message, 'error'); }
   },
+  'load-demo': async () => {
+    if (!ui.admin) return toast('Solo el administrador puede cargar datos de prueba', 'error');
+    let raw;
+    try {
+      const res = await fetch('data/datos-prueba.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error();
+      raw = await res.json();
+    } catch (e) {
+      return toast('No se pudieron leer los datos de prueba. Si abriste el archivo directo desde la carpeta, usa “Cargar respaldo” y elige data/datos-prueba.json', 'error');
+    }
+    importData(raw, 'Cargar datos de prueba');
+  },
   'import': () => { if (!ui.admin) return toast('Solo el administrador puede cargar', 'error'); $('#importFile').click(); },
   'wipe': async () => {
     if (!ui.admin) return;

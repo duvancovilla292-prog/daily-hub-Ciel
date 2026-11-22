@@ -51,9 +51,17 @@ $('#importFile').addEventListener('change', async e => {
   const file = e.target.files[0];
   e.target.value = '';
   if (!file || !ui.admin) return;
+  let raw;
+  try { raw = JSON.parse(await file.text()); }
+  catch (err) { toast('Archivo inválido: no es un JSON', 'error'); return; }
+  importData(raw, 'Cargar respaldo');
+});
+
+/** Compara los datos recibidos con los actuales y, si el admin confirma, agrega solo lo nuevo. */
+async function importData(raw, title) {
   let incoming;
   try {
-    incoming = Store.validate(JSON.parse(await file.text()));
+    incoming = Store.validate(raw);
   } catch (err) {
     toast('Archivo inválido: ' + (err.message || 'no se pudo leer'), 'error');
     return;
@@ -63,7 +71,7 @@ $('#importFile').addEventListener('change', async e => {
   const added = rows.reduce((a, [, k]) => a + report[k].add, 0) + (report.scratch ? 1 : 0);
   if (!added) { toast('No hay nada nuevo: todo lo del archivo ya existe, no se duplicó nada', 'ok'); return; }
   const ok = await modal({
-    title: 'Cargar respaldo',
+    title,
     body: 'Se comparó el archivo con tus datos actuales:<br><br>' +
       rows.map(([n, k]) => `<b>${n}:</b> ${report[k].add} nuevos · ${report[k].skip} ya existían`).join('<br>') +
       (report.scratch ? '<br><b>Bloc rápido:</b> se agregará el texto nuevo' : '') +
@@ -77,7 +85,7 @@ $('#importFile').addEventListener('change', async e => {
   ui.editor = newEditor(ui.active); ui.anchors = {};
   commit(); render();
   toast(`Se agregaron ${added} elementos nuevos`, 'ok');
-});
+}
 
 const forms = {
   'admin-login'(f) {
