@@ -1,0 +1,19 @@
+/* ===== fonts.css — tipografía personalizada Aetheri (Prueva-Regular) =====
+   Se activa/desactiva con el botón "Aa" de la barra superior, que pone la clase
+   .aetheri-on en <html>. La fuente solo cubre letras, tildes y ¡¿!?; los números y
+   la demás puntuación caen automáticamente a la tipografía normal. */
+@font-face {
+  font-family: "Aetheri";
+  src: url("../fonts/Prueva-Regular.otf") format("opentype"),
+       url("../fonts/Prueva-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+html.aetheri-on {
+  --font: "Aetheri", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+html.aetheri-on .script,
+html.aetheri-on .cal-dow { font-family: var(--font); }
+html.aetheri-on .cal-dow { font-size: 1.15rem; }
+html.aetheri-on body { letter-spacing: .02em; }

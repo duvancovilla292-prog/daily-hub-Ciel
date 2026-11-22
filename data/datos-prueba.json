@@ -1,0 +1,785 @@
+{
+  "meta": {
+    "version": "1.2",
+    "lastUpdated": "2026-11-21T20:00:00.000Z"
+  },
+  "tasks": [
+    {
+      "id": "t01",
+      "title": "Entregar laboratorio Java S07",
+      "date": "2026-11-23",
+      "completed": false,
+      "priority": "high",
+      "link": {
+        "sid": "s-clases",
+        "iid": "i-java"
+      }
+    },
+    {
+      "id": "t02",
+      "title": "Repasar triggers y procedimientos almacenados",
+      "date": "2026-11-24",
+      "completed": false,
+      "priority": "medium",
+      "link": {
+        "sid": "s-clases",
+        "iid": "i-sql"
+      }
+    },
+    {
+      "id": "t03",
+      "title": "Practicar speaking de inglés",
+      "date": "2026-11-23",
+      "completed": false,
+      "priority": "low",
+      "link": {
+        "sid": "s-clases",
+        "iid": "i-ingles"
+      }
+    },
+    {
+      "id": "t04",
+      "title": "Avanzar el proyecto grupal",
+      "date": "2026-11-27",
+      "completed": false,
+      "priority": "high",
+      "link": {
+        "sid": "s-clases",
+        "iid": "i-grupal"
+      }
+    },
+    {
+      "id": "t05",
+      "title": "Pagar el arriendo",
+      "date": "2026-12-05",
+      "completed": false,
+      "priority": "high",
+      "link": {
+        "sid": "s-pagos",
+        "iid": "i-arriendo"
+      }
+    },
+    {
+      "id": "t06",
+      "title": "Pagar el internet",
+      "date": "2026-11-15",
+      "completed": true,
+      "priority": "medium",
+      "link": {
+        "sid": "s-pagos",
+        "iid": "i-internet"
+      }
+    },
+    {
+      "id": "t07",
+      "title": "Pagar la tarjeta",
+      "date": "2026-11-28",
+      "completed": false,
+      "priority": "medium",
+      "link": {
+        "sid": "s-pagos",
+        "iid": "i-tarjeta"
+      }
+    },
+    {
+      "id": "t08",
+      "title": "Resolver 10 ejercicios de lógica",
+      "date": "2026-11-21",
+      "completed": false,
+      "priority": "medium",
+      "link": {
+        "sid": "s-estudio",
+        "iid": "i-logica"
+      }
+    },
+    {
+      "id": "t09",
+      "title": "Subir el portafolio a GitHub Pages",
+      "date": "2026-11-22",
+      "completed": false,
+      "priority": "medium",
+      "link": null
+    },
+    {
+      "id": "t10",
+      "title": "Comprar proteína",
+      "date": "2026-11-22",
+      "completed": false,
+      "priority": "low",
+      "link": null
+    },
+    {
+      "id": "t11",
+      "title": "Entrenar pierna",
+      "date": "2026-11-21",
+      "completed": false,
+      "priority": "medium",
+      "link": {
+        "sid": "s-gym",
+        "iid": "i-entreno"
+      }
+    },
+    {
+      "id": "t12",
+      "title": "Lavar la ropa",
+      "date": "2026-11-21",
+      "completed": false,
+      "priority": "low",
+      "link": {
+        "sid": "s-limpieza",
+        "iid": "i-ropa"
+      }
+    },
+    {
+      "id": "t13",
+      "title": "Preparar la demo del sprint",
+      "date": "2026-12-01",
+      "completed": false,
+      "priority": "high",
+      "link": {
+        "sid": "s-sprint",
+        "iid": "i-demo"
+      }
+    },
+    {
+      "id": "t14",
+      "title": "Instalar Termux en el celular",
+      "date": "2026-11-10",
+      "completed": true,
+      "priority": "low",
+      "link": null
+    },
+    {
+      "id": "t15",
+      "title": "Configurar Firebase del proyecto",
+      "date": "2026-11-12",
+      "completed": true,
+      "priority": "high",
+      "link": null
+    },
+    {
+      "id": "t16",
+      "title": "Entregar laboratorio S06",
+      "date": "2026-11-18",
+      "completed": true,
+      "priority": "medium",
+      "link": {
+        "sid": "s-clases",
+        "iid": "i-java"
+      }
+    },
+    {
+      "id": "t17",
+      "title": "Leer la documentación de n8n",
+      "date": "2026-11-19",
+      "completed": false,
+      "priority": "medium",
+      "link": null
+    },
+    {
+      "id": "t18",
+      "title": "Examen final de SQL",
+      "date": "2027-01-20",
+      "completed": false,
+      "priority": "high",
+      "link": null
+    },
+    {
+      "id": "t19",
+      "title": "Renovar documentos",
+      "date": "2027-02-10",
+      "completed": false,
+      "priority": "medium",
+      "link": null
+    },
+    {
+      "id": "t20",
+      "title": "Planear el viaje de fin de año",
+      "date": "2026-12-20",
+      "completed": false,
+      "priority": "low",
+      "link": null
+    },
+    {
+      "id": "t21",
+      "title": "Hacer un respaldo del proyecto",
+      "date": "2026-11-21",
+      "completed": false,
+      "priority": "medium",
+      "link": null
+    }
+  ],
+  "notes": {
+    "2026-10-15": [
+      {
+        "id": "n01",
+        "title": "Resumen de octubre",
+        "type": "text",
+        "content": "Se terminó la sesión 5 de Java y empezó SQL. Pendiente reforzar encapsulación.",
+        "items": [],
+        "link": null,
+        "updatedAt": "2026-11-21T10:00:00.000Z"
+      }
+    ],
+    "2026-11-21": [
+      {
+        "id": "n02",
+        "title": "Ideas para Daily Hub",
+        "type": "text",
+        "content": "Agregar atajos de teclado y formato Markdown en las notas.",
+        "items": [],
+        "link": null,
+        "updatedAt": "2026-11-21T10:00:00.000Z"
+      },
+      {
+        "id": "n03",
+        "title": "Compras del día",
+        "type": "list",
+        "content": "",
+        "items": [
+          {
+            "id": "n03-0",
+            "text": "Leche",
+            "done": false
+          },
+          {
+            "id": "n03-1",
+            "text": "Pan",
+            "done": false
+          },
+          {
+            "id": "n03-2",
+            "text": "Huevos",
+            "done": true
+          },
+          {
+            "id": "n03-3",
+            "text": "Avena",
+            "done": false
+          }
+        ],
+        "link": null,
+        "updatedAt": "2026-11-21T10:00:00.000Z"
+      },
+      {
+        "id": "n04",
+        "title": "Rutina de hoy",
+        "type": "text",
+        "content": "Pierna y core. 4 series por ejercicio.",
+        "items": [],
+        "link": {
+          "sid": "s-gym",
+          "iid": "i-entreno"
+        },
+        "updatedAt": "2026-11-21T10:00:00.000Z"
+      },
+      {
+        "id": "n05",
+        "title": "Plan de ajedrez",
+        "type": "text",
+        "content": "Practicar finales de torre y peones.",
+        "items": [],
+        "link": {
+          "sid": "s-estudio",
+          "iid": "i-ajedrez"
+        },
+        "updatedAt": "2026-11-21T10:00:00.000Z"
+      }
+    ],
+    "2026-11-22": [
+      {
+        "id": "n06",
+        "title": "Tensura: teorías",
+        "type": "text",
+        "content": "Comparar las habilidades únicas de Rimuru con las de Veldora.",
+        "items": [],
+        "link": null,
+        "updatedAt": "2026-11-21T10:00:00.000Z"
+      }
+    ],
+    "2026-11-23": [
+      {
+        "id": "n07",
+        "title": "Notas de Java",
+        "type": "text",
+        "content": "Clases abstractas vs interfaces. Ver ejemplos del taller.",
+        "items": [],
+        "link": {
+          "sid": "s-clases",
+          "iid": "i-java"
+        },
+        "updatedAt": "2026-11-21T10:00:00.000Z"
+      }
+    ],
+    "2026-11-24": [
+      {
+        "id": "n08",
+        "title": "Checklist SQL",
+        "type": "list",
+        "content": "",
+        "items": [
+          {
+            "id": "n08-0",
+            "text": "Triggers",
+            "done": false
+          },
+          {
+            "id": "n08-1",
+            "text": "Procedimientos almacenados",
+            "done": true
+          },
+          {
+            "id": "n08-2",
+            "text": "Tercera forma normal",
+            "done": false
+          },
+          {
+            "id": "n08-3",
+            "text": "Vistas",
+            "done": false
+          }
+        ],
+        "link": {
+          "sid": "s-clases",
+          "iid": "i-sql"
+        },
+        "updatedAt": "2026-11-21T10:00:00.000Z"
+      }
+    ],
+    "2026-11-28": [
+      {
+        "id": "n09",
+        "title": "Recordatorio de la tarjeta",
+        "type": "text",
+        "content": "Revisar el extracto antes de pagar.",
+        "items": [],
+        "link": {
+          "sid": "s-pagos",
+          "iid": "i-tarjeta"
+        },
+        "updatedAt": "2026-11-21T10:00:00.000Z"
+      }
+    ],
+    "2026-12-01": [
+      {
+        "id": "n10",
+        "title": "Guion de la demo",
+        "type": "text",
+        "content": "1) Contexto 2) Demo en vivo 3) Preguntas.",
+        "items": [],
+        "link": {
+          "sid": "s-sprint",
+          "iid": "i-demo"
+        },
+        "updatedAt": "2026-11-21T10:00:00.000Z"
+      }
+    ],
+    "2026-12-05": [
+      {
+        "id": "n11",
+        "title": "Cuentas del mes",
+        "type": "list",
+        "content": "",
+        "items": [
+          {
+            "id": "n11-0",
+            "text": "Arriendo",
+            "done": false
+          },
+          {
+            "id": "n11-1",
+            "text": "Servicios",
+            "done": false
+          },
+          {
+            "id": "n11-2",
+            "text": "Mercado",
+            "done": false
+          }
+        ],
+        "link": {
+          "sid": "s-pagos",
+          "iid": "i-arriendo"
+        },
+        "updatedAt": "2026-11-21T10:00:00.000Z"
+      }
+    ],
+    "2027-01-05": [
+      {
+        "id": "n12",
+        "title": "Metas 2027",
+        "type": "list",
+        "content": "",
+        "items": [
+          {
+            "id": "n12-0",
+            "text": "Terminar el tecnólogo",
+            "done": false
+          },
+          {
+            "id": "n12-1",
+            "text": "Publicar 3 proyectos",
+            "done": false
+          },
+          {
+            "id": "n12-2",
+            "text": "Aprender inglés B2",
+            "done": false
+          }
+        ],
+        "link": null,
+        "updatedAt": "2026-11-21T10:00:00.000Z"
+      }
+    ]
+  },
+  "birthdays": [
+    {
+      "id": "b01",
+      "name": "Ana",
+      "month": 11,
+      "day": 21,
+      "year": 2000
+    },
+    {
+      "id": "b02",
+      "name": "Luis",
+      "month": 11,
+      "day": 24,
+      "year": 1999
+    },
+    {
+      "id": "b03",
+      "name": "Camila",
+      "month": 12,
+      "day": 1,
+      "year": null
+    },
+    {
+      "id": "b04",
+      "name": "Mamá",
+      "month": 12,
+      "day": 15,
+      "year": 1975
+    },
+    {
+      "id": "b05",
+      "name": "Papá",
+      "month": 1,
+      "day": 3,
+      "year": 1972
+    },
+    {
+      "id": "b06",
+      "name": "Sofía (nació un 29 de febrero)",
+      "month": 2,
+      "day": 29,
+      "year": 2004
+    },
+    {
+      "id": "b07",
+      "name": "Santiago",
+      "month": 2,
+      "day": 14,
+      "year": 2001
+    },
+    {
+      "id": "b08",
+      "name": "Profe Carlos",
+      "month": 11,
+      "day": 9,
+      "year": null
+    }
+  ],
+  "schedules": [
+    {
+      "id": "s-clases",
+      "name": "Clases Campuslands",
+      "type": "weekly",
+      "color": "#38bdf8",
+      "startDate": "2026-10-05",
+      "endDate": "2027-02-26",
+      "weekdays": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "hourStart": 6,
+      "hourEnd": 21,
+      "items": [
+        {
+          "id": "i-java",
+          "title": "Java (POO)",
+          "start": "08:00",
+          "end": "10:00",
+          "days": [
+            0,
+            2,
+            4
+          ],
+          "day": 1
+        },
+        {
+          "id": "i-sql",
+          "title": "SQL y bases de datos",
+          "start": "08:00",
+          "end": "10:00",
+          "days": [
+            1,
+            3
+          ],
+          "day": 1
+        },
+        {
+          "id": "i-ingles",
+          "title": "Inglés",
+          "start": "10:30",
+          "end": "12:00",
+          "days": [
+            0,
+            3
+          ],
+          "day": 1
+        },
+        {
+          "id": "i-grupal",
+          "title": "Proyecto grupal",
+          "start": "14:00",
+          "end": "17:00",
+          "days": [
+            4
+          ],
+          "day": 1
+        }
+      ]
+    },
+    {
+      "id": "s-gym",
+      "name": "Rutina de gym",
+      "type": "daily",
+      "color": "#34d399",
+      "startDate": "2026-11-01",
+      "endDate": "2026-12-31",
+      "weekdays": [
+        0,
+        2,
+        4,
+        5
+      ],
+      "hourStart": 5,
+      "hourEnd": 21,
+      "items": [
+        {
+          "id": "i-calent",
+          "title": "Calentamiento",
+          "start": "05:30",
+          "end": "06:00",
+          "days": [],
+          "day": 1
+        },
+        {
+          "id": "i-entreno",
+          "title": "Entrenamiento",
+          "start": "06:00",
+          "end": "07:30",
+          "days": [],
+          "day": 1
+        }
+      ]
+    },
+    {
+      "id": "s-estudio",
+      "name": "Plan de estudio (4 semanas)",
+      "type": "daily",
+      "color": "#a855f7",
+      "startDate": "2026-11-16",
+      "endDate": "2026-12-13",
+      "weekdays": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "hourStart": 6,
+      "hourEnd": 21,
+      "items": [
+        {
+          "id": "i-logica",
+          "title": "Lógica y matemáticas",
+          "start": "19:00",
+          "end": "20:00",
+          "days": [],
+          "day": 1
+        },
+        {
+          "id": "i-js",
+          "title": "Practicar JavaScript",
+          "start": "20:00",
+          "end": "21:00",
+          "days": [],
+          "day": 1
+        },
+        {
+          "id": "i-ajedrez",
+          "title": "Ajedrez: táctica",
+          "start": "21:00",
+          "end": "21:30",
+          "days": [],
+          "day": 1
+        }
+      ]
+    },
+    {
+      "id": "s-pagos",
+      "name": "Pagos y trámites",
+      "type": "monthly",
+      "color": "#f59e0b",
+      "startDate": "2026-10-01",
+      "endDate": "",
+      "weekdays": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "hourStart": 6,
+      "hourEnd": 21,
+      "items": [
+        {
+          "id": "i-arriendo",
+          "title": "Arriendo",
+          "start": "",
+          "end": "",
+          "days": [],
+          "day": 5
+        },
+        {
+          "id": "i-internet",
+          "title": "Internet",
+          "start": "08:00",
+          "end": "",
+          "days": [],
+          "day": 15
+        },
+        {
+          "id": "i-tarjeta",
+          "title": "Tarjeta de crédito",
+          "start": "",
+          "end": "",
+          "days": [],
+          "day": 28
+        },
+        {
+          "id": "i-cierre",
+          "title": "Cierre del mes",
+          "start": "17:00",
+          "end": "",
+          "days": [],
+          "day": 31
+        }
+      ]
+    },
+    {
+      "id": "s-limpieza",
+      "name": "Limpieza del hogar",
+      "type": "weekly",
+      "color": "#f472b6",
+      "startDate": "2026-11-01",
+      "endDate": "",
+      "weekdays": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "hourStart": 6,
+      "hourEnd": 21,
+      "items": [
+        {
+          "id": "i-ropa",
+          "title": "Lavar ropa",
+          "start": "09:00",
+          "end": "10:00",
+          "days": [
+            5
+          ],
+          "day": 1
+        },
+        {
+          "id": "i-general",
+          "title": "Limpieza general",
+          "start": "10:00",
+          "end": "12:00",
+          "days": [
+            6
+          ],
+          "day": 1
+        }
+      ]
+    },
+    {
+      "id": "s-sprint",
+      "name": "Semana de proyecto final (2 semanas)",
+      "type": "weekly",
+      "color": "#f87171",
+      "startDate": "2026-12-01",
+      "endDate": "2026-12-14",
+      "weekdays": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "hourStart": 7,
+      "hourEnd": 20,
+      "items": [
+        {
+          "id": "i-demo",
+          "title": "Demo del sprint",
+          "start": "15:00",
+          "end": "16:00",
+          "days": [
+            1
+          ],
+          "day": 1
+        },
+        {
+          "id": "i-revision",
+          "title": "Revisión de código",
+          "start": "10:00",
+          "end": "11:30",
+          "days": [
+            4
+          ],
+          "day": 1
+        }
+      ]
+    }
+  ],
+  "scratchpad": "Bloc de prueba:\n- Probar cargar este archivo dos veces (no debe duplicar)\n- Probar la fuente Aetheri\n- Cambiar las horas de un horario",
+  "settings": {
+    "theme": "dark",
+    "filters": [
+      "tasks",
+      "notes",
+      "birthdays",
+      "schedules"
+    ],
+    "font": "normal"
+  }
+}

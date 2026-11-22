@@ -1,0 +1,27 @@
+/* ===== admin.css — panel de administrador desplegable y mini dashboard ===== */
+.admin-btn { display: inline-flex; align-items: center; gap: 7px; }
+.admin-btn .chev { transition: transform .25s; }
+.admin-btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.admin-btn.unlocked { border-color: var(--sched); color: var(--sched); }
+.fontbtn { font-weight: 700; font-size: .95rem; }
+.fontbtn.on { background: var(--accent); color: #04121f; border-color: var(--accent); }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+.admin-panel { display: grid; grid-template-rows: 0fr; margin-bottom: 0; transition: grid-template-rows .3s ease, margin-bottom .3s ease; }
+.admin-panel.open { grid-template-rows: 1fr; margin-bottom: 14px; }
+.admin-inner { min-height: 0; overflow: hidden; visibility: hidden; transition: visibility 0s .3s; }
+.admin-panel.open .admin-inner { visibility: visible; transition-delay: 0s; }
+.admin-card { margin: 2px; }
+.admin-grid { display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 22px; }
+.admin-access h2 { margin-bottom: 12px; }
+.admin-tools { display: flex; flex-direction: column; gap: 14px; }
+.lock-banner { display: none; font-size: .85rem; color: var(--task); background: color-mix(in srgb, var(--task) 14%, transparent); border: 1px solid color-mix(in srgb, var(--task) 40%, transparent); padding: 8px 12px; border-radius: 10px; }
+.admin-tools.locked .lock-banner { display: block; }
+.admin-tools.locked .dash { opacity: .5; filter: saturate(.3); }
+.dash { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; transition: opacity .3s; }
+.tile { background: var(--card2); border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 2px; }
+.tile b { font-size: 1.8rem; line-height: 1.1; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.tile span { font-weight: 600; font-size: .85rem; }
+.tile small { color: var(--muted); font-size: .72rem; }
+.tile.wide { grid-column: 1 / -1; gap: 8px; }
+.admin-actions { display: flex; gap: 8px; flex-wrap: wrap; }

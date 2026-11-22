@@ -1,0 +1,80 @@
+/* ===== base.css — variables de tema, reinicio y controles de formulario ===== */
+:root {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --card2: #263449;
+  --line: rgba(148, 163, 184, .16);
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #38bdf8;
+  --accent2: #a855f7;
+  --task: #f59e0b;
+  --sched: #34d399;
+  --danger: #f87171;
+  --radius: 18px;
+  --shadow: 0 10px 30px rgba(2, 6, 23, .35);
+  --mint: #5eead4;
+  --glow1: rgba(56, 189, 248, .12);
+  --glow2: rgba(168, 85, 247, .12);
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+[data-theme="light"] {
+  --bg: #f1f5f9;
+  --card: #ffffff;
+  --card2: #f1f5f9;
+  --line: rgba(15, 23, 42, .1);
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #0284c7;
+  --accent2: #9333ea;
+  --task: #d97706;
+  --sched: #059669;
+  --danger: #dc2626;
+  --shadow: 0 8px 24px rgba(15, 23, 42, .08);
+  --mint: #6ccfc3;
+  --glow1: rgba(2, 132, 199, .10);
+  --glow2: rgba(147, 51, 234, .08);
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--text);
+  background:
+    radial-gradient(900px 500px at 8% -10%, var(--glow1), transparent 60%),
+    radial-gradient(800px 500px at 100% 0%, var(--glow2), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+  min-height: 100vh;
+  transition: background-color .3s, color .3s;
+}
+[hidden] { display: none !important; }
+h1, h2, h3 { margin: 0; letter-spacing: -.01em; }
+h1 { font-size: 1.15rem; }
+h2 { font-size: 1.05rem; margin-bottom: 12px; }
+h3 { font-size: .9rem; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: .82rem; }
+button { font: inherit; color: inherit; cursor: pointer; }
+input, select, textarea {
+  font: inherit; color: var(--text);
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 9px 12px;
+  width: 100%;
+  transition: border-color .2s, box-shadow .2s;
+}
+input:focus, select:focus, textarea:focus, button:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+label { display: flex; flex-direction: column; gap: 5px; font-size: .8rem; color: var(--muted); }
+.lbl { font-size: .8rem; color: var(--muted); display: block; margin-bottom: 6px; }
+
+.app { max-width: 1280px; margin: 0 auto; padding: 18px 18px 90px; }
+

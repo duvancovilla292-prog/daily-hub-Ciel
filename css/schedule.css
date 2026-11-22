@@ -1,0 +1,73 @@
+/* ===== schedule.css — horarios diario / semanal / mensual ===== */
+.row3b { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.sched-list { display: flex; flex-direction: column; gap: 18px; margin-top: 16px; }
+.sched-card { border-top: 3px solid var(--c); }
+.sched-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
+.sched-head h2 { margin: 0; flex: 1; min-width: 120px; }
+.sched-head .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--c); }
+.tag { font-size: .72rem; padding: 3px 10px; border-radius: 99px; background: color-mix(in srgb, var(--c) 20%, transparent); color: var(--text); }
+.vig { margin-bottom: 10px; }
+.period { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.period b { min-width: 170px; text-align: center; }
+.sub { margin: 16px 0 8px; font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.it-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.it-chip { display: inline-flex; align-items: center; gap: 4px; font-size: .78rem; padding: 3px 4px 3px 10px; border-radius: 99px; border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); background: color-mix(in srgb, var(--c) 12%, transparent); }
+
+/* actividad (se usa en las tres vistas) */
+.act { display: flex; flex-direction: column; gap: 2px; padding: 5px 8px; border-radius: 10px; border-left: 3px solid var(--c); background: color-mix(in srgb, var(--c) 24%, var(--card)); font-size: .8rem; min-width: 0; }
+.act b { word-break: break-word; }
+.act small { color: var(--muted); font-size: .68rem; }
+.act .lk { margin-top: 2px; align-self: flex-start; }
+
+/* Diario: estilo "Daily plan" */
+.daily { display: grid; grid-template-columns: minmax(190px, .8fr) minmax(0, 2.2fr); gap: 14px; align-items: start; }
+.d-side { display: flex; flex-direction: column; gap: 22px; padding-top: 12px; }
+.panel { position: relative; border: 3px solid color-mix(in srgb, var(--text) 38%, var(--card)); border-radius: 18px; padding: 24px 12px 12px; min-height: 120px; background: var(--card2); display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.ptitle { position: absolute; top: -13px; left: 14px; background: var(--c); color: #0b1220; font-weight: 700; font-size: .78rem; padding: 4px 16px; border-radius: 99px; }
+.mini-tasks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; width: 100%; font-size: .85rem; }
+.mini-tasks li { display: flex; gap: 8px; align-items: center; }
+.mini-tasks li.done span:last-child { text-decoration: line-through; color: var(--muted); }
+.d-grid { background: color-mix(in srgb, var(--c) 22%, var(--card2)); border-radius: 14px; padding: 12px; }
+.hr { display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 10px; align-items: start; padding: 7px 0; border-bottom: 2px dotted color-mix(in srgb, var(--text) 40%, transparent); }
+.hr:last-child { border-bottom: 0; }
+.hl { background: var(--card); border-radius: 7px; padding: 5px 8px; font-size: .76rem; font-weight: 600; text-align: center; white-space: nowrap; }
+.hc { display: flex; flex-direction: column; gap: 5px; min-height: 24px; }
+.off-msg { font-size: .82rem; color: var(--muted); padding: 4px 4px 10px; }
+
+/* Semanal: estilo "Horarios semanales" */
+.wk-wrap { overflow-x: auto; padding-bottom: 6px; }
+.wk { display: grid; gap: 8px; min-width: 720px; --pill: color-mix(in srgb, var(--text) 9%, var(--card2)); }
+.wk-h { background: var(--pill); border-radius: 99px; text-align: center; padding: 10px 6px; font-size: .72rem; letter-spacing: .16em; font-weight: 600; }
+.wk-h b { letter-spacing: 0; margin-left: 4px; color: var(--accent); }
+.wk-h.today { background: var(--accent); color: #04121f; }
+.wk-h.today b { color: inherit; }
+.wk-t { background: var(--pill); border-radius: 99px; text-align: center; padding: 0 8px; font-size: .8rem; display: grid; place-items: center; min-height: 54px; }
+.wk-c { background: var(--pill); border-radius: 26px; min-height: 54px; padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+.wk-c.off { opacity: .4; background: repeating-linear-gradient(135deg, var(--pill) 0 8px, transparent 8px 9px); }
+
+/* Mensual: reutiliza el estilo del calendario */
+.cal-cell.static { min-height: 96px; }
+.cell-acts { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cell-acts .act { padding: 3px 6px; font-size: .7rem; }
+.cell-acts .act small { display: none; }
+
+.add-item { margin-top: 14px; border-top: 1px dashed var(--line); padding-top: 12px; }
+.add-item summary { cursor: pointer; color: var(--accent); font-size: .88rem; font-weight: 600; list-style: none; }
+.add-item summary::-webkit-details-marker { display: none; }
+.add-item form { margin-top: 12px; }
+.daychecks { display: flex; gap: 6px; flex-wrap: wrap; }
+.daychk { flex-direction: row; }
+.daychk input { position: absolute; opacity: 0; width: 0; height: 0; }
+.daychk span { padding: 6px 11px; border-radius: 10px; border: 1px solid var(--line); background: var(--card2); font-size: .8rem; color: var(--muted); cursor: pointer; transition: all .2s; }
+.daychk input:checked + span { background: var(--accent); color: #04121f; border-color: var(--accent); font-weight: 600; }
+.daychk input:focus-visible + span { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
+.swatches { display: flex; gap: 8px; }
+.sw { flex-direction: row; }
+.sw input { position: absolute; opacity: 0; width: 0; height: 0; }
+.sw span { width: 28px; height: 28px; border-radius: 50%; background: var(--c); border: 3px solid transparent; cursor: pointer; transition: transform .15s; display: block; }
+.sw input:checked + span { border-color: var(--text); transform: scale(1.12); }
+
+
+/* Selector de horas de la tabla (diario y semanal) */
+.hours-edit { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; font-size: .8rem; color: var(--muted); }
+.hours-edit select { width: auto; padding: 6px 10px; }

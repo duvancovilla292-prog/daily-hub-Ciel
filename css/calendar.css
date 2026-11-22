@@ -1,0 +1,100 @@
+/* ===== calendar.css — calendario del mes, detalle del día, vínculos y alertas ===== */
+/* ===== Calendario (estilo "Mi mes") ===== */
+.script { font-family: "Caveat", "Segoe Script", "Bradley Hand", "Comic Sans MS", cursive; font-weight: 700; letter-spacing: .01em; }
+.cal-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; align-items: center; }
+.cal-nav { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cal-nav h2 { margin: 0; font-size: 2.3rem; line-height: 1; min-width: 190px; text-align: center; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+  border: 1px solid var(--line); background: var(--card2); color: var(--muted);
+  padding: 5px 12px; border-radius: 99px; font-size: .8rem; transition: all .2s;
+}
+.chip.on { color: var(--text); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.cal-dows { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; margin: 12px 0 8px; }
+.cal-dow {
+  text-align: center; padding: 4px 4px 2px; color: var(--text);
+  font-family: "Caveat", "Segoe Script", "Bradley Hand", "Comic Sans MS", cursive; font-weight: 700; font-size: 1.35rem; line-height: 1.2;
+  border-radius: 8px 18px 10px 20px / 16px 8px 18px 8px;
+  background: linear-gradient(105deg, color-mix(in srgb, var(--mint) 50%, transparent), color-mix(in srgb, var(--mint) 22%, transparent) 55%, color-mix(in srgb, var(--mint) 42%, transparent));
+}
+.cal-dow .s { display: none; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 2px solid var(--line); border-left: 2px solid var(--line); }
+.cal-cell {
+  position: relative; min-height: 112px; text-align: left; padding: 7px; display: flex; flex-direction: column; gap: 4px; overflow: hidden;
+  background: transparent; border: 0; border-right: 2px solid var(--line); border-bottom: 2px solid var(--line); border-radius: 0;
+  transition: background .2s, opacity .25s;
+}
+.cal-cell.empty { background: repeating-linear-gradient(135deg, transparent 0 8px, color-mix(in srgb, var(--muted) 8%, transparent) 8px 9px); pointer-events: none; }
+button.cal-cell:hover { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.cal-cell .num {
+  display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; flex: none;
+  background: color-mix(in srgb, var(--muted) 38%, transparent); font-size: .78rem; font-weight: 700;
+}
+.cal-cell.today .num { background: var(--accent); color: #04121f; }
+.cal-cell.sel { background: color-mix(in srgb, var(--accent2) 14%, transparent); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent2) 60%, transparent); }
+.cal-cell.dim { opacity: .28; }
+.cal-cell.hit { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.cal-cell.off { opacity: .35; background: repeating-linear-gradient(135deg, transparent 0 8px, color-mix(in srgb, var(--muted) 10%, transparent) 8px 9px); }
+.dots { display: flex; gap: 4px; min-height: 8px; }
+.d { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+.d.t { background: var(--task); }
+.d.t.done { background: transparent; border: 2px solid var(--task); }
+.d.n { background: var(--accent); }
+.d.b { background: var(--accent2); }
+.d.s { background: var(--sched); }
+.cell-chips { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cc {
+  font-size: .68rem; line-height: 1.25; padding: 2px 6px; border-radius: 6px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: color-mix(in srgb, var(--c) 18%, transparent); color: var(--text); border-left: 3px solid var(--c);
+}
+.cc.b { --c: var(--accent2); } .cc.t { --c: var(--task); } .cc.n { --c: var(--accent); } .cc.s { --c: var(--sched); }
+.cc.done { text-decoration: line-through; opacity: .6; }
+.cc.more { --c: var(--muted); color: var(--muted); }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 14px; font-size: .75rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cal-notes { margin-top: 14px; border: 2px solid var(--line); border-radius: 10px; padding: 8px 14px 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 60px; }
+.cal-notes .script { font-size: 1.6rem; width: 100%; line-height: 1.1; }
+.note-chip { border: 1px solid var(--line); background: var(--card2); border-radius: 99px; padding: 4px 12px; font-size: .8rem; text-align: left; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.note-chip:hover { border-color: var(--accent); }
+.note-chip b { color: var(--accent); margin-right: 4px; }
+
+/* Detalle del día (ventana) */
+.sheet { max-width: 580px; max-height: 88vh; overflow: auto; position: relative; }
+.sheet-x { position: absolute; top: 12px; right: 12px; }
+.sheet h2 { margin-bottom: 2px; padding-right: 44px; }
+.sheet section { margin-top: 16px; }
+.sheet h3 { color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: .72rem; letter-spacing: .06em; margin-bottom: 8px; }
+.pill { display: inline-block; font-size: .7rem; padding: 2px 8px; border-radius: 99px; background: var(--accent); color: #04121f; font-weight: 700; margin-left: 6px; vertical-align: middle; }
+.mini-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.quick { display: flex; gap: 6px; margin-top: 8px; }
+.quick select { width: 92px; }
+.s-line { display: flex; gap: 8px; align-items: baseline; font-size: .88rem; padding-left: 8px; border-left: 3px solid var(--c, var(--sched)); }
+.s-line .tm { color: var(--muted); font-size: .76rem; min-width: 110px; white-space: nowrap; }
+.tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
+.empty-note { color: var(--muted); font-size: .85rem; }
+
+/* Etiquetas de vínculo (nota/tarea ↔ actividad del horario) */
+.lk { font-size: .68rem; border: 0; border-radius: 99px; padding: 2px 8px; background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--text); text-align: left; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lk.t { background: color-mix(in srgb, var(--task) 22%, transparent); }
+.lk.t.done { text-decoration: line-through; opacity: .65; }
+.link-chip { border: 1px dashed var(--line); background: transparent; border-radius: 99px; padding: 2px 8px; font-size: .72rem; color: var(--muted); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.link-chip.on { border-style: solid; border-color: var(--accent); color: var(--text); }
+.link-chip:hover { border-color: var(--accent); }
+
+/* Alertas cumpleaños */
+.alert {
+  display: flex; gap: 12px; align-items: center; padding: 12px 16px; margin-bottom: 12px;
+  border-radius: 14px; border: 1px solid color-mix(in srgb, var(--accent2) 50%, transparent);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent2) 22%, transparent), color-mix(in srgb, var(--accent) 10%, transparent));
+  animation: pop .35s ease;
+}
+.alert.soft { background: var(--card); border-color: var(--line); }
+.alert .em { font-size: 1.4rem; }
+@keyframes pop { from { transform: translateY(-6px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.bday-list { display: flex; flex-direction: column; gap: 6px; }
+.bday-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--card2); border-radius: 12px; border: 1px solid var(--line); }
+.bday-row .info { flex: 1; min-width: 0; }
+.bday-row .info b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+

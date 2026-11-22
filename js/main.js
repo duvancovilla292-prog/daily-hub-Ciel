@@ -1,0 +1,16 @@
+/* ===== js/main.js — Inicio de la aplicación =====
+   Script clásico: comparte el ámbito global con los demás archivos de /js (ver el orden en index.html). */
+'use strict';
+
+$('#bdayMonth').innerHTML = MONTHS.map((m, i) => `<option value="${i + 1}">${cap(m)}</option>`).join('');
+$('#schedColors').innerHTML = SCHED_COLORS.map((c, i) => `<label class="sw" style="--c:${c}"><input type="radio" name="color" value="${c}" ${i === 0 ? 'checked' : ''}><span></span></label>`).join('');
+$('#newSchedCard select[name=hstart]').innerHTML = hourOptions(6);
+$('#newSchedCard select[name=hend]').innerHTML = hourOptions(21);
+syncSchedForm();
+applyTheme();
+applyFont();
+render();
+
+const todays = Cal.birthdaysOn(ui.today);
+if (todays.length) toast('🎂 Hoy cumple años: ' + todays.map(x => x.b.name).join(', '), 'ok');
+if (!Store.available) toast('El almacenamiento del navegador no está disponible: los datos no se conservarán al cerrar.', 'error');

@@ -1,0 +1,35 @@
+/* ===== tasks.css — tareas ===== */
+.stats { margin-top: 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat { background: var(--card2); border: 1px solid var(--line); border-radius: 13px; padding: 10px; text-align: center; }
+.stat b { display: block; font-size: 1.3rem; }
+.stat span { font-size: .7rem; color: var(--muted); }
+.progress { grid-column: 1 / -1; height: 8px; border-radius: 99px; background: var(--card2); overflow: hidden; border: 1px solid var(--line); }
+.progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .4s; }
+.group { margin-bottom: 18px; }
+.group h3 { color: var(--muted); margin-bottom: 8px; font-weight: 600; }
+.group h3 small { text-transform: none; color: var(--accent); margin-left: 6px; }
+.group h3 .late { color: var(--danger); }
+.tasks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.task {
+  display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+  background: var(--card2); border: 1px solid var(--line); border-radius: 13px;
+  transition: opacity .25s, transform .25s, background .25s;
+}
+.task.removing { opacity: 0; transform: translateX(16px); }
+.task .t-title { flex: 1; min-width: 0; word-break: break-word; transition: color .25s; position: relative; }
+.task.done .t-title { color: var(--muted); text-decoration: line-through; }
+.task.done { opacity: .75; }
+.check { flex-direction: row; cursor: pointer; }
+.check input { position: absolute; opacity: 0; width: 0; height: 0; }
+.box { width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--muted); display: grid; place-items: center; transition: all .2s; flex: none; }
+.check input:checked + .box { background: var(--sched); border-color: var(--sched); }
+.check input:checked + .box::after { content: ""; width: 5px; height: 10px; border: solid #04121f; border-width: 0 2px 2px 0; transform: rotate(45deg) translate(-1px, -1px); }
+.check input:focus-visible + .box { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
+.prio { border: 0; font-size: .7rem; font-weight: 700; padding: 3px 9px; border-radius: 99px; }
+.prio.low { background: color-mix(in srgb, var(--sched) 22%, transparent); color: var(--sched); }
+.prio.medium { background: color-mix(in srgb, var(--task) 22%, transparent); color: var(--task); }
+.prio.high { background: color-mix(in srgb, var(--danger) 22%, transparent); color: var(--danger); }
+.task .icon-btn { width: 30px; height: 30px; border: 0; background: transparent; }
+.task .icon-btn:hover { color: var(--danger); }
+.empty { text-align: center; padding: 34px 10px; color: var(--muted); }
+
