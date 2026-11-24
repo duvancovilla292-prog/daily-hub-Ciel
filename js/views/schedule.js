@@ -48,8 +48,27 @@ function timelineBlocks(s, its, lo, hi, key) {   // lo/hi: minutos del borde sup
   flush();
   return list.map(x => {
     const top = (x.s0 - lo) * HOUR_PX / 60 + 1, h = Math.max((x.e0 - x.s0) * HOUR_PX / 60, 24);
-    const cls = h < 44 ? 'act tl-act short' : 'act tl-act';
-    return `<div class="${cls}" style="--c:${s.color};top:${top}px;height:${h - 3}px;left:calc(${x.c} * 100% / ${x.n});width:calc(100% / ${x.n} - 4px)" title="${esc(x.it.title)} · ${esc(timeLabel(x.it))}"><b>${esc(x.it.title)}</b><small>${timeLabel(x.it)}</small>${linkTags(s.id, x.it.id, key)}</div>`;
+    // El contenido se adapta al alto del bloque para que nada quede cortado:
+    //  normal = nombre, hora y etiquetas una debajo de otra
+    //  mid    = nombre y hora en una línea; debajo las etiquetas que quepan + "+N"
+    //  short  = todo en una línea, con un contador de vinculadas
+    const tags = linkTagList(s.id, x.it.id, key), inner = h - 3 - 10;
+    const name = `<b>${esc(x.it.title)}</b>`, time = `<small>${timeLabel(x.it)}</small>`;
+    const more = n => n > 0 ? `<span class="lk more" title="${n} más">+${n}</span>` : '';
+    let cls = 'act tl-act', body;
+    const rows = Math.floor((inner - 38) / 21);       // líneas de etiquetas que caben debajo del nombre y la hora
+    if (tags.length <= rows) body = name + time + tags.join('');
+    else if (rows >= 1) {                              // caben algunas: la última línea comparte espacio con "+N"
+      body = name + time + tags.slice(0, rows - 1).join('') + `<span class="act-tags">${tags[rows - 1]}${more(tags.length - rows)}</span>`;
+    } else if (inner >= 40) {
+      const shown = tags.slice(0, 1);                 // una línea: la primera + "+N"
+      cls += ' mid';
+      body = `<span class="act-head">${name}${time}</span>${shown.length ? `<span class="act-tags">${shown.join('')}${more(tags.length - shown.length)}</span>` : ''}`;
+    } else {
+      cls += ' short';
+      body = name + time + (tags.length ? `<span class="lk more" title="${plural(tags.length, 'vinculada', 'vinculadas')}">🔗 ${tags.length}</span>` : '');
+    }
+    return `<div class="${cls}" style="--c:${s.color};top:${top}px;height:${h - 3}px;left:calc(${x.c} * 100% / ${x.n});width:calc(100% / ${x.n} - 4px)" title="${esc(x.it.title)} · ${esc(timeLabel(x.it))}">${body}</div>`;
   }).join('');
 }
 const hourOptions = sel => Array.from({ length: 24 }, (_, h) => `<option value="${h}" ${h === sel ? 'selected' : ''}>${hourLabel(h)}</option>`).join('');

@@ -43,7 +43,16 @@
 .tl-act.short { flex-direction: row; align-items: baseline; gap: 6px; padding-top: 3px; padding-bottom: 3px; }
 .tl-act.short b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .tl-act.short small { white-space: nowrap; }
-.tl-act.short .lk { display: none; }
+.tl-act.short .lk.more { flex: none; margin-left: auto; }
+.tl-act.mid .act-head { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.tl-act.mid .act-head b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.tl-act.mid .act-head small { white-space: nowrap; flex: none; }
+.tl-act .act-tags { display: flex; align-items: center; gap: 4px; margin-top: 2px; min-width: 0; }
+.tl-act.mid .act-tags { margin-top: 3px; }
+.tl-act .act-tags .lk { margin-top: 0; min-width: 0; }
+.tl-act .act-tags .lk.more { flex: none; }
+.tl-act .lk.more { background: color-mix(in srgb, var(--text) 14%, transparent); }
+.tl-act .lk { max-width: 100%; }
 .off-msg { font-size: .82rem; color: var(--muted); padding: 4px 4px 10px; }
 
 /* Apartados de Tareas y Notas del periodo (semanal y mensual; el diario los tiene al lado) */

@@ -78,10 +78,12 @@ function linkedOn(sid, key, iid) {
   const m = l => l && l.sid === sid && (!iid || l.iid === iid);
   return { tasks: Cal.tasksOn(key).filter(t => m(t.link)), notes: Cal.notesOn(key).filter(n => m(n.link)) };
 }
-function linkTags(sid, iid, key) {
+function linkTags(sid, iid, key) { return linkTagList(sid, iid, key).join(''); }
+/** Etiquetas (una por nota o tarea vinculada a la actividad ese día), como lista. */
+function linkTagList(sid, iid, key) {
   const { tasks, notes } = linkedOn(sid, key, iid);
-  return notes.map(n => `<button class="lk n" data-action="open-note" data-key="${key}" data-id="${n.id}" title="Nota vinculada">📝 ${esc(noteLabel(n))}</button>`).join('') +
-    tasks.map(t => { const d = doneOn(t, key); return `<span class="lk t ${d ? 'done' : ''}" title="Tarea vinculada">${d ? '✓' : t.mode === 'repeat' ? '🔁' : '○'} ${esc(t.title)}</span>`; }).join('');
+  return notes.map(n => `<button class="lk n" data-action="open-note" data-key="${key}" data-id="${n.id}" title="Nota vinculada">📝 ${esc(noteLabel(n))}</button>`).concat(
+    tasks.map(t => { const d = doneOn(t, key); return `<span class="lk t ${d ? 'done' : ''}" title="Tarea vinculada">${d ? '✓' : t.mode === 'repeat' ? '🔁' : '○'} ${esc(t.title)}</span>`; }));
 }
 function cleanLinks(sid, iid) {
   const m = l => l && l.sid === sid && (!iid || l.iid === iid);
