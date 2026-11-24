@@ -127,17 +127,7 @@ const actions = {
     let data;
     const pending = formModal({
       title: 'Editar fecha', desc: '',
-      fields: `<label>Tipo <select name="kind" data-change="bday-kind">${kindOptions(kindOf(b))}</select></label>
-        <label><span class="lbl-name">Nombre</span> <input name="name" required maxlength="60" value="${esc(b.name)}"></label>
-        <div class="row3">
-          <label>Día <input name="day" type="number" min="1" max="31" required value="${b.day}"></label>
-          <label>Mes <select name="month">${MONTHS.map((m, i) => `<option value="${i + 1}" ${i + 1 === b.month ? 'selected' : ''}>${cap(m)}</option>`).join('')}</select></label>
-          <label><span class="lbl-year">Año</span> <input name="year" type="number" min="1900" max="2100" placeholder="Opcional" value="${b.year ?? ''}"></label>
-        </div>
-        <div class="row2">
-          <label>Categoría <select name="category">${catOptions(b.category)}</select></label>
-          <label>Etiqueta <input name="tag" maxlength="30" placeholder="Opcional" value="${esc(b.tag || '')}"></label>
-        </div>`,
+      fields: bdayFieldsHtml(b),
       submit: 'Guardar cambios',
       check: form => { const r = readBdayForm(form); if (typeof r === 'string') return r; data = r; return true; }
     });
@@ -269,12 +259,27 @@ const actions = {
     openSheet({ title: 'Nueva tarea', node: f, onClose: back ? () => setTimeout(() => openPersonSheet(back), 0) : null });
   },
   'new-bday': el => {
-    const f = $('form[data-form=birthday]');
-    f.reset();
-    $('#bdayCat').innerHTML = catOptions('');
-    if (el && el.dataset && DATE_KINDS[el.dataset.kind]) f.elements.kind.value = el.dataset.kind;
-    syncBdayForm(f);
-    openSheet({ title: 'Nueva fecha importante', node: f });
+    const preset = el && el.dataset && DATE_KINDS[el.dataset.kind] ? { kind: el.dataset.kind } : null;
+    openSheet({ title: 'Nueva fecha importante', html: `<form data-form="birthday" class="stack" autocomplete="off">${bdayFieldsHtml(preset)}
+      <div class="sheet-foot"><button type="button" class="btn btn-ghost" data-action="sheet-close">Cancelar</button><button class="btn btn-primary">Guardar fecha</button></div></form>` });
+    syncBdayForm($('#sheetRoot form[data-form=birthday]'));
+  },
+  'person-tab': el => { ui.personTab = el.dataset.v; refreshPersonSheet(); },
+  'copy-msg': async el => {
+    const b = state.birthdays.find(x => x.id === el.dataset.id); if (!b) return;
+    const f = await formModal({
+      title: 'Mensaje para ' + dateName(b),
+      desc: 'Puedes usar <code>{nombre}</code>, <code>{apodo}</code> y <code>{edad}</code>. La plantilla se guarda para la próxima vez.',
+      fields: `<label>Plantilla <textarea name="tpl" rows="4" maxlength="600" data-msg-for="${esc(b.id)}">${esc(state.msgTemplate || DEFAULT_MSG)}</textarea></label>
+        <div class="msg-preview" id="msgPreview">${esc(fillMessage(state.msgTemplate, b))}</div>`,
+      submit: '📋 Copiar',
+      check: form => form.elements.tpl.value.trim() ? true : 'Escribe el mensaje'
+    });
+    if (!f) return;
+    const tpl = f.elements.tpl.value.trim();
+    if (tpl !== (state.msgTemplate || DEFAULT_MSG)) { state.msgTemplate = tpl === DEFAULT_MSG ? '' : tpl; commit(); }
+    const ok = await copyText(fillMessage(tpl, b));
+    toast(ok ? 'Mensaje copiado: ya puedes pegarlo' : 'No se pudo copiar automáticamente', ok ? 'ok' : 'error');
   },
   'new-cat': () => {
     if (!ui.admin) return toast('Inicia sesión con Google para crear categorías', 'error');

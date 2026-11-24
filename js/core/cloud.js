@@ -25,7 +25,7 @@ const firebaseConfig = {
 };
 const REC_KEY = 'daily_hub_sync';            // { uid, pending: {id: ms}, known: {id: ms}, confirmed, mergeLocal }
 const OLD_LINK_KEY = 'daily_hub_cloud_uid';  // versión anterior (un solo documento por cuenta)
-const DOC_RE = /^(?:[tnbcs]_[\w-]{1,64}|x_scratch)$/;
+const DOC_RE = /^(?:[tnbcs]_[\w-]{1,64}|x_scratch|x_msg)$/;
 const LABEL = {
   loading: 'Conectando con la nube…', off: 'Sin iniciar sesión: los datos solo están en este navegador',
   syncing: 'Guardando en la nube…', ok: 'Sincronizado con la nube', offline: 'Sin conexión: los cambios se subirán al volver la red',
@@ -59,11 +59,12 @@ function elementsJson(s) {
   s.birthdayCategories.forEach(c => m.set('c_' + c.id, JSON.stringify(c)));
   s.schedules.forEach(x => m.set('s_' + x.id, JSON.stringify(x)));
   m.set('x_scratch', JSON.stringify({ text: s.scratchpad }));
+  m.set('x_msg', JSON.stringify({ text: s.msgTemplate || '' }));
   return m;
 }
 /** Arma el estado a partir de los elementos, conservando el orden que ya tenían. */
 function stateFromElements(map, base) {
-  const raw = { meta: base.meta, tasks: [], notes: {}, birthdays: [], birthdayCategories: [], schedules: [], scratchpad: '', settings: base.settings };
+  const raw = { meta: base.meta, tasks: [], notes: {}, birthdays: [], birthdayCategories: [], schedules: [], scratchpad: '', msgTemplate: base.msgTemplate || '', settings: base.settings };
   const order = [...elementsJson(base).keys()];
   const ids = order.filter(id => map.has(id)).concat([...map.keys()].filter(id => !order.includes(id)));
   ids.forEach(id => {
@@ -76,6 +77,7 @@ function stateFromElements(map, base) {
     else if (p === 'c_') raw.birthdayCategories.push(v);
     else if (p === 's_') raw.schedules.push(v);
     else if (id === 'x_scratch') raw.scratchpad = typeof v.text === 'string' ? v.text : '';
+    else if (id === 'x_msg') raw.msgTemplate = typeof v.text === 'string' ? v.text : '';
   });
   return Store.normalize(raw, false, { keepLinks: true });
 }

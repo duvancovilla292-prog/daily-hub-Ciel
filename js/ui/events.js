@@ -35,6 +35,11 @@ const changes = {
   'note-date': el => { if (D.isValidKey(el.value)) { ui.editor.date = el.value; markDirty(); } },
   'note-link': el => { ui.editor.link = el.value; markDirty(); },
   'bday-kind': el => syncBdayForm(el.closest('form')),
+  'gift-item': el => {
+    const n = Object.values(state.notes).flat().find(x => x.id === el.dataset.note); if (!n) return;
+    const it = n.items.find(i => i.id === el.dataset.item); if (!it) return;
+    it.done = el.checked; n.updatedAt = new Date().toISOString(); commit(); render();
+  },
   'note-person': el => { ui.editor.person = el.value; markDirty(); },
   'bday-remind': el => {
     const b = state.birthdays.find(x => x.id === el.dataset.id); if (!b) return;
@@ -125,7 +130,22 @@ function warnConflicts(s, it, okMsg) {
   else toast(okMsg, 'ok');
 }
 
+// Vista previa en vivo del mensaje de cumpleaños
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset && t.dataset.msgFor) { const b = state.birthdays.find(x => x.id === t.dataset.msgFor); const p = $('#msgPreview'); if (b && p) p.textContent = fillMessage(t.value, b); }
+});
+
 const forms = {
+  /** "+" en la ficha: agrega una idea a la nota "Ideas de regalo" de esa persona (la crea si no existe). */
+  'gift-add'(f) {
+    const b = state.birthdays.find(x => x.id === f.dataset.id); if (!b) return;
+    const text = f.elements.text.value.trim().slice(0, 120); if (!text) return;
+    let n = Object.values(state.notes).flat().find(x => x.person === b.id && x.type === 'list' && /^ideas de regalo/i.test(x.title));
+    if (!n) { n = { id: uid(), title: 'Ideas de regalo', type: 'list', content: '', items: [], link: null, updatedAt: '', pinned: false, person: b.id }; (state.notes[ui.today] = state.notes[ui.today] || []).push(n); }
+    n.items.push({ id: uid(), text, done: false }); n.updatedAt = new Date().toISOString();
+    commit(); f.reset(); render(); toast('Idea agregada', 'ok');
+  },
   'skip-day'(f) {
     const s = state.schedules.find(x => x.id === f.dataset.sid); if (!s) return;
     const k = String(new FormData(f).get('day') || '');

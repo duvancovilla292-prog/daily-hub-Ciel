@@ -31,7 +31,8 @@ const ui = {
   panelMode: {},                                      // apartados de Tareas/Notas de cada horario: 'all' | 'linked'
   bdayCat: 'all',
   bdayKind: 'all',                                    // filtro por tipo de fecha
-  personOpen: null,                                   // ficha de persona abierta (id del cumpleaños)                                     // filtro de categoría en Cumpleaños
+  personOpen: null,
+  personTab: 'todo',                                  // pestaña de la ficha: 'todo' (pendientes y regalos) | 'notes' (historial)                                   // ficha de persona abierta (id del cumpleaños)                                     // filtro de categoría en Cumpleaños
   adminOpen: false,
   admin: false,                                       // true con sesión de Google iniciada
   adminEmail: ''

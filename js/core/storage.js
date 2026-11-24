@@ -6,10 +6,11 @@ const defaultState = () => ({
   meta: { version: '1.5', lastUpdated: new Date().toISOString() },
   tasks: [],            // { id, title, date, time:''|HH:MM, completed, priority, link:{sid,iid}|null, mode:'once'|'span'|'repeat', due:''|fecha límite, doneDates:[días hechos si se repite], tags:[], subtasks:[{id,text,done}] }
   notes: {},            // { "YYYY-MM-DD": [ { id, title, type:'text'|'list', content, items:[{id,text,done}], link, updatedAt } ] }
-  birthdays: [],         // fechas importantes: { id, kind:'birthday'|'anniversary'|'event', name, month, day, year|null, category: id|null, tag: '', remind, giftYears }
+  birthdays: [],         // fechas importantes: { id, kind:'birthday'|'event', repeat:'yearly'|'monthly'|'weekly', name, month, day, year|null, category, tag, nick, relation, remind, giftYears, giftDates }
   birthdayCategories: [],   // { id, name } — las crea el administrador
   schedules: [],        // { id, name, type, color, startDate, endDate, weekdays:[0-6], hourStart, hourEnd, skipHolidays, skipDates:[], items:[{id,title,start,end,days,day}] }
   scratchpad: '',
+  msgTemplate: '',
   settings: { theme: 'dark', filters: [...TYPES], font: 'normal' }
 });
 
@@ -107,11 +108,18 @@ const Store = {
       if (!Number.isInteger(m) || m < 1 || m > 12) return bad(`el cumpleaños #${i + 1} tiene un mes inválido`);
       if (!Number.isInteger(d) || d < 1 || d > D.daysIn(2024, m)) return bad(`el cumpleaños #${i + 1} tiene un día inválido`);
       const y = Number(b.year);
-      out.birthdays.push({ id: cid(b.id), kind: ['anniversary', 'event'].includes(b.kind) ? b.kind : 'birthday', name: b.name.trim(), month: m, day: d, year: Number.isInteger(y) && y >= 1900 && y <= 2100 ? y : null,
+      const kind = b.kind === 'event' || b.kind === 'anniversary' ? 'event' : 'birthday';     // los "aniversarios" pasan a ser otras fechas que se repiten cada año
+      const year = Number.isInteger(y) && y >= 1900 && y <= 2100 ? y : null;
+      let repeat = kind === 'event' && ['monthly', 'weekly'].includes(b.repeat) ? b.repeat : 'yearly';
+      if (repeat !== 'yearly' && !year) repeat = 'yearly';                                    // cada mes / semana necesita el año de inicio
+      out.birthdays.push({ id: cid(b.id), kind, repeat, name: b.name.trim(), month: m, day: d, year,
         category: validId(b.category) && (opts.keepLinks || catIds.has(b.category)) ? b.category : null,
         tag: typeof b.tag === 'string' ? b.tag.trim().slice(0, 30) : '',
-        remind: Number.isInteger(+b.remind) && +b.remind >= 1 && +b.remind <= 60 ? +b.remind : 0,          // días antes para el regalo (0 = no)
-        giftYears: Array.isArray(b.giftYears) ? [...new Set(b.giftYears.map(Number).filter(n => Number.isInteger(n) && n > 1900 && n < 2200))].sort() : [] });
+        nick: typeof b.nick === 'string' ? b.nick.trim().slice(0, 30) : '',
+        relation: typeof b.relation === 'string' ? b.relation.trim().slice(0, 30) : '',
+        remind: Number.isInteger(+b.remind) && +b.remind >= 1 && +b.remind <= 60 ? +b.remind : 0,          // días antes para la tarea (0 = no)
+        giftYears: Array.isArray(b.giftYears) ? [...new Set(b.giftYears.map(Number).filter(n => Number.isInteger(n) && n > 1900 && n < 2200))].sort() : [],
+        giftDates: Array.isArray(b.giftDates) ? [...new Set(b.giftDates.filter(D.isValidKey))].sort().slice(-24) : [] });
     });
 
     (raw.schedules || []).forEach((s, i) => {
@@ -148,6 +156,7 @@ const Store = {
     });
 
     out.scratchpad = typeof raw.scratchpad === 'string' ? raw.scratchpad : '';
+    out.msgTemplate = typeof raw.msgTemplate === 'string' ? raw.msgTemplate.slice(0, 600) : '';     // plantilla del mensaje de cumpleaños
 
     if (raw.settings && typeof raw.settings === 'object') {
       if (raw.settings.theme === 'light' || raw.settings.theme === 'dark') out.settings.theme = raw.settings.theme;

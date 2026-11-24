@@ -699,7 +699,10 @@
       "year": 2000,
       "category": "cat-amigos",
       "tag": "del colegio",
-      "kind": "birthday"
+      "kind": "birthday",
+      "repeat": "yearly",
+      "nick": "Anita",
+      "relation": "Amiga"
     },
     {
       "id": "b02",
@@ -709,7 +712,8 @@
       "year": 1999,
       "category": "cat-amigos",
       "tag": "",
-      "kind": "birthday"
+      "kind": "birthday",
+      "repeat": "yearly"
     },
     {
       "id": "b03",
@@ -719,7 +723,8 @@
       "year": null,
       "category": "cat-amigos",
       "tag": "vecina",
-      "kind": "birthday"
+      "kind": "birthday",
+      "repeat": "yearly"
     },
     {
       "id": "b04",
@@ -729,7 +734,8 @@
       "year": 1975,
       "category": "cat-familia",
       "tag": "",
-      "kind": "birthday"
+      "kind": "birthday",
+      "repeat": "yearly"
     },
     {
       "id": "b05",
@@ -739,7 +745,8 @@
       "year": 1972,
       "category": "cat-familia",
       "tag": "",
-      "kind": "birthday"
+      "kind": "birthday",
+      "repeat": "yearly"
     },
     {
       "id": "b06",
@@ -749,7 +756,8 @@
       "year": 2004,
       "category": null,
       "tag": "prima lejana",
-      "kind": "birthday"
+      "kind": "birthday",
+      "repeat": "yearly"
     },
     {
       "id": "b07",
@@ -759,7 +767,8 @@
       "year": 2001,
       "category": "cat-amigos",
       "tag": "",
-      "kind": "birthday"
+      "kind": "birthday",
+      "repeat": "yearly"
     },
     {
       "id": "b08",
@@ -769,17 +778,19 @@
       "year": null,
       "category": "cat-estudio",
       "tag": "Campuslands",
-      "kind": "birthday"
+      "kind": "birthday",
+      "repeat": "yearly"
     },
     {
       "id": "b-aniv",
-      "kind": "anniversary",
+      "kind": "event",
       "name": "Aniversario de mis papás",
       "month": 12,
       "day": 12,
       "year": 1998,
       "category": "cat-familia",
-      "tag": ""
+      "tag": "",
+      "repeat": "yearly"
     },
     {
       "id": "b-grad",
@@ -789,7 +800,19 @@
       "day": 5,
       "year": 2025,
       "category": null,
-      "tag": "recuerdo"
+      "tag": "recuerdo",
+      "repeat": "yearly"
+    },
+    {
+      "id": "b-mes",
+      "kind": "event",
+      "repeat": "monthly",
+      "name": "Aniversario con Mariana (ejemplo)",
+      "month": 6,
+      "day": 14,
+      "year": 2025,
+      "category": null,
+      "tag": ""
     }
   ],
   "birthdayCategories": [

@@ -47,10 +47,10 @@ const Cal = {
   tasksOn: key => state.tasks.filter(t => taskOn(t, key)),
   notesOn: key => state.notes[key] || [],
   birthdaysOn(key) {
-    const d = D.parse(key), y = d.getFullYear(), m = d.getMonth() + 1, day = d.getDate();
-    return state.birthdays
-      .filter(b => b.month === m && (b.day === day || (b.month === 2 && b.day === 29 && !D.isLeap(y) && day === 28)))
-      .map(b => ({ b, age: b.year && y > b.year ? y - b.year : null }));
+    // fechas importantes que ocurren ese día (cumpleaños y otras fechas que se repiten cada año, mes o semana)
+    const out = [];
+    state.birthdays.forEach(b => { const o = occurrenceOn(b, key); if (o) out.push({ b, age: o.n > 0 ? o.n : null }); });
+    return out;
   },
   scheduleOn(key) {
     const out = [];

@@ -9,17 +9,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap" rel="stylesheet">
   <!-- ?v=… : al publicar cambios, sube este número en TODOS los archivos para que el navegador no use copias viejas -->
-  <link rel="stylesheet" href="css/fonts.css?v=20261124i">
-  <link rel="stylesheet" href="css/base.css?v=20261124i">
-  <link rel="stylesheet" href="css/layout.css?v=20261124i">
-  <link rel="stylesheet" href="css/calendar.css?v=20261124i">
-  <link rel="stylesheet" href="css/tasks.css?v=20261124i">
-  <link rel="stylesheet" href="css/notes.css?v=20261124i">
-  <link rel="stylesheet" href="css/schedule.css?v=20261124i">
-  <link rel="stylesheet" href="css/components.css?v=20261124i">
-  <link rel="stylesheet" href="css/admin.css?v=20261124i">
-  <link rel="stylesheet" href="css/today.css?v=20261124i">
-  <link rel="stylesheet" href="css/responsive.css?v=20261124i">
+  <link rel="stylesheet" href="css/fonts.css?v=20261124j">
+  <link rel="stylesheet" href="css/base.css?v=20261124j">
+  <link rel="stylesheet" href="css/layout.css?v=20261124j">
+  <link rel="stylesheet" href="css/calendar.css?v=20261124j">
+  <link rel="stylesheet" href="css/tasks.css?v=20261124j">
+  <link rel="stylesheet" href="css/notes.css?v=20261124j">
+  <link rel="stylesheet" href="css/schedule.css?v=20261124j">
+  <link rel="stylesheet" href="css/components.css?v=20261124j">
+  <link rel="stylesheet" href="css/admin.css?v=20261124j">
+  <link rel="stylesheet" href="css/today.css?v=20261124j">
+  <link rel="stylesheet" href="css/responsive.css?v=20261124j">
 </head>
 <body>
 <div class="app">
@@ -262,7 +262,6 @@
           <div class="seg kind-seg" id="bdayKindSeg" role="group" aria-label="Tipo de fecha">
             <button data-action="bday-kind-filter" data-v="all" class="on">Todas</button>
             <button data-action="bday-kind-filter" data-v="birthday">🎂 Cumpleaños</button>
-            <button data-action="bday-kind-filter" data-v="anniversary">💍 Aniversarios</button>
             <button data-action="bday-kind-filter" data-v="event">📅 Otras</button>
           </div>
           <div id="bdayList" class="bday-list"></div>
@@ -331,26 +330,6 @@
       </div>
     </details>
     <div class="sheet-foot"><button type="button" class="btn btn-ghost" data-action="sheet-close">Cancelar</button><button class="btn btn-primary">Agregar tarea</button></div>
-  </form>
-  <form data-form="birthday" class="stack" autocomplete="off">
-    <label>Tipo
-      <select name="kind" data-change="bday-kind">
-        <option value="birthday">🎂 Cumpleaños</option>
-        <option value="anniversary">💍 Aniversario</option>
-        <option value="event">📅 Otra fecha</option>
-      </select>
-    </label>
-    <label><span class="lbl-name">Nombre de la persona</span> <input name="name" required maxlength="60" placeholder="Nombre de la persona"></label>
-    <div class="row3">
-      <label>Día <input name="day" type="number" min="1" max="31" required placeholder="15"></label>
-      <label>Mes <select name="month" id="bdayMonth" required></select></label>
-      <label><span class="lbl-year">Año de nacimiento</span> <input name="year" type="number" min="1900" max="2100" placeholder="Opcional"></label>
-    </div>
-    <div class="row2">
-      <label>Categoría <select name="category" id="bdayCat"></select></label>
-      <label>Etiqueta <input name="tag" maxlength="30" placeholder="Opcional (ej. vecina)"></label>
-    </div>
-    <div class="sheet-foot"><button type="button" class="btn btn-ghost" data-action="sheet-close">Cancelar</button><button class="btn btn-primary">Guardar fecha</button></div>
   </form>
   <form data-form="schedule" class="stack" autocomplete="off">
     <div class="row2">
@@ -437,22 +416,22 @@
 <div id="toasts" aria-live="polite"></div>
 <input type="file" id="importFile" accept=".json,application/json" hidden>
 
-<script src="js/core/utils.js?v=20261124i"></script>
-<script src="js/core/storage.js?v=20261124i"></script>
-<script src="js/core/state.js?v=20261124i"></script>
-<script src="js/core/calendar-engine.js?v=20261124i"></script>
-<script src="js/ui/feedback.js?v=20261124i"></script>
-<script src="js/ui/header.js?v=20261124i"></script>
-<script src="js/views/today.js?v=20261124i"></script>
-<script src="js/views/calendar.js?v=20261124i"></script>
-<script src="js/views/birthdays.js?v=20261124i"></script>
-<script src="js/views/tasks.js?v=20261124i"></script>
-<script src="js/views/notes.js?v=20261124i"></script>
-<script src="js/views/schedule.js?v=20261124i"></script>
-<script src="js/ui/router.js?v=20261124i"></script>
-<script src="js/ui/actions.js?v=20261124i"></script>
-<script src="js/ui/events.js?v=20261124i"></script>
-<script src="js/main.js?v=20261124i"></script>
-<script type="module" src="js/core/cloud.js?v=20261124i"></script>
+<script src="js/core/utils.js?v=20261124j"></script>
+<script src="js/core/storage.js?v=20261124j"></script>
+<script src="js/core/state.js?v=20261124j"></script>
+<script src="js/core/calendar-engine.js?v=20261124j"></script>
+<script src="js/ui/feedback.js?v=20261124j"></script>
+<script src="js/ui/header.js?v=20261124j"></script>
+<script src="js/views/today.js?v=20261124j"></script>
+<script src="js/views/calendar.js?v=20261124j"></script>
+<script src="js/views/birthdays.js?v=20261124j"></script>
+<script src="js/views/tasks.js?v=20261124j"></script>
+<script src="js/views/notes.js?v=20261124j"></script>
+<script src="js/views/schedule.js?v=20261124j"></script>
+<script src="js/ui/router.js?v=20261124j"></script>
+<script src="js/ui/actions.js?v=20261124j"></script>
+<script src="js/ui/events.js?v=20261124j"></script>
+<script src="js/main.js?v=20261124j"></script>
+<script type="module" src="js/core/cloud.js?v=20261124j"></script>
 </body>
 </html>
