@@ -22,9 +22,11 @@ function renderCalendar() {
       dots.push('<i class="d b"></i>');
       info.bdays.forEach(x => chips.push({ c: 'b', txt: '🎂 ' + x.b.name }));
     }
-    if (f.has('tasks') && info.tasks.length) {
-      dots.push(`<i class="d t ${info.tasks.some(x => !x.completed) ? '' : 'done'}"></i>`);
-      info.tasks.forEach(x => chips.push({ c: 't' + (x.completed ? ' done' : ''), txt: x.title }));
+    // En la cuadrícula, las tareas de periodo solo se marcan en su inicio y su fecha límite (para no llenar todos los días)
+    const cellTasks = info.tasks.filter(x => x.mode !== 'span' || key === x.date || key === x.due);
+    if (f.has('tasks') && cellTasks.length) {
+      dots.push(`<i class="d t ${cellTasks.some(x => !doneOn(x, key)) ? '' : 'done'}"></i>`);
+      cellTasks.forEach(x => chips.push({ c: 't' + (doneOn(x, key) ? ' done' : ''), txt: (x.mode === 'repeat' ? '🔁 ' : x.mode === 'span' ? (key === x.due ? '⏳ vence: ' : '⏳ ') : '') + x.title }));
     }
     if (f.has('notes') && info.notes.length) {
       dots.push('<i class="d n"></i>');
@@ -87,7 +89,7 @@ function detailHtml(k) {
     ? `<ul class="mini-list">${info.bdays.map(x => `<li>🎂 <b>${esc(x.b.name)}</b>${x.age ? ` — cumple ${x.age} años` : ''}${x.b.category || x.b.tag ? ` <span class="bday-tags" style="display:inline-flex">${bdayTags(x.b)}</span>` : ''}</li>`).join('')}</ul>`
     : '<p class="empty-note">Nadie cumple años este día.</p>') + '</section>';
 
-  h += `<section><h3>Tareas</h3>${info.tasks.length ? `<ul class="tasks">${info.tasks.map(taskRow).join('')}</ul>` : '<p class="empty-note">Sin tareas para este día.</p>'}
+  h += `<section><h3>Tareas</h3>${info.tasks.length ? `<ul class="tasks">${info.tasks.map(t => taskRow(t, k)).join('')}</ul>` : '<p class="empty-note">Sin tareas para este día.</p>'}
     <form data-form="quick-task" class="quick" autocomplete="off">
       <input name="title" placeholder="Nueva tarea…" maxlength="140" required aria-label="Nueva tarea">
       <select name="priority" aria-label="Prioridad"><option value="low">Baja</option><option value="medium" selected>Media</option><option value="high">Alta</option></select>

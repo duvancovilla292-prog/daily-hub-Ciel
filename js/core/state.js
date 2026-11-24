@@ -25,6 +25,7 @@ const ui = {
   schedFilter: 'all', newSchedOpen: false,
   openForms: new Set(),
   anchors: {},                                        // fecha que muestra cada horario
+  panelMode: {},                                      // apartados de Tareas/Notas de cada horario: 'all' | 'linked'
   bdayCat: 'all',                                     // filtro de categoría en Cumpleaños
   adminOpen: false,
   admin: (() => { try { return sessionStorage.getItem(SESSION_KEY) === '1'; } catch (e) { return false; } })()

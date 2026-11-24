@@ -3,8 +3,8 @@
 'use strict';
 
 const defaultState = () => ({
-  meta: { version: '1.3', lastUpdated: new Date().toISOString() },
-  tasks: [],            // { id, title, date, completed, priority, link:{sid,iid}|null }
+  meta: { version: '1.4', lastUpdated: new Date().toISOString() },
+  tasks: [],            // { id, title, date, completed, priority, link:{sid,iid}|null, mode:'once'|'span'|'repeat', due:''|fecha límite, doneDates:[días hechos si se repite] }
   notes: {},            // { "YYYY-MM-DD": [ { id, title, type:'text'|'list', content, items:[{id,text,done}], link, updatedAt } ] }
   birthdays: [],         // { id, name, month, day, year|null, category: id|null, tag: '' }
   birthdayCategories: [],   // { id, name } — las crea el administrador
@@ -58,7 +58,11 @@ const Store = {
     (raw.tasks || []).forEach((t, i) => {
       if (!t || typeof t.title !== 'string' || !t.title.trim()) return bad(`la tarea #${i + 1} no tiene título`);
       if (!D.isValidKey(t.date)) return bad(`la tarea #${i + 1} tiene una fecha inválida`);
-      out.tasks.push({ id: String(t.id || uid()), title: t.title.trim(), date: t.date, completed: !!t.completed, priority: PRIO[t.priority] ? t.priority : 'medium', link: normLink(t.link) });
+      let mode = t.mode === 'span' || t.mode === 'repeat' ? t.mode : 'once';
+      const due = D.isValidKey(t.due) && t.due >= t.date ? t.due : '';
+      if (mode === 'span' && !due) mode = 'once';
+      const doneDates = mode === 'repeat' && Array.isArray(t.doneDates) ? [...new Set(t.doneDates.filter(D.isValidKey))].sort() : [];
+      out.tasks.push({ id: String(t.id || uid()), title: t.title.trim(), date: t.date, completed: !!t.completed, priority: PRIO[t.priority] ? t.priority : 'medium', link: normLink(t.link), mode, due: mode === 'once' ? '' : due, doneDates });
     });
 
     const readNote = (n, key) => {
@@ -145,7 +149,7 @@ const Store = {
     const valid = new Set();
     out.schedules.forEach(s => s.items.forEach(i => valid.add(s.id + '|' + i.id)));
     const ok = l => (l && valid.has(l.sid + '|' + l.iid)) ? l : null;
-    out.tasks.forEach(t => { t.link = ok(t.link); });
+    out.tasks.forEach(t => { t.link = ok(t.link); if (t.mode === 'repeat' && !t.link) { t.mode = 'once'; t.due = ''; t.doneDates = []; } });
     Object.values(out.notes).forEach(arr => arr.forEach(n => { n.link = ok(n.link); }));
     return out;
   },
@@ -156,8 +160,8 @@ const Store = {
     const notes = Object.values(s.notes).flat();
     const count = t => s.schedules.filter(x => x.type === t).length;
     return {
-      tasks: s.tasks.length, pending: s.tasks.filter(t => !t.completed).length, done: s.tasks.filter(t => t.completed).length,
-      overdue: s.tasks.filter(t => !t.completed && t.date < today).length,
+      tasks: s.tasks.length, pending: s.tasks.filter(t => taskStatus(t) === 'pending').length, done: s.tasks.filter(t => taskStatus(t) === 'done').length,
+      overdue: s.tasks.filter(isOverdue).length, repeat: s.tasks.filter(t => t.mode === 'repeat').length,
       notes: notes.length, lists: notes.filter(n => n.type === 'list').length,
       birthdays: s.birthdays.length, cats: s.birthdayCategories.length,
       schedules: s.schedules.length, daily: count('daily'), weekly: count('weekly'), monthly: count('monthly'),

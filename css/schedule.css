@@ -46,6 +46,14 @@
 .tl-act.short .lk { display: none; }
 .off-msg { font-size: .82rem; color: var(--muted); padding: 4px 4px 10px; }
 
+/* Apartados de Tareas y Notas del periodo (semanal y mensual; el diario los tiene al lado) */
+.period-panels { margin-top: 22px; }
+.pp-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 14px; margin-top: 22px; }
+.panel-mode { align-self: flex-start; }
+.panel-mode button { font-size: .78rem; padding: 5px 10px; }
+.mini-tasks .rep-ico { width: 22px; text-align: center; flex: none; }
+.mini-tasks li span:last-child { min-width: 0; overflow-wrap: anywhere; }
+
 /* Semanal: estilo "Horarios semanales" */
 .wk-wrap { overflow-x: auto; padding-bottom: 6px; }
 .wk { display: grid; gap: 8px; min-width: 720px; --pill: color-mix(in srgb, var(--text) 9%, var(--card2)); }

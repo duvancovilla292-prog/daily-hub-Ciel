@@ -32,19 +32,28 @@ const actions = {
   'edit-task': async el => {
     const t = state.tasks.find(x => x.id === el.dataset.id); if (!t) return;
     const cur = linkValue(t.link);
-    const f = await formModal({
+    let data;
+    const pending = formModal({
       title: 'Editar tarea', desc: '',
       fields: `<label>Título <input name="title" required maxlength="140" value="${esc(t.title)}"></label>
+        <label>Tipo <select name="mode" data-change="task-mode">${Object.entries(TASK_MODES).map(([k, l]) => `<option value="${k}" ${k === t.mode ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         <div class="row2">
-          <label>Fecha <input type="date" name="date" required value="${t.date}"></label>
-          <label>Prioridad <select name="priority">${Object.entries(PRIO).map(([k, p]) => `<option value="${k}" ${k === t.priority ? 'selected' : ''}>${p.label}</option>`).join('')}</select></label>
+          <label><span class="lbl-date">Fecha</span> <input type="date" name="date" required value="${t.date}"></label>
+          <label class="due-wrap"><span class="lbl-due">Fecha límite</span> <input type="date" name="due" value="${t.due}"></label>
         </div>
-        <label>Vincular al horario <select name="link"><option value="">Sin vincular</option>${linkOptions().map(o => `<option value="${o.value}" ${o.value === cur ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}</select></label>`,
+        <div class="row2">
+          <label>Prioridad <select name="priority">${Object.entries(PRIO).map(([k, p]) => `<option value="${k}" ${k === t.priority ? 'selected' : ''}>${p.label}</option>`).join('')}</select></label>
+          <label>Vincular al horario <select name="link"><option value="">Sin vincular</option>${linkOptions().map(o => `<option value="${o.value}" ${o.value === cur ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}</select></label>
+        </div>
+        <p class="muted small mode-help" hidden></p>`,
       submit: 'Guardar cambios',
-      check: form => !form.elements.title.value.trim() ? 'Escribe el título' : !D.isValidKey(form.elements.date.value) ? 'Elige una fecha válida' : true
+      check: form => { const r = readTaskForm(form); if (typeof r === 'string') return r; data = r; return true; }
     });
+    syncTaskForm($('#fm'));
+    const f = await pending;
     if (!f) return;
-    Object.assign(t, { title: f.elements.title.value.trim(), date: f.elements.date.value, priority: f.elements.priority.value, link: parseLink(f.elements.link.value) });
+    if (data.mode !== 'repeat') t.doneDates = [];
+    Object.assign(t, data);
     commit(); render(); toast('Tarea actualizada', 'ok');
   },
   'del-task': async el => {
@@ -154,6 +163,7 @@ const actions = {
   },
 
   /* horarios */
+  'panel-mode': el => { ui.panelMode[el.dataset.id] = el.dataset.v; renderSchedule(); },
   'sched-filter': el => { ui.schedFilter = el.dataset.v; renderSchedule(); },
   'toggle-new-sched': () => {
     ui.newSchedOpen = !ui.newSchedOpen;

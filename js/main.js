@@ -7,6 +7,7 @@ $('#schedColors').innerHTML = SCHED_COLORS.map((c, i) => `<label class="sw" styl
 $('#newSchedCard select[name=hstart]').innerHTML = hourOptions(6);
 $('#newSchedCard select[name=hend]').innerHTML = hourOptions(21);
 syncSchedForm();
+syncTaskForm($('form[data-form=task]'));
 applyTheme();
 applyFont();
 render();

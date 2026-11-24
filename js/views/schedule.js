@@ -54,6 +54,43 @@ function timelineBlocks(s, its, lo, hi, key) {   // lo/hi: minutos del borde sup
 }
 const hourOptions = sel => Array.from({ length: 24 }, (_, h) => `<option value="${h}" ${h === sel ? 'selected' : ''}>${hourLabel(h)}</option>`).join('');
 
+/* --- Apartados de Tareas y Notas del periodo (día, semana o mes), con "Todas / Solo vinculadas" --- */
+const onlyLinked = s => ui.panelMode[s.id] === 'linked';
+function panelToggle(s) {
+  const m = onlyLinked(s) ? 'linked' : 'all';
+  return `<div class="seg panel-mode" role="group" aria-label="Qué tareas y notas mostrar">
+    <button data-action="panel-mode" data-id="${s.id}" data-v="all" class="${m === 'all' ? 'on' : ''}">Todas</button>
+    <button data-action="panel-mode" data-id="${s.id}" data-v="linked" class="${m === 'linked' ? 'on' : ''}">Solo vinculadas</button></div>`;
+}
+function periodTasks(s, from, to) {
+  return state.tasks.filter(t => {
+    if (onlyLinked(s) && !(t.link && t.link.sid === s.id)) return false;
+    for (let k = from; k <= to; k = D.add(k, 1)) if (taskOn(t, k)) return true;
+    return false;
+  }).sort((a, b) => a.date.localeCompare(b.date));
+}
+function periodNotes(s, from, to) {
+  const out = [];
+  Object.keys(state.notes).filter(k => k >= from && k <= to).sort()
+    .forEach(k => state.notes[k].forEach(n => { if (!onlyLinked(s) || (n.link && n.link.sid === s.id)) out.push([k, n]); }));
+  return out;
+}
+function panelTaskLi(t, from, to) {
+  if (t.mode === 'repeat' && from !== to) {          // en semana o mes: una línea con su avance (se marca en cada día)
+    const p = repeatProgress(t, from, to);
+    return `<li><span class="rep-ico" title="Se repite">🔁</span><span>${esc(t.title)} <small class="muted">· ${p.d}/${p.n} ${p.n === 1 ? 'día' : 'días'}</small></span></li>`;
+  }
+  const k = t.mode === 'repeat' ? from : t.date, done = doneOn(t, k);
+  const note = t.mode === 'span' ? `hasta ${D.short(t.due)}` : t.mode === 'repeat' ? '🔁' : from !== to ? D.short(t.date) : '';
+  return `<li class="${done ? 'done' : ''}"><label class="check"><input type="checkbox" data-change="toggle-task" data-id="${t.id}" data-key="${k}" ${done ? 'checked' : ''} aria-label="Completar"><span class="box"></span></label><span>${esc(t.title)}${note ? ` <small class="muted">· ${note}</small>` : ''}</span></li>`;
+}
+function periodPanels(s, from, to, label) {
+  const tasks = periodTasks(s, from, to), notes = periodNotes(s, from, to), one = from === to;
+  const which = onlyLinked(s) ? ' vinculadas' : '';
+  return `<div class="panel"><span class="ptitle">Tareas</span>${tasks.length ? `<ul class="mini-tasks">${tasks.map(t => panelTaskLi(t, from, to)).join('')}</ul>` : `<p class="empty-note">Sin tareas${which} ${label}.</p>`}</div>
+    <div class="panel"><span class="ptitle">Notas</span>${notes.length ? notes.map(([k, n]) => `<button class="note-chip" data-action="open-note" data-key="${k}" data-id="${n.id}">${one ? '' : `<b>${+k.slice(8)}</b> `}${n.type === 'list' ? '☑' : '📝'} ${esc(noteLabel(n))}</button>`).join('') : `<p class="empty-note">Sin notas${which} ${label}.</p>`}</div>`;
+}
+
 const actHtml = (s, it, key) => `<div class="act" style="--c:${s.color}"><b>${esc(it.title)}</b><small>${timeLabel(it)}</small>${linkTags(s.id, it.id, key)}</div>`;
 
 /* --- Diario: franjas por hora + paneles laterales (plantilla "Daily plan") --- */
@@ -71,11 +108,10 @@ function dailyView(s, key) {
   let lines = '';
   for (let h = a; h <= end; h++) lines += `<div class="tl-line" style="top:${(h - a) * HOUR_PX}px"><span class="hl">${hourLabel(h % 24)}</span></div>`;
   rows += `<div class="tl" style="height:${(end - a) * HOUR_PX}px">${lines}<div class="tl-acts">${timelineBlocks(s, occ, a * 60, end * 60, key)}</div></div>`;
-  const tasks = Cal.tasksOn(key), notes = Cal.notesOn(key);
   return `<div class="daily">
     <aside class="d-side">
-      <div class="panel"><span class="ptitle">Tareas</span>${tasks.length ? `<ul class="mini-tasks">${tasks.map(t => `<li class="${t.completed ? 'done' : ''}"><label class="check"><input type="checkbox" data-change="toggle-task" data-id="${t.id}" ${t.completed ? 'checked' : ''} aria-label="Completar"><span class="box"></span></label><span>${esc(t.title)}</span></li>`).join('')}</ul>` : '<p class="empty-note">Sin tareas este día.</p>'}</div>
-      <div class="panel"><span class="ptitle">Notas</span>${notes.length ? notes.map(n => `<button class="note-chip" data-action="open-note" data-key="${key}" data-id="${n.id}">${n.type === 'list' ? '☑' : '📝'} ${esc(noteLabel(n))}</button>`).join('') : '<p class="empty-note">Sin notas este día.</p>'}</div>
+      ${panelToggle(s)}
+      ${periodPanels(s, key, key, 'este día')}
     </aside>
     <div class="d-grid">${inside ? '' : '<p class="off-msg">Este día queda fuera de la vigencia o de los días en que aplica el horario.</p>'}${rows}</div>
   </div>`;
@@ -98,7 +134,8 @@ function weeklyView(s, key) {
   const H = (b - a + 1) * HOUR_PX, slots = cls => Array.from({ length: b - a + 1 }, (_, i) => `<div class="${cls}" style="top:${i * HOUR_PX}px;height:${HOUR_PX - 8}px">${cls === 'wk-t' ? hourLabel(a + i) : ''}</div>`).join('');
   h += `<div class="wk-col" style="height:${H}px">${slots('wk-t')}</div>`;
   h += days.map(k => `<div class="wk-col wk-day ${inRange(s, k) ? '' : 'off'}" style="height:${H}px">${slots('wk-c')}<div class="tl-acts">${timelineBlocks(s, s.items.filter(it => occurs(s, it, k)), a * 60, (b + 1) * 60, k)}</div></div>`).join('');
-  return h + '</div></div>';
+  h += '</div></div>';
+  return h + `<div class="period-panels">${panelToggle(s)}<div class="pp-grid">${periodPanels(s, mon, D.add(mon, 6), 'esta semana')}</div></div>`;
 }
 
 /* --- Mensual: calendario del mes (plantilla "Mi mes") con cuadro de notas --- */
@@ -111,11 +148,8 @@ function monthlyView(s, key) {
     h += `<div class="cal-cell static ${k === ui.today ? 'today' : ''} ${inRange(s, k) ? '' : 'off'}"><span class="num">${+k.slice(8)}</span>${its.length ? `<span class="dots"><i class="d" style="background:${s.color}"></i></span>` : ''}<div class="cell-acts">${its.map(it => actHtml(s, it, k)).join('')}</div></div>`;
   });
   h += '</div>';
-  const prefix = `${y}-${D.pad(m + 1)}`;
-  const linked = [];
-  Object.keys(state.notes).filter(k => k.startsWith(prefix)).sort().forEach(k => state.notes[k].forEach(n => { if (n.link && n.link.sid === s.id) linked.push([k, n]); }));
-  h += `<div class="cal-notes"><span class="script">notas</span>${linked.length ? linked.map(([k, n]) => `<button class="note-chip" data-action="open-note" data-key="${k}" data-id="${n.id}"><b>${+k.slice(8)}</b> ${esc(noteLabel(n))}</button>`).join('') : '<span class="muted small">Las notas vinculadas a este horario aparecerán aquí.</span>'}</div>`;
-  return h;
+  const first = `${y}-${D.pad(m + 1)}-01`, last = `${y}-${D.pad(m + 1)}-${D.pad(D.daysIn(y, m + 1))}`;
+  return h + `<div class="period-panels">${panelToggle(s)}<div class="pp-grid">${periodPanels(s, first, last, 'este mes')}</div></div>`;
 }
 
 function schedCard(s) {

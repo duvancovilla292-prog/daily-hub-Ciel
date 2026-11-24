@@ -27,7 +27,7 @@ const Cal = {
     while (cells.length % 7) cells.push(null);
     return cells;
   },
-  tasksOn: key => state.tasks.filter(t => t.date === key),
+  tasksOn: key => state.tasks.filter(t => taskOn(t, key)),
   notesOn: key => state.notes[key] || [],
   birthdaysOn(key) {
     const d = D.parse(key), y = d.getFullYear(), m = d.getMonth() + 1, day = d.getDate();
@@ -76,15 +76,73 @@ function fillLinkSelect(sel, current) {
 }
 function linkedOn(sid, key, iid) {
   const m = l => l && l.sid === sid && (!iid || l.iid === iid);
-  return { tasks: state.tasks.filter(t => t.date === key && m(t.link)), notes: Cal.notesOn(key).filter(n => m(n.link)) };
+  return { tasks: Cal.tasksOn(key).filter(t => m(t.link)), notes: Cal.notesOn(key).filter(n => m(n.link)) };
 }
 function linkTags(sid, iid, key) {
   const { tasks, notes } = linkedOn(sid, key, iid);
   return notes.map(n => `<button class="lk n" data-action="open-note" data-key="${key}" data-id="${n.id}" title="Nota vinculada">📝 ${esc(noteLabel(n))}</button>`).join('') +
-    tasks.map(t => `<span class="lk t ${t.completed ? 'done' : ''}" title="Tarea vinculada">${t.completed ? '✓' : '○'} ${esc(t.title)}</span>`).join('');
+    tasks.map(t => { const d = doneOn(t, key); return `<span class="lk t ${d ? 'done' : ''}" title="Tarea vinculada">${d ? '✓' : t.mode === 'repeat' ? '🔁' : '○'} ${esc(t.title)}</span>`; }).join('');
 }
 function cleanLinks(sid, iid) {
   const m = l => l && l.sid === sid && (!iid || l.iid === iid);
-  state.tasks.forEach(t => { if (m(t.link)) t.link = null; });
+  state.tasks.forEach(t => { if (m(t.link)) { t.link = null; if (t.mode === 'repeat') { t.mode = 'once'; t.due = ''; t.doneDates = []; } } });   // sin actividad ya no puede repetirse
   Object.values(state.notes).forEach(arr => arr.forEach(n => { if (m(n.link)) n.link = null; }));
+}
+
+/* ===== Tipos de tarea =====
+   once   = un solo día (date)
+   span   = con fecha límite: abarca del date al due y se marca hecha una sola vez
+   repeat = se repite con la actividad vinculada: aparece cada día que ocurre la actividad (desde date hasta due,
+            o hasta que termine el horario) y se marca hecha cada día por separado (doneDates) */
+const TASK_MODES = { once: 'Un solo día', span: 'Con fecha límite (abarca un periodo)', repeat: 'Se repite con la actividad vinculada' };
+
+/** Último día de una tarea que se repite: su fecha límite o, si no tiene, el final del horario ('' = sin final). */
+function repeatEnd(t) { if (t.due) return t.due; const f = findItem(t.link); return (f && f.s.endDate) || ''; }
+
+/** ¿La tarea aparece en la fecha `key`? */
+function taskOn(t, key) {
+  if (t.mode === 'span') return t.date <= key && key <= t.due;
+  if (t.mode === 'repeat') {
+    const f = findItem(t.link);
+    if (!f || key < t.date) return false;
+    const end = repeatEnd(t);
+    if (end && key > end) return false;
+    return occurs(f.s, f.it, key);
+  }
+  return t.date === key;
+}
+/** ¿Está hecha ese día? (las que se repiten se marcan día por día) */
+const doneOn = (t, key) => t.mode === 'repeat' ? t.doneDates.includes(key) : t.completed;
+
+/** Estado general: 'done' | 'pending' | 'missed' (se repetía, ya terminó y no se hizo ningún día). */
+function taskStatus(t) {
+  if (t.mode !== 'repeat') return t.completed ? 'done' : 'pending';
+  const end = repeatEnd(t);
+  if (end && D.todayKey() > end) return t.doneDates.length ? 'done' : 'missed';
+  return 'pending';
+}
+function isOverdue(t) {
+  if (t.mode === 'repeat') return taskStatus(t) === 'missed';
+  return !t.completed && (t.mode === 'span' ? t.due : t.date) < D.todayKey();
+}
+/** Pendientes "de verdad" (contador de la pestaña): las de un día o periodo sin hacer + las que se repiten hoy y no se han hecho hoy. */
+function pendingCount() {
+  const today = D.todayKey();
+  return state.tasks.filter(t => t.mode === 'repeat' ? taskOn(t, today) && !t.doneDates.includes(today) : !t.completed).length;
+}
+/** Cuántas veces aparece una tarea que se repite entre dos fechas y cuántas de ellas se hicieron. */
+function repeatProgress(t, from, to) {
+  let n = 0, d = 0;
+  for (let k = from; k <= to; k = D.add(k, 1)) if (taskOn(t, k)) { n++; if (t.doneDates.includes(k)) d++; }
+  return { n, d };
+}
+/** Texto corto que explica la tarea (periodo o repetición). */
+function taskMeta(t) {
+  if (t.mode === 'span') return `⏳ Del ${D.full(t.date)} al ${D.full(t.due)}`;
+  if (t.mode === 'repeat') {
+    const end = repeatEnd(t), st = taskStatus(t);
+    return `🔁 Se repite desde el ${D.full(t.date)}${end ? ' hasta el ' + D.full(end) : ''} · ${plural(t.doneDates.length, 'día hecho', 'días hechos')}` +
+      (st === 'missed' ? ' · no cumplida' : st === 'done' ? ' · terminada' : '');
+  }
+  return '';
 }

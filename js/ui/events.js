@@ -5,13 +5,19 @@
 const changes = {
   'toggle-task': el => {
     const t = state.tasks.find(x => x.id === el.dataset.id); if (!t) return;
-    t.completed = el.checked;
-    el.closest('.task, li')?.classList.toggle('done', t.completed);   // transición visual inmediata
+    if (t.mode === 'repeat') {                                      // las que se repiten se marcan solo en ese día
+      const key = el.dataset.key; if (!D.isValidKey(key)) return;
+      const s = new Set(t.doneDates);
+      if (el.checked) s.add(key); else s.delete(key);
+      t.doneDates = [...s].sort();
+    } else t.completed = el.checked;
+    el.closest('.task, li')?.classList.toggle('done', el.checked);   // transición visual inmediata
     commit();
     renderHeader();
     setTimeout(render, 280);
   },
   'bday-cat-filter': el => { ui.bdayCat = el.value; renderBirthdays(); },
+  'task-mode': el => syncTaskForm(el.closest('form')),
   'task-scope': el => { ui.taskScope = el.value; renderTasks(); },
   'date-pick': el => setActive(el.value),
   'note-scope': el => { ui.noteScope = el.value; renderNotesList(); },
@@ -100,18 +106,16 @@ const forms = {
     }
   },
   task(f) {
-    const fd = new FormData(f);
-    const title = String(fd.get('title')).trim(), date = String(fd.get('date'));
-    if (!title) return;
-    if (!D.isValidKey(date)) return toast('Elige una fecha válida', 'error');
-    state.tasks.push({ id: uid(), title, date, completed: false, priority: String(fd.get('priority')), link: parseLink(fd.get('link')) });
-    commit(); f.elements.title.value = ''; f.elements.link.value = ''; f.elements.title.focus();
+    const r = readTaskForm(f);
+    if (typeof r === 'string') return toast(r, 'error');
+    state.tasks.push({ id: uid(), ...r, completed: false, doneDates: [] });
+    commit(); f.elements.title.value = ''; f.elements.link.value = ''; f.elements.due.value = ''; f.elements.mode.value = 'once'; syncTaskForm(f); f.elements.title.focus();
     renderTasks(); renderHeader(); toast('Tarea agregada', 'ok');
   },
   'quick-task'(f) {
     const fd = new FormData(f), title = String(fd.get('title')).trim();
     if (!title) return;
-    state.tasks.push({ id: uid(), title, date: ui.active, completed: false, priority: String(fd.get('priority')), link: null });
+    state.tasks.push({ id: uid(), title, date: ui.active, completed: false, priority: String(fd.get('priority')), link: null, mode: 'once', due: '', doneDates: [] });
     commit(); render(); toast('Tarea agregada', 'ok');
     $('#dayDetail input[name=title]')?.focus();
   },

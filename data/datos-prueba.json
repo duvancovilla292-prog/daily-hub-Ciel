@@ -1,6 +1,6 @@
 {
   "meta": {
-    "version": "1.3",
+    "version": "1.4",
     "lastUpdated": "2026-11-21T20:00:00.000Z"
   },
   "tasks": [
@@ -13,7 +13,10 @@
       "link": {
         "sid": "s-clases",
         "iid": "i-java"
-      }
+      },
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t02",
@@ -24,7 +27,10 @@
       "link": {
         "sid": "s-clases",
         "iid": "i-sql"
-      }
+      },
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t03",
@@ -35,7 +41,10 @@
       "link": {
         "sid": "s-clases",
         "iid": "i-ingles"
-      }
+      },
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t04",
@@ -46,7 +55,10 @@
       "link": {
         "sid": "s-clases",
         "iid": "i-grupal"
-      }
+      },
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t05",
@@ -57,7 +69,10 @@
       "link": {
         "sid": "s-pagos",
         "iid": "i-arriendo"
-      }
+      },
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t06",
@@ -68,7 +83,10 @@
       "link": {
         "sid": "s-pagos",
         "iid": "i-internet"
-      }
+      },
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t07",
@@ -79,7 +97,10 @@
       "link": {
         "sid": "s-pagos",
         "iid": "i-tarjeta"
-      }
+      },
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t08",
@@ -90,7 +111,10 @@
       "link": {
         "sid": "s-estudio",
         "iid": "i-logica"
-      }
+      },
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t09",
@@ -98,7 +122,10 @@
       "date": "2026-11-22",
       "completed": false,
       "priority": "medium",
-      "link": null
+      "link": null,
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t10",
@@ -106,7 +133,10 @@
       "date": "2026-11-22",
       "completed": false,
       "priority": "low",
-      "link": null
+      "link": null,
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t11",
@@ -117,7 +147,10 @@
       "link": {
         "sid": "s-gym",
         "iid": "i-entreno"
-      }
+      },
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t12",
@@ -128,7 +161,10 @@
       "link": {
         "sid": "s-limpieza",
         "iid": "i-ropa"
-      }
+      },
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t13",
@@ -139,7 +175,10 @@
       "link": {
         "sid": "s-sprint",
         "iid": "i-demo"
-      }
+      },
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t14",
@@ -147,7 +186,10 @@
       "date": "2026-11-10",
       "completed": true,
       "priority": "low",
-      "link": null
+      "link": null,
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t15",
@@ -155,7 +197,10 @@
       "date": "2026-11-12",
       "completed": true,
       "priority": "high",
-      "link": null
+      "link": null,
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t16",
@@ -166,7 +211,10 @@
       "link": {
         "sid": "s-clases",
         "iid": "i-java"
-      }
+      },
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t17",
@@ -174,7 +222,10 @@
       "date": "2026-11-19",
       "completed": false,
       "priority": "medium",
-      "link": null
+      "link": null,
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t18",
@@ -182,7 +233,10 @@
       "date": "2027-01-20",
       "completed": false,
       "priority": "high",
-      "link": null
+      "link": null,
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t19",
@@ -190,7 +244,10 @@
       "date": "2027-02-10",
       "completed": false,
       "priority": "medium",
-      "link": null
+      "link": null,
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t20",
@@ -198,7 +255,10 @@
       "date": "2026-12-20",
       "completed": false,
       "priority": "low",
-      "link": null
+      "link": null,
+      "mode": "once",
+      "due": "",
+      "doneDates": []
     },
     {
       "id": "t21",
@@ -206,7 +266,58 @@
       "date": "2026-11-21",
       "completed": false,
       "priority": "medium",
-      "link": null
+      "link": null,
+      "mode": "once",
+      "due": "",
+      "doneDates": []
+    },
+    {
+      "id": "t-rep1",
+      "title": "Repasar lo visto en clase de Java",
+      "date": "2026-11-16",
+      "completed": false,
+      "priority": "medium",
+      "link": {
+        "sid": "s-clases",
+        "iid": "i-java"
+      },
+      "mode": "repeat",
+      "due": "2026-12-18",
+      "doneDates": [
+        "2026-11-16",
+        "2026-11-18"
+      ]
+    },
+    {
+      "id": "t-rep2",
+      "title": "Estirar después de entrenar",
+      "date": "2026-11-20",
+      "completed": false,
+      "priority": "low",
+      "link": {
+        "sid": "s-gym",
+        "iid": "i-entreno"
+      },
+      "mode": "repeat",
+      "due": "",
+      "doneDates": [
+        "2026-11-20",
+        "2026-11-21"
+      ]
+    },
+    {
+      "id": "t-span1",
+      "title": "Terminar el informe del proyecto final",
+      "date": "2026-11-23",
+      "completed": false,
+      "priority": "high",
+      "link": {
+        "sid": "s-clases",
+        "iid": "i-grupal"
+      },
+      "mode": "span",
+      "due": "2026-12-05",
+      "doneDates": []
     }
   ],
   "notes": {

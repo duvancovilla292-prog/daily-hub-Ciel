@@ -19,7 +19,12 @@
 /* El título pide al menos ~140px; si no caben los botones al lado, estos bajan a otra línea
    en vez de aplastar el texto letra por letra */
 .task .t-title { flex: 1 1 140px; min-width: 0; overflow-wrap: anywhere; transition: color .25s; position: relative; }
-.task.done .t-title { color: var(--muted); text-decoration: line-through; }
+.task .t-name { display: block; }
+.task .t-meta { display: block; font-size: .72rem; color: var(--muted); margin-top: 2px; }
+.task.done .t-name { color: var(--muted); text-decoration: line-through; }
+.task.rep .rep-ico { width: 22px; text-align: center; flex: none; }
+.task.rep.missed .t-meta { color: var(--danger); }
+.task.rep.done .t-name { color: var(--muted); }
 .task.done { opacity: .75; }
 .check { flex-direction: row; cursor: pointer; }
 .check input { position: absolute; opacity: 0; width: 0; height: 0; }

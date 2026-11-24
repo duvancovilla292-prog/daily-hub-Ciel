@@ -9,7 +9,7 @@ function renderHeader() {
   $('#searchClear').hidden = !ui.query;
   $('#iconSun').hidden = state.settings.theme === 'light';
   $('#iconMoon').hidden = state.settings.theme !== 'light';
-  const pending = state.tasks.filter(t => !t.completed).length;
+  const pending = pendingCount();
   const badge = $('#badgeTasks');
   badge.hidden = !pending;
   badge.textContent = pending > 99 ? '99+' : pending;
