@@ -7,17 +7,22 @@ HTML + CSS + JavaScript puro, sin dependencias. Todo se guarda en `localStorage`
 Abre `index.html` en el navegador (no necesita servidor). Mantén las carpetas junto a él.
 
 ## Sincronización con la nube (Firebase)
-El botón ☁ de la barra superior permite entrar con Google. Con sesión iniciada, los datos se guardan en Firestore (documento `users/{uid}`) y en el navegador, y los cambios se sincronizan solos entre dispositivos. Sin sesión, o sin conexión, la app funciona igual con el almacenamiento del navegador. El punto del botón indica el estado: verde sincronizado, azul guardando, amarillo sin conexión, rojo error.
+El botón ☁ de la barra superior permite entrar con Google. Con sesión iniciada, los datos se guardan en Firestore y en el navegador, y se sincronizan solos entre dispositivos. Sin sesión, la app funciona igual solo con el navegador. El punto del botón indica el estado: verde sincronizado, azul guardando, amarillo sin conexión, rojo error.
+
+- **Un documento por elemento:** cada tarea, nota, cumpleaños, categoría y horario es un documento en `users/{uid}/items/{id}` con su hora de cambio (`updatedAt`) y una marca de borrado (`deleted`). Si dos dispositivos cambian cosas distintas, se conservan ambas; si cambian lo mismo, gana el cambio más reciente.
+- **Sin conexión:** cada cambio queda pendiente en el navegador (sobrevive a recargar) hasta que la nube lo confirma; lo que llegue de la nube no lo pisa si es más viejo.
+- **Cuentas:** al cerrar sesión el navegador se vacía (los datos quedan en la cuenta). Si al entrar hay datos sin cuenta, se pregunta antes de subirlos; los datos de otra cuenta nunca se suben. Los datos de la versión anterior (un solo documento `users/{uid}`) se migran solos.
+- El tema, la tipografía y los filtros son de cada dispositivo y no se sincronizan.
 
 La configuración está en `js/core/cloud.js`. En la consola de Firebase hace falta:
 1. **Authentication → Método de acceso:** activar **Google**.
 2. **Authentication → Configuración → Dominios autorizados:** agregar `duvancovilla292-prog.github.io`.
-3. **Firestore Database:** crear la base de datos y poner estas reglas (cada usuario solo puede leer y escribir lo suyo):
+3. **Firestore Database → Reglas** (cada usuario solo puede leer y escribir lo suyo, incluidos sus documentos por elemento):
 ```
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /users/{uid} {
+    match /users/{uid}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
   }
@@ -48,7 +53,7 @@ daily-hub/
 │   └── responsive.css      Tablet y celular (se carga al final)
 ├── js/                     Scripts clásicos que comparten ámbito global; el orden de carga está en index.html
 │   ├── core/
-│   │   ├── utils.js            Constantes, helpers, fechas (D), hash del admin
+│   │   ├── utils.js            Constantes, helpers y fechas (D)
 │   │   ├── storage.js          Store: guardar, validar, migrar, fusionar (sin duplicados) y estadísticas
 │   │   ├── state.js            Estado de los datos y de la interfaz
 │   │   └── calendar-engine.js  Cuándo ocurre cada actividad, días del mes, vínculos
@@ -77,15 +82,14 @@ daily-hub/
 - **Horario:** cada horario tiene apartados de **Tareas** y **Notas** de su día, semana o mes, con el selector **Todas / Solo vinculadas**. Diario, semanal o mensual, con fecha de inicio y fin. Las horas visibles van por defecto de 6:00 AM a 9:00 PM y se pueden cambiar al crear el horario o después (la tabla se amplía sola si una actividad queda fuera).
 
 ## Administrador
-El botón **Admin** de la barra superior abre una ventana emergente, bloqueada hasta iniciar sesión (se cierra con ✕, Esc o tocando fuera). Ya desbloqueado:
+El botón **Admin** abre una ventana emergente que se desbloquea al **iniciar sesión con Google** (no hay contraseña). Cada cuenta administra solo sus propios datos: lo garantizan las reglas de Firestore, no el código del navegador. Con sesión:
 - **Mini dashboard** con el conteo de tareas, notas, cumpleaños, horarios, actividades y vínculos.
 - **Descargar respaldo** (`backup_YYYY-MM-DD.json`).
-- **Cargar datos de prueba:** agrega los datos de `data/datos-prueba.json` (misma comparación que un respaldo).
-- **Cargar respaldo:** compara con lo que ya existe y solo agrega lo nuevo. Nunca borra ni duplica; los vínculos se reajustan.
+- **Cargar datos de prueba** y **Cargar respaldo:** comparan con lo que ya existe y solo agregan lo nuevo, sin duplicar.
 - **Vaciar todo** (pide escribir VACIAR para confirmar). Conserva las categorías de cumpleaños.
-- **Categorías de cumpleaños:** crear, renombrar y eliminar (al eliminar una, sus cumpleaños quedan sin categoría). Se guardan en el JSON como `birthdayCategories`; cada cumpleaños guarda `category` (id) y `tag` (texto).
+- **Categorías de cumpleaños:** crear, renombrar y eliminar.
 
-Las credenciales están en `js/core/utils.js` guardadas como hash. Al ser una app 100 % del lado del cliente, esto oculta funciones pero no es seguridad real.
+Los ids de todos los elementos solo pueden tener letras, números, `_` y `-`; los que no cumplen (por ejemplo en un respaldo manipulado) se reemplazan al cargarlos.
 
 ## Tipografía Aetheri
 El botón **Aa** activa/desactiva la fuente en toda la web (clase `aetheri-on` en `<html>`, preferencia guardada). La fuente solo cubre letras, tildes y ¡¿!?; números y demás símbolos usan la tipografía normal.

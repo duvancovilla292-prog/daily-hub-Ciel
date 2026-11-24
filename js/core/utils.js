@@ -25,17 +25,8 @@ const hit = (text, q) => !q || norm(text).includes(q);
 const plural = (n, a, b) => `${n} ${n === 1 ? a : b}`;
 const clone = o => JSON.parse(JSON.stringify(o));
 
-/* Acceso de administrador (solo del lado del cliente: oculta funciones, no es seguridad real) */
-const cyrb53 = (str, seed = 0) => {
-  let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
-  for (let i = 0, ch; i < str.length; i++) { ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); }
-  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-  return 4294967296 * (2097151 & h2) + (h1 >>> 0);
-};
-const ADMIN_HASH = 6433411787817184;
-const checkAdmin = (user, pass) => cyrb53(user.trim().toLowerCase() + '|' + pass) === ADMIN_HASH;
-const SESSION_KEY = 'daily_hub_admin_session';
+/* El panel de administración se desbloquea con la sesión de Google (ver js/core/cloud.js).
+   Cada cuenta solo puede leer y cambiar sus propios datos: lo garantizan las reglas de Firestore. */
 
 /* Horas en formato 12 h (como en las plantillas) */
 const fmtT = t => { if (!t) return ''; const h = +t.slice(0, 2); return `${(h % 12) || 12}:${t.slice(3, 5)} ${h < 12 ? 'AM' : 'PM'}`; };

@@ -82,7 +82,7 @@ function linkTags(sid, iid, key) { return linkTagList(sid, iid, key).join(''); }
 /** Etiquetas (una por nota o tarea vinculada a la actividad ese día), como lista. */
 function linkTagList(sid, iid, key) {
   const { tasks, notes } = linkedOn(sid, key, iid);
-  return notes.map(n => `<button class="lk n" data-action="open-note" data-key="${key}" data-id="${n.id}" title="Nota vinculada">📝 ${esc(noteLabel(n))}</button>`).concat(
+  return notes.map(n => `<button class="lk n" data-action="open-note" data-key="${esc(key)}" data-id="${esc(n.id)}" title="Nota vinculada">📝 ${esc(noteLabel(n))}</button>`).concat(
     tasks.map(t => { const d = doneOn(t, key); return `<span class="lk t ${d ? 'done' : ''}" title="Tarea vinculada">${d ? '✓' : t.mode === 'repeat' ? '🔁' : '○'} ${esc(t.title)}</span>`; }));
 }
 function cleanLinks(sid, iid) {

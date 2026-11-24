@@ -2,6 +2,20 @@
    Script clásico: comparte el ámbito global con los demás archivos de /js (ver el orden en index.html). */
 'use strict';
 
+/** Descarga todos los datos como un archivo JSON (también lo usa la nube antes de cerrar sesión con cambios sin subir). */
+function downloadBackup() {
+  try {
+    flushScratch();
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `backup_${D.todayKey()}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    toast('Respaldo descargado', 'ok');
+  } catch (e) { toast('No se pudo descargar: ' + e.message, 'error'); }
+}
+
 /** Si la nota que se está editando tiene cambios sin guardar, pregunta antes de perderlos. */
 async function confirmDiscard() {
   if (!ui.editor.dirty) return true;
@@ -220,33 +234,20 @@ const actions = {
   },
 
   /* administrador */
-  'admin-toggle': () => { ui.adminOpen = !ui.adminOpen; renderAdmin(); if (ui.adminOpen && !ui.admin) $('#adminLoginForm input[name=user]').focus(); },
+  'admin-toggle': () => { ui.adminOpen = !ui.adminOpen; renderAdmin(); },
+  'cloud-signin': () => window.Cloud ? window.Cloud.signIn() : toast('La sesión con Google no está disponible aquí. Abre la app desde su página web.', 'error'),
   'admin-close': () => { ui.adminOpen = false; renderAdmin(); $('#adminBtn').focus(); },
-  'admin-lock': () => {
-    ui.admin = false;
-    try { sessionStorage.removeItem(SESSION_KEY); } catch (e) { /* nada */ }
-    renderHeader(); toast('Panel bloqueado');
-  },
   'toggle-font': () => {
     state.settings.font = state.settings.font === 'aetheri' ? 'normal' : 'aetheri';
     applyFont(); commit(); renderHeader();
     toast(state.settings.font === 'aetheri' ? 'Tipografía Aetheri activada' : 'Tipografía normal', 'ok');
   },
   'export': () => {
-    if (!ui.admin) return toast('Solo el administrador puede descargar', 'error');
-    try {
-      flushScratch();
-      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `backup_${D.todayKey()}.json`;
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-      toast('Respaldo descargado', 'ok');
-    } catch (e) { toast('No se pudo descargar: ' + e.message, 'error'); }
+    if (!ui.admin) return toast('Inicia sesión con Google para descargar un respaldo', 'error');
+    downloadBackup();
   },
   'load-demo': async () => {
-    if (!ui.admin) return toast('Solo el administrador puede cargar datos de prueba', 'error');
+    if (!ui.admin) return toast('Inicia sesión con Google para cargar datos de prueba', 'error');
     let raw;
     try {
       const res = await fetch('data/datos-prueba.json', { cache: 'no-store' });
@@ -257,7 +258,7 @@ const actions = {
     }
     importData(raw, 'Cargar datos de prueba');
   },
-  'import': () => { if (!ui.admin) return toast('Solo el administrador puede cargar', 'error'); $('#importFile').click(); },
+  'import': () => { if (!ui.admin) return toast('Inicia sesión con Google para cargar un respaldo', 'error'); $('#importFile').click(); },
   'wipe': async () => {
     if (!ui.admin) return;
     const f = await formModal({

@@ -42,7 +42,7 @@ function renderCalendar() {
     const cls = ['cal-cell', key === ui.today ? 'today' : '', key === ui.active ? 'sel' : '', q && !match ? 'dim' : '', q && match ? 'hit' : ''].join(' ');
     const shown = chips.slice(0, 3).map(c => `<span class="cc ${c.c}" ${c.style ? `style="${c.style}"` : ''}>${esc(c.txt)}</span>`).join('');
     const more = chips.length > 3 ? `<span class="cc more">+${chips.length - 3} más</span>` : '';
-    html += `<button class="${cls}" data-action="select-day" data-key="${key}" aria-label="${esc(D.long(key))}"><span class="num">${+key.slice(8)}</span><span class="dots">${dots.join('')}</span><span class="cell-chips">${shown}${more}</span></button>`;
+    html += `<button class="${cls}" data-action="select-day" data-key="${esc(key)}" aria-label="${esc(D.long(key))}"><span class="num">${+key.slice(8)}</span><span class="dots">${dots.join('')}</span><span class="cell-chips">${shown}${more}</span></button>`;
   });
   $('#calMonth').innerHTML = html;
 
@@ -55,7 +55,7 @@ function renderCalendar() {
   const mine = [];
   if (f.has('notes')) Object.keys(state.notes).filter(k => k.startsWith(prefix)).sort().forEach(k => state.notes[k].forEach(n => { if (hit(noteText(n), q)) mine.push([k, n]); }));
   $('#calNotes').innerHTML = `<span class="script">notas</span>` + (mine.length
-    ? mine.map(([k, n]) => `<button class="note-chip" data-action="open-note" data-key="${k}" data-id="${n.id}"><b>${+k.slice(8)}</b> ${esc(noteLabel(n))}</button>`).join('')
+    ? mine.map(([k, n]) => `<button class="note-chip" data-action="open-note" data-key="${esc(k)}" data-id="${esc(n.id)}"><b>${+k.slice(8)}</b> ${esc(noteLabel(n))}</button>`).join('')
     : '<span class="muted small">No hay notas en este mes.</span>');
 
   renderAlerts();
@@ -97,9 +97,9 @@ function detailHtml(k) {
     </form></section>`;
 
   h += '<section><h3>Notas</h3>' + (info.notes.length
-    ? `<div class="mini-list">${info.notes.map(n => `<button class="note-item" data-action="open-note" data-key="${k}" data-id="${n.id}"><b>${n.type === 'list' ? '☑' : '📝'} ${esc(noteLabel(n))}</b></button>`).join('')}</div>`
+    ? `<div class="mini-list">${info.notes.map(n => `<button class="note-item" data-action="open-note" data-key="${esc(k)}" data-id="${esc(n.id)}"><b>${n.type === 'list' ? '☑' : '📝'} ${esc(noteLabel(n))}</b></button>`).join('')}</div>`
     : '<p class="empty-note">No hay notas escritas.</p>') +
-    `<button class="btn btn-ghost" style="margin-top:8px" data-action="open-note" data-key="${k}">+ Nueva nota</button></section>`;
+    `<button class="btn btn-ghost" style="margin-top:8px" data-action="open-note" data-key="${esc(k)}">+ Nueva nota</button></section>`;
 
   h += '<section><h3>Horario</h3>' + (info.sched.length
     ? `<div class="mini-list">${info.sched.map(x => `<div class="s-line" style="--c:${x.s.color}"><span class="tm">${timeLabel(x.item)}</span><span>${esc(x.item.title)} <span class="muted small">· ${esc(x.s.name)}</span><div class="tags">${linkTags(x.s.id, x.item.id, k)}</div></span></div>`).join('')}</div>`

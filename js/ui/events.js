@@ -94,17 +94,6 @@ async function importData(raw, title) {
 }
 
 const forms = {
-  'admin-login'(f) {
-    const err = $('#adminErr');
-    if (checkAdmin(f.elements.user.value, f.elements.pass.value)) {
-      ui.admin = true; err.hidden = true; f.reset();
-      try { sessionStorage.setItem(SESSION_KEY, '1'); } catch (e) { /* sin sessionStorage: dura hasta recargar */ }
-      renderHeader(); toast('Panel desbloqueado', 'ok');
-    } else {
-      err.hidden = false; err.textContent = 'Usuario o contraseña incorrectos';
-      f.elements.pass.value = ''; f.elements.pass.focus();
-    }
-  },
   task(f) {
     const r = readTaskForm(f);
     if (typeof r === 'string') return toast(r, 'error');
@@ -126,7 +115,7 @@ const forms = {
     commit(); f.reset(); render(); toast(`Cumpleaños de ${b.name} agregado`, 'ok');
   },
   'bday-cat'(f) {
-    if (!ui.admin) return toast('Solo el administrador puede crear categorías', 'error');
+    if (!ui.admin) return toast('Inicia sesión con Google para crear categorías', 'error');
     const name = f.elements.name.value.trim().slice(0, 30);
     if (!name) return;
     if (state.birthdayCategories.some(c => norm(c.name) === norm(name))) return toast('Esa categoría ya existe', 'error');

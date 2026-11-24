@@ -78,7 +78,7 @@ function renderNotesList() {
     const prev = n.type === 'list'
       ? `${n.items.filter(i => i.done).length}/${n.items.length} · ${n.items.slice(0, 3).map(i => i.text).join(', ')}`
       : n.content.trim().slice(0, 120);
-    html += `<button class="note-item ${ui.notesMode === 'day' && ui.editor.id === n.id ? 'on' : ''}" data-action="open-note" data-key="${k}" data-id="${n.id}">
+    html += `<button class="note-item ${ui.notesMode === 'day' && ui.editor.id === n.id ? 'on' : ''}" data-action="open-note" data-key="${esc(k)}" data-id="${esc(n.id)}">
       <b>${n.type === 'list' ? '☑' : '📝'} ${esc(noteLabel(n))}</b>${prev ? `<span>${esc(prev)}</span>` : ''}${lk ? `<em class="lk-mini">🔗 ${esc(lk)}</em>` : ''}</button>`;
   });
   $('#notesList').innerHTML = html || `<p class="empty-note">${q ? 'Sin coincidencias.' : (ui.noteScope === 'active' ? 'No hay notas en la fecha activa.' : 'Aún no hay notas guardadas.')}</p>`;

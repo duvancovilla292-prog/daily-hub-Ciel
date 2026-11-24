@@ -28,8 +28,9 @@ function renderAdmin() {
   btn.classList.toggle('unlocked', ui.admin);
   $('#adminLockIcon').hidden = ui.admin;
   $('#adminUnlockIcon').hidden = !ui.admin;
-  $('#adminLoginForm').hidden = ui.admin;
+  $('#adminLoginBox').hidden = ui.admin;
   $('#adminSession').hidden = !ui.admin;
+  $('#adminEmail').textContent = ui.adminEmail;
   $('#adminTools').classList.toggle('locked', !ui.admin);
   renderDash();
   renderCats();

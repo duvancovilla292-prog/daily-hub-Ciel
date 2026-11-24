@@ -28,7 +28,8 @@ const ui = {
   panelMode: {},                                      // apartados de Tareas/Notas de cada horario: 'all' | 'linked'
   bdayCat: 'all',                                     // filtro de categoría en Cumpleaños
   adminOpen: false,
-  admin: (() => { try { return sessionStorage.getItem(SESSION_KEY) === '1'; } catch (e) { return false; } })()
+  admin: false,                                       // true con sesión de Google iniciada
+  adminEmail: ''
 };
 ui.editor = newEditor(ui.active);
 

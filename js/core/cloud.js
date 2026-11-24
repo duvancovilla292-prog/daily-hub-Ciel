@@ -1,6 +1,17 @@
 /* ===== js/core/cloud.js — Sincronización con Firebase (Google + Firestore) =====
    Módulo: se carga después de los scripts clásicos y usa sus funciones globales (state, Store, replaceState, toast…).
-   Cada usuario guarda sus datos en el documento users/{uid} de Firestore. Sin sesión la app funciona igual,
+
+   Cómo se guarda: cada elemento es un documento propio en users/{uid}/items/{id}
+     t_<id> tarea · n_<id> nota (con su fecha) · b_<id> cumpleaños · c_<id> categoría · s_<id> horario · x_scratch bloc rápido
+   y cada documento lleva { data (JSON), updatedAt (ms), deleted }. Borrar deja una marca (deleted: true) para que
+   los demás dispositivos también lo borren. Si dos dispositivos cambian el mismo elemento, gana el cambio más reciente;
+   si cambian elementos distintos, se conservan los dos.
+
+   Cambios sin conexión: cada cambio local queda como "pendiente" (guardado en el navegador) hasta que la nube lo confirma,
+   así que no se pierde al recargar ni lo pisa lo que llegue de la nube si es más viejo.
+
+   Cuentas: los datos del navegador pertenecen a la cuenta con la que se sincronizaron. Al cerrar sesión se vacía el
+   navegador; si al entrar hay datos de invitado, se pregunta antes de subirlos. Sin sesión la app funciona igual,
    solo con el almacenamiento del navegador. */
 
 const SDK = 'https://www.gstatic.com/firebasejs/13.4.0/';
@@ -12,117 +23,241 @@ const firebaseConfig = {
   messagingSenderId: '369901038763',
   appId: '1:369901038763:web:f2d3d67e3ed877071edbee'
 };
-const LINK_KEY = 'daily_hub_cloud_uid';   // con qué cuenta ya se sincronizó este navegador
+const REC_KEY = 'daily_hub_sync';            // { uid, pending: {id: ms}, known: {id: ms} }
+const OLD_LINK_KEY = 'daily_hub_cloud_uid';  // versión anterior (un solo documento por cuenta)
+const DOC_RE = /^(?:[tnbcs]_[\w-]{1,64}|x_scratch)$/;
 const LABEL = {
   loading: 'Conectando con la nube…', off: 'Sin iniciar sesión: los datos solo están en este navegador',
-  syncing: 'Guardando en la nube…', ok: 'Sincronizado con la nube', offline: 'Sin conexión: se guardará al volver la red',
+  syncing: 'Guardando en la nube…', ok: 'Sincronizado con la nube', offline: 'Sin conexión: los cambios se subirán al volver la red',
   error: 'Error de sincronización', unavailable: 'No se pudo cargar Firebase'
 };
 
-let A, F, auth, db, user = null, ref = null, unsub = null, timer = null, status = 'loading', lastSent = null;
+let A, F, auth, db, user = null, unsub = null, timer = null, status = 'loading', flushing = false;
 
 const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* nada */ } };
+const lsDel = k => { try { localStorage.removeItem(k); } catch (e) { /* nada */ } };
+const emptyRec = uid => ({ uid: uid || '', pending: {}, known: {} });
+function loadRec() {
+  try {
+    const r = JSON.parse(lsGet(REC_KEY) || 'null');
+    if (r && typeof r.uid === 'string') return { uid: r.uid, pending: r.pending || {}, known: r.known || {} };
+  } catch (e) { /* registro dañado */ }
+  return emptyRec();
+}
+let rec = loadRec();
+const saveRec = () => lsSet(REC_KEY, JSON.stringify(rec));
+const pendingN = () => Object.keys(rec.pending).length;
 const hasData = s => s.tasks.length || s.birthdays.length || s.schedules.length || Object.keys(s.notes).length || s.scratchpad.trim() || s.birthdayCategories.length;
 
+/* ---------- Estado ⇄ elementos ---------- */
+function elementsJson(s) {
+  const m = new Map();
+  s.tasks.forEach(t => m.set('t_' + t.id, JSON.stringify(t)));
+  Object.entries(s.notes).forEach(([date, arr]) => arr.forEach(n => m.set('n_' + n.id, JSON.stringify({ ...n, date }))));
+  s.birthdays.forEach(b => m.set('b_' + b.id, JSON.stringify(b)));
+  s.birthdayCategories.forEach(c => m.set('c_' + c.id, JSON.stringify(c)));
+  s.schedules.forEach(x => m.set('s_' + x.id, JSON.stringify(x)));
+  m.set('x_scratch', JSON.stringify({ text: s.scratchpad }));
+  return m;
+}
+/** Arma el estado a partir de los elementos, conservando el orden que ya tenían. */
+function stateFromElements(map, base) {
+  const raw = { meta: base.meta, tasks: [], notes: {}, birthdays: [], birthdayCategories: [], schedules: [], scratchpad: '', settings: base.settings };
+  const order = [...elementsJson(base).keys()];
+  const ids = order.filter(id => map.has(id)).concat([...map.keys()].filter(id => !order.includes(id)));
+  ids.forEach(id => {
+    let v; try { v = JSON.parse(map.get(id)); } catch (e) { return; }
+    if (!v || typeof v !== 'object') return;
+    const p = id.slice(0, 2);
+    if (p === 't_') raw.tasks.push(v);
+    else if (p === 'n_') { const { date, ...n } = v; if (D.isValidKey(date)) (raw.notes[date] = raw.notes[date] || []).push(n); }
+    else if (p === 'b_') raw.birthdays.push(v);
+    else if (p === 'c_') raw.birthdayCategories.push(v);
+    else if (p === 's_') raw.schedules.push(v);
+    else if (id === 'x_scratch') raw.scratchpad = typeof v.text === 'string' ? v.text : '';
+  });
+  return Store.normalize(raw, false, { keepLinks: true });
+}
+
+/* ---------- Cambios locales → pendientes ---------- */
+let last = elementsJson(state);              // lo último registrado, para detectar qué cambió
+function track() {
+  const now = elementsJson(state), t = Date.now();
+  now.forEach((j, id) => { if (last.get(id) !== j) rec.pending[id] = t; });
+  last.forEach((j, id) => { if (!now.has(id)) rec.pending[id] = t; });   // borrado → marca de borrado
+  last = now;
+  saveRec();
+}
+hooks.onCommit = () => {
+  if (!rec.uid) { last = elementsJson(state); return; }      // invitado: no se sincroniza
+  track();
+  if (user && user.uid === rec.uid) { setStatus('syncing'); clearTimeout(timer); timer = setTimeout(flush, 800); }
+  else setStatus(user ? status : 'offline');
+};
+
 function setStatus(s) {
-  status = s === 'syncing' && !navigator.onLine ? 'offline' : s;
+  status = (s === 'syncing' || s === 'ok') && !navigator.onLine && pendingN() ? 'offline' : s;
   const btn = document.getElementById('cloudBtn');
   if (!btn) return;
   btn.dataset.status = status;
   btn.title = LABEL[status];
   btn.setAttribute('aria-label', LABEL[status]);
 }
-
 function explain(e) {
-  const c = e && e.code || '';
-  if (c.includes('permission-denied')) return 'Firebase rechazó el acceso: revisa las reglas de Firestore.';
+  const c = (e && e.code) || '';
+  if (c.includes('permission-denied')) return 'Firebase rechazó el acceso: revisa (o actualiza) las reglas de Firestore.';
   if (c.includes('unauthorized-domain')) return 'Este dominio no está autorizado en Firebase (Authentication → Configuración → Dominios autorizados).';
-  if (c.includes('operation-not-allowed')) return 'Activa el inicio de sesión con Google en Firebase (Authentication → Método de acceso).';
+  if (c.includes('operation-not-allowed') || c.includes('configuration-not-found')) return 'Activa el inicio de sesión con Google en Firebase (Authentication → Método de acceso).';
   if (c.includes('network') || c.includes('unavailable')) return 'Sin conexión con Firebase. Se intentará de nuevo.';
   return 'Error de Firebase: ' + (c || (e && e.message) || 'desconocido');
 }
 function fail(e, quiet) {
   console.warn('[nube]', e);
-  setStatus(e && String(e.code || '').includes('unavailable') ? 'offline' : 'error');
-  if (!quiet) toast(explain(e), 'error');
+  const off = String((e && e.code) || '').match(/unavailable|network/);
+  setStatus(off ? 'offline' : 'error');
+  if (!quiet && !off) toast(explain(e), 'error');
 }
 
-/* --- Subir los datos (con espera de 800 ms para agrupar cambios seguidos) --- */
-async function push() {
+/* ---------- Subir pendientes (en lotes) ---------- */
+async function flush() {
   clearTimeout(timer); timer = null;
-  if (!ref) return;
-  const data = JSON.stringify(state);
-  if (data === lastSent) { setStatus('ok'); return; }
-  lastSent = data;
+  if (!user || !rec.uid || user.uid !== rec.uid || flushing) return;
+  const ids = Object.keys(rec.pending);
+  if (!ids.length) { setStatus('ok'); return; }
+  flushing = true;
   setStatus('syncing');
+  const cur = elementsJson(state);
   try {
-    await F.setDoc(ref, { data, updatedAt: state.meta.lastUpdated, v: 1 });
-    if (lastSent === data) setStatus('ok');
-  } catch (e) { lastSent = null; fail(e); }
+    for (let i = 0; i < ids.length; i += 400) {
+      const part = ids.slice(i, i + 400), stamp = {};
+      const batch = F.writeBatch(db);
+      part.forEach(id => {
+        const ms = rec.pending[id], j = cur.get(id);
+        stamp[id] = ms;
+        batch.set(F.doc(db, 'users', rec.uid, 'items', id), j !== undefined ? { data: j, updatedAt: ms, deleted: false } : { data: '', updatedAt: ms, deleted: true });
+      });
+      await batch.commit();
+      part.forEach(id => { if (rec.pending[id] === stamp[id]) { delete rec.pending[id]; rec.known[id] = stamp[id]; } });
+      saveRec();
+    }
+    setStatus(pendingN() ? 'syncing' : 'ok');
+  } catch (e) { fail(e); }
+  flushing = false;
+  if (pendingN() && status === 'syncing') timer = setTimeout(flush, 1000);   // hubo cambios mientras se subía
 }
-hooks.onCommit = () => {
-  if (!ref) return;
-  setStatus('syncing');
-  clearTimeout(timer);
-  timer = setTimeout(push, 800);
-};
 
-/* --- Al iniciar o cerrar sesión --- */
+/* ---------- Cambios de la nube → estado ---------- */
+function applyRemote(changes) {
+  let map = null;
+  changes.forEach(ch => {
+    if (ch.type === 'removed') return;
+    const id = ch.doc.id, d = ch.doc.data() || {}, ms = Number(d.updatedAt) || 0;
+    if (!DOC_RE.test(id) || (rec.known[id] || 0) >= ms) return;   // ya aplicado (o es nuestro propio cambio)
+    rec.known[id] = ms;
+    if (rec.pending[id] && rec.pending[id] >= ms) return;          // lo local es más nuevo: se subirá
+    delete rec.pending[id];
+    if (!map) map = elementsJson(state);
+    if (d.deleted) map.delete(id);
+    else if (typeof d.data === 'string') map.set(id, d.data);
+  });
+  saveRec();
+  if (!map) return false;
+  replaceState(stateFromElements(map, state));
+  last = elementsJson(state);
+  return true;
+}
+
+/** Agrega (sin duplicar) otro conjunto de datos al de esta cuenta. */
+function mergeIn(other) {
+  const { state: merged } = Store.merge(state, other);
+  merged.settings = state.settings;
+  replaceState(merged);
+}
+/** Deja el navegador sin datos (conserva tema, tipografía y filtros). */
+function resetLocal() {
+  clearTimeout(scratchTimer); pendingScratch = null;
+  ui.editor = newEditor(ui.active); ui.anchors = {}; ui.openForms.clear(); ui.sheet = false;
+  const empty = defaultState();
+  empty.settings = state.settings;
+  replaceState(empty);
+  last = elementsJson(state);
+}
+
+/* ---------- Iniciar y cerrar sesión ---------- */
 async function onUser(u) {
   if (unsub) { unsub(); unsub = null; }
   clearTimeout(timer); timer = null;
-  user = u; ref = null; lastSent = null;
+  user = u;
+  ui.admin = !!u;
+  ui.adminEmail = u ? (u.email || u.displayName || '') : '';
+  renderHeader();
   if (!u) { setStatus('off'); return; }
   setStatus('loading');
-  const docRef = F.doc(db, 'users', u.uid);
-  try {
-    const snap = await F.getDoc(docRef);
-    const cloudRaw = snap.exists() && typeof snap.data().data === 'string' ? snap.data().data : null;
-    if (!cloudRaw) {
-      ref = docRef;                                       // la nube está vacía: se suben los datos de este navegador
-      await push();
-    } else {
-      const cloud = Store.normalize(JSON.parse(cloudRaw), false);
-      const firstTime = lsGet(LINK_KEY) !== u.uid;
-      if (firstTime && hasData(state)) {
-        flushScratch();
-        const choice = await modal({
-          title: 'Datos en este dispositivo',
-          body: 'Este navegador tiene datos guardados y tu cuenta también tiene datos en la nube.<br><br><b>Juntar ambos</b> agrega a la nube lo que falte (sin duplicar). <b>Usar los de la nube</b> descarta lo de este navegador.',
-          actions: [{ label: 'Usar los de la nube', value: 'cloud' }, { label: 'Juntar ambos', value: 'merge', cls: 'btn-primary' }]
-        });
-        if (choice === 'cloud') replaceState(cloud);
-        else {
-          const { state: merged } = Store.merge(cloud, state);
-          merged.settings = state.settings;
-          replaceState(merged);
-        }
-        ref = docRef;
-        lastSent = cloudRaw;
-        await push();
-      } else {
-        ref = docRef;
-        lastSent = cloudRaw;
-        if (cloudRaw !== JSON.stringify(state)) replaceState(cloud);
-        setStatus('ok');
-      }
+  const who = esc(ui.adminEmail || 'tu cuenta');
+  let guest = null, fromOldVersion = false;
+
+  if (rec.uid && rec.uid !== u.uid) {
+    // El navegador tiene datos de OTRA cuenta: no se mezclan
+    if (pendingN()) {
+      const v = await modal({
+        title: 'Cambios de otra cuenta',
+        body: `Este navegador tiene ${plural(pendingN(), 'cambio', 'cambios')} de otra cuenta que no se alcanzaron a subir. Al entrar con ${who} se quitarán de este navegador. ¿Quieres descargar un respaldo antes?`,
+        actions: [{ label: 'No, continuar', value: false }, { label: 'Descargar respaldo', value: true, cls: 'btn-primary' }]
+      });
+      if (v) downloadBackup();
     }
-    lsSet(LINK_KEY, u.uid);
-    // Cambios hechos en otro dispositivo
-    unsub = F.onSnapshot(docRef, s => {
-      if (s.metadata.hasPendingWrites || !s.exists()) return;
-      const raw = s.data().data;
-      if (typeof raw !== 'string' || raw === lastSent || timer) return;   // es lo mismo que enviamos, o hay cambios locales por subir
-      if (raw === JSON.stringify(state)) return;
-      lastSent = raw;
-      replaceState(Store.normalize(JSON.parse(raw), false));
-      setStatus('ok');
-    }, e => fail(e, true));
-  } catch (e) { fail(e); }
+    resetLocal();
+    rec = emptyRec(u.uid);
+  } else if (!rec.uid) {
+    if (lsGet(OLD_LINK_KEY) === u.uid) {
+      fromOldVersion = true;                                   // datos de esta misma cuenta, de la versión anterior
+      rec = emptyRec(u.uid);
+      last = new Map();                                        // todo lo local se subirá
+    } else {
+      if (hasData(state)) {
+        flushScratch();
+        const v = await modal({
+          title: 'Datos de este navegador',
+          body: `Este navegador tiene datos guardados sin cuenta. ¿Quieres agregarlos a ${who}?<br><br>Si eliges <b>No</b>, se quitan de este navegador y tu cuenta no se toca.`,
+          actions: [{ label: 'No, quitarlos', value: 'drop' }, { label: 'Agregar a mi cuenta', value: 'add', cls: 'btn-primary' }]
+        });
+        if (v !== 'drop') guest = clone(state);
+      }
+      resetLocal();
+      rec = emptyRec(u.uid);
+    }
+  }
+  lsDel(OLD_LINK_KEY);
+  saveRec();
+
+  let first = true;
+  const uid = u.uid;
+  unsub = F.onSnapshot(F.collection(db, 'users', uid, 'items'), async snap => {
+    if (!user || user.uid !== uid) return;
+    applyRemote(snap.docChanges());
+    if (!first) return;
+    first = false;
+    if (snap.empty) {
+      // Nube vacía: ¿hay datos de la versión anterior (todo en un solo documento)?
+      try {
+        const old = await F.getDoc(F.doc(db, 'users', uid));
+        const d = old.exists() ? old.data() : null;
+        if (d && typeof d.data === 'string' && !d.migrated) {
+          mergeIn(Store.normalize(JSON.parse(d.data), false));
+          await F.setDoc(F.doc(db, 'users', uid), { migrated: true }, { merge: true });
+        }
+      } catch (e) { fail(e, true); }
+    }
+    if (guest) { mergeIn(guest); guest = null; }
+    if (fromOldVersion || pendingN() || hasData(state)) track();
+    flush();
+    if (!pendingN()) setStatus('ok');
+  }, e => fail(e));
 }
 
 async function signIn() {
+  if (!auth) return toast(status === 'unavailable' ? 'No se pudo cargar Firebase. Revisa tu conexión y recarga la página.' : 'Conectando con la nube…', status === 'unavailable' ? 'error' : 'info');
   const provider = new A.GoogleAuthProvider();
   try { await A.signInWithPopup(auth, provider); }
   catch (e) {
@@ -136,37 +271,51 @@ async function signIn() {
   }
 }
 
-/* --- Ventana de la nube (botón ☁ de la barra superior) --- */
+async function signOut() {
+  flushScratch();
+  await flush();
+  if (pendingN()) {
+    const v = await modal({
+      title: 'Cambios sin subir',
+      body: `Hay ${plural(pendingN(), 'cambio que todavía no se ha', 'cambios que todavía no se han')} subido a la nube (¿sin conexión?). Al cerrar sesión, este navegador se vacía y ${pendingN() === 1 ? 'ese cambio se perdería' : 'esos cambios se perderían'}.`,
+      actions: [{ label: 'Cancelar', value: false }, { label: 'Cerrar igual', value: 'force', cls: 'btn-danger' }, { label: 'Descargar respaldo y cerrar', value: 'backup', cls: 'btn-primary' }]
+    });
+    if (!v) return;
+    if (v === 'backup') downloadBackup();
+  }
+  if (unsub) { unsub(); unsub = null; }
+  rec = emptyRec(); saveRec();
+  await A.signOut(auth);
+  resetLocal();
+  toast('Sesión cerrada. Tus datos siguen en tu cuenta; este navegador quedó vacío.');
+}
+
+/* ---------- Ventana de la nube (botón ☁) ---------- */
 async function openPanel() {
-  if (status === 'unavailable') return toast('No se pudo cargar Firebase. Revisa tu conexión y recarga la página.', 'error');
-  if (!auth) return toast('Conectando con la nube…');
   if (!user) {
+    if (status === 'unavailable') return toast('No se pudo cargar Firebase. Revisa tu conexión y recarga la página.', 'error');
     const go = await modal({
       title: 'Sincronizar con la nube',
-      body: 'Inicia sesión con tu cuenta de Google para guardar tus datos en la nube y verlos en cualquier dispositivo.<br><br>Sin sesión, todo se guarda solo en este navegador.',
+      body: 'Inicia sesión con tu cuenta de Google para guardar tus datos en la nube, verlos en cualquier dispositivo y usar el panel de administración.<br><br>Sin sesión, todo se guarda solo en este navegador.',
       actions: [{ label: 'Ahora no', value: false }, { label: 'Entrar con Google', value: true, cls: 'btn-primary' }]
     });
     if (go) signIn();
     return;
   }
+  const n = pendingN();
   const v = await modal({
     title: 'Sincronización',
-    body: `Sesión iniciada como <b>${esc(user.email || user.displayName || 'usuario')}</b>.<br>Estado: ${esc(LABEL[status])}.<br><br>Tus datos se guardan en la nube y en este navegador.`,
+    body: `Sesión iniciada como <b>${esc(user.email || user.displayName || 'usuario')}</b>.<br>Estado: ${esc(LABEL[status])}.${n ? `<br>${plural(n, 'cambio pendiente', 'cambios pendientes')} de subir.` : ''}<br><br>Tus datos se guardan en tu cuenta y en este navegador. Al cerrar sesión, este navegador se vacía.`,
     actions: [{ label: 'Cerrar sesión', value: 'out', cls: 'btn-danger' }, { label: 'Sincronizar ahora', value: 'sync' }, { label: 'Listo', value: false, cls: 'btn-primary' }]
   });
-  if (v === 'sync') { flushScratch(); lastSent = null; await push(); if (status === 'ok') toast('Sincronizado', 'ok'); }
-  if (v === 'out') {
-    flushScratch();
-    if (timer) await push();
-    await A.signOut(auth);
-    toast('Sesión cerrada: los datos siguen en este navegador');
-  }
+  if (v === 'sync') { flushScratch(); await flush(); if (status === 'ok') toast('Sincronizado', 'ok'); }
+  if (v === 'out') signOut();
 }
 
-window.Cloud = { open: openPanel };
-window.addEventListener('online', () => { if (ref) { setStatus('syncing'); push(); } });
-window.addEventListener('offline', () => { if (ref) setStatus('offline'); });
-document.addEventListener('visibilitychange', () => { if (document.hidden && timer) push(); });
+window.Cloud = { open: openPanel, signIn };
+window.addEventListener('online', () => { if (user) { setStatus('syncing'); flush(); } });
+window.addEventListener('offline', () => { if (user && pendingN()) setStatus('offline'); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && timer) flush(); });
 
 setStatus('loading');
 try {
@@ -176,7 +325,7 @@ try {
   auth = A.getAuth(fbApp);
   db = F.getFirestore(fbApp);
   A.getRedirectResult(auth).catch(e => fail(e));
-  A.onAuthStateChanged(auth, onUser);
+  A.onAuthStateChanged(auth, u => { onUser(u).catch(e => fail(e)); });
 } catch (e) {
   console.warn('[nube] no se pudo cargar Firebase', e);
   setStatus('unavailable');

@@ -78,8 +78,8 @@ const onlyLinked = s => ui.panelMode[s.id] === 'linked';
 function panelToggle(s) {
   const m = onlyLinked(s) ? 'linked' : 'all';
   return `<div class="seg panel-mode" role="group" aria-label="Qué tareas y notas mostrar">
-    <button data-action="panel-mode" data-id="${s.id}" data-v="all" class="${m === 'all' ? 'on' : ''}">Todas</button>
-    <button data-action="panel-mode" data-id="${s.id}" data-v="linked" class="${m === 'linked' ? 'on' : ''}">Solo vinculadas</button></div>`;
+    <button data-action="panel-mode" data-id="${esc(s.id)}" data-v="all" class="${m === 'all' ? 'on' : ''}">Todas</button>
+    <button data-action="panel-mode" data-id="${esc(s.id)}" data-v="linked" class="${m === 'linked' ? 'on' : ''}">Solo vinculadas</button></div>`;
 }
 function periodTasks(s, from, to) {
   return state.tasks.filter(t => {
@@ -101,13 +101,13 @@ function panelTaskLi(t, from, to) {
   }
   const k = t.mode === 'repeat' ? from : t.date, done = doneOn(t, k);
   const note = t.mode === 'span' ? `hasta ${D.short(t.due)}` : t.mode === 'repeat' ? '🔁' : from !== to ? D.short(t.date) : '';
-  return `<li class="${done ? 'done' : ''}"><label class="check"><input type="checkbox" data-change="toggle-task" data-id="${t.id}" data-key="${k}" ${done ? 'checked' : ''} aria-label="Completar"><span class="box"></span></label><span>${esc(t.title)}${note ? ` <small class="muted">· ${note}</small>` : ''}</span></li>`;
+  return `<li class="${done ? 'done' : ''}"><label class="check"><input type="checkbox" data-change="toggle-task" data-id="${esc(t.id)}" data-key="${esc(k)}" ${done ? 'checked' : ''} aria-label="Completar"><span class="box"></span></label><span>${esc(t.title)}${note ? ` <small class="muted">· ${note}</small>` : ''}</span></li>`;
 }
 function periodPanels(s, from, to, label) {
   const tasks = periodTasks(s, from, to), notes = periodNotes(s, from, to), one = from === to;
   const which = onlyLinked(s) ? ' vinculadas' : '';
   return `<div class="panel"><span class="ptitle">Tareas</span>${tasks.length ? `<ul class="mini-tasks">${tasks.map(t => panelTaskLi(t, from, to)).join('')}</ul>` : `<p class="empty-note">Sin tareas${which} ${label}.</p>`}</div>
-    <div class="panel"><span class="ptitle">Notas</span>${notes.length ? notes.map(([k, n]) => `<button class="note-chip" data-action="open-note" data-key="${k}" data-id="${n.id}">${one ? '' : `<b>${+k.slice(8)}</b> `}${n.type === 'list' ? '☑' : '📝'} ${esc(noteLabel(n))}</button>`).join('') : `<p class="empty-note">Sin notas${which} ${label}.</p>`}</div>`;
+    <div class="panel"><span class="ptitle">Notas</span>${notes.length ? notes.map(([k, n]) => `<button class="note-chip" data-action="open-note" data-key="${esc(k)}" data-id="${esc(n.id)}">${one ? '' : `<b>${+k.slice(8)}</b> `}${n.type === 'list' ? '☑' : '📝'} ${esc(noteLabel(n))}</button>`).join('') : `<p class="empty-note">Sin notas${which} ${label}.</p>`}</div>`;
 }
 
 const actHtml = (s, it, key) => `<div class="act" style="--c:${s.color}"><b>${esc(it.title)}</b><small>${timeLabel(it)}</small>${linkTags(s.id, it.id, key)}</div>`;
@@ -175,7 +175,7 @@ function schedCard(s) {
   const a = anchorOf(s);
   const view = s.type === 'daily' ? dailyView(s, a) : s.type === 'weekly' ? weeklyView(s, a) : monthlyView(s, a);
   const items = s.items.length
-    ? `<div class="it-list">${s.items.slice().sort(byStart).map(it => `<span class="it-chip" style="--c:${s.color}"><b>${esc(it.title)}</b> · ${esc(itemWhen(s, it))}<button class="icon-btn mini edit" data-action="edit-item" data-sid="${s.id}" data-iid="${it.id}" aria-label="Editar actividad" title="Editar">${ICON_EDIT}</button><button class="icon-btn mini" data-action="del-item" data-sid="${s.id}" data-iid="${it.id}" aria-label="Eliminar actividad">${ICON_X}</button></span>`).join('')}</div>`
+    ? `<div class="it-list">${s.items.slice().sort(byStart).map(it => `<span class="it-chip" style="--c:${s.color}"><b>${esc(it.title)}</b> · ${esc(itemWhen(s, it))}<button class="icon-btn mini edit" data-action="edit-item" data-sid="${esc(s.id)}" data-iid="${esc(it.id)}" aria-label="Editar actividad" title="Editar">${ICON_EDIT}</button><button class="icon-btn mini" data-action="del-item" data-sid="${esc(s.id)}" data-iid="${esc(it.id)}" aria-label="Eliminar actividad">${ICON_X}</button></span>`).join('')}</div>`
     : '<p class="empty-note">Aún no tiene actividades. Agrégalas con el botón de abajo.</p>';
 
   const extra = s.type === 'weekly'
@@ -185,26 +185,26 @@ function schedCard(s) {
       : '';
 
   const hoursEdit = s.type === 'monthly' ? '' : `<span class="hours-edit">Horas
-      <select data-change="sched-hour" data-id="${s.id}" data-k="start" aria-label="Hora inicial">${hourOptions(s.hourStart)}</select> a
-      <select data-change="sched-hour" data-id="${s.id}" data-k="end" aria-label="Hora final">${hourOptions(s.hourEnd)}</select></span>`;
+      <select data-change="sched-hour" data-id="${esc(s.id)}" data-k="start" aria-label="Hora inicial">${hourOptions(s.hourStart)}</select> a
+      <select data-change="sched-hour" data-id="${esc(s.id)}" data-k="end" aria-label="Hora final">${hourOptions(s.hourEnd)}</select></span>`;
 
   return `<section class="card sched-card" style="--c:${s.color}">
     <div class="sched-head"><span class="dot"></span><h2>${esc(s.name)}</h2><span class="tag">${SCHED_TYPES[s.type]}</span>
-      <button class="icon-btn" data-action="del-sched" data-id="${s.id}" aria-label="Eliminar horario" title="Eliminar horario">${ICON_X}</button></div>
+      <button class="icon-btn" data-action="del-sched" data-id="${esc(s.id)}" aria-label="Eliminar horario" title="Eliminar horario">${ICON_X}</button></div>
     <p class="muted small vig">${esc(vigencia(s))}${s.type === 'daily' && s.weekdays.length < 7 ? ' · ' + s.weekdays.map(d => WD_SHORT[d]).join(', ') : ''}</p>
     <div class="period">
-      <button class="icon-btn" data-action="sched-nav" data-id="${s.id}" data-d="-1" aria-label="Anterior">‹</button>
+      <button class="icon-btn" data-action="sched-nav" data-id="${esc(s.id)}" data-d="-1" aria-label="Anterior">‹</button>
       <b>${esc(periodLabel(s, a))}</b>
-      <button class="icon-btn" data-action="sched-nav" data-id="${s.id}" data-d="1" aria-label="Siguiente">›</button>
-      <button class="btn btn-ghost" data-action="sched-follow" data-id="${s.id}">${ui.anchors[s.id] ? 'Ir a la fecha activa' : 'Sigue la fecha activa'}</button>
+      <button class="icon-btn" data-action="sched-nav" data-id="${esc(s.id)}" data-d="1" aria-label="Siguiente">›</button>
+      <button class="btn btn-ghost" data-action="sched-follow" data-id="${esc(s.id)}">${ui.anchors[s.id] ? 'Ir a la fecha activa' : 'Sigue la fecha activa'}</button>
       ${hoursEdit}
     </div>
     ${view}
     <h4 class="sub">Actividades</h4>
     ${items}
-    <details class="add-item" data-sid="${s.id}" ${ui.openForms.has(s.id) ? 'open' : ''}>
+    <details class="add-item" data-sid="${esc(s.id)}" ${ui.openForms.has(s.id) ? 'open' : ''}>
       <summary>+ Agregar actividad</summary>
-      <form data-form="item" data-sid="${s.id}" class="stack" autocomplete="off">
+      <form data-form="item" data-sid="${esc(s.id)}" class="stack" autocomplete="off">
         <label>Actividad <input name="title" required maxlength="100" placeholder="Ej. Clase de matemáticas"></label>
         <div class="row2"><label>Inicio <input type="time" name="start"></label><label>Fin <input type="time" name="end"></label></div>
         ${extra}

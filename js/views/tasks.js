@@ -5,8 +5,8 @@
 /** Fila de tarea. `key` = día que se está mostrando (importa en las que se repiten: el check es de ese día). */
 function taskRow(t, key) {
   const k = key || t.date, done = doneOn(t, k), lk = linkLabel(t.link), meta = taskMeta(t);
-  return `<li class="task ${done ? 'done' : ''}" data-id="${t.id}">
-    <label class="check"><input type="checkbox" data-change="toggle-task" data-id="${t.id}" data-key="${k}" ${done ? 'checked' : ''} aria-label="${t.mode === 'repeat' ? 'Hecha este día' : 'Completar'}"><span class="box"></span></label>
+  return `<li class="task ${done ? 'done' : ''}" data-id="${esc(t.id)}">
+    <label class="check"><input type="checkbox" data-change="toggle-task" data-id="${esc(t.id)}" data-key="${esc(k)}" ${done ? 'checked' : ''} aria-label="${t.mode === 'repeat' ? 'Hecha este día' : 'Completar'}"><span class="box"></span></label>
     <span class="t-title"><span class="t-name">${esc(t.title)}</span>${meta ? `<small class="t-meta">${esc(meta)}</small>` : ''}</span>
     ${taskActs(t, lk)}
   </li>`;
@@ -14,7 +14,7 @@ function taskRow(t, key) {
 /** Fila del grupo "Se repiten": sin check (se marca en cada día), con su avance. */
 function repeatRow(t) {
   const st = taskStatus(t);
-  return `<li class="task rep ${st}" data-id="${t.id}">
+  return `<li class="task rep ${st}" data-id="${esc(t.id)}">
     <span class="rep-ico" aria-hidden="true">🔁</span>
     <span class="t-title"><span class="t-name">${esc(t.title)}</span><small class="t-meta">${esc(taskMeta(t))}</small></span>
     ${taskActs(t, linkLabel(t.link))}
@@ -22,8 +22,8 @@ function repeatRow(t) {
 }
 const taskActs = (t, lk) => `<span class="t-acts">${lk ? `<span class="link-chip on" title="Vinculada a: ${esc(lk)}">🔗 ${esc(lk)}</span>` : ''}
     <span class="prio ${t.priority}" title="Prioridad">${PRIO[t.priority].label}</span>
-    <button class="icon-btn edit" data-action="edit-task" data-id="${t.id}" aria-label="Editar tarea" title="Editar">${ICON_EDIT}</button>
-    <button class="icon-btn" data-action="del-task" data-id="${t.id}" aria-label="Eliminar tarea" title="Eliminar">${ICON_X}</button></span>`;
+    <button class="icon-btn edit" data-action="edit-task" data-id="${esc(t.id)}" aria-label="Editar tarea" title="Editar">${ICON_EDIT}</button>
+    <button class="icon-btn" data-action="del-task" data-id="${esc(t.id)}" aria-label="Eliminar tarea" title="Eliminar">${ICON_X}</button></span>`;
 
 /** Lee el formulario de tarea (crear o editar). Devuelve los datos o un texto de error. */
 function readTaskForm(f) {

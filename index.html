@@ -9,16 +9,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap" rel="stylesheet">
   <!-- ?v=… : al publicar cambios, sube este número en TODOS los archivos para que el navegador no use copias viejas -->
-  <link rel="stylesheet" href="css/fonts.css?v=20261124b">
-  <link rel="stylesheet" href="css/base.css?v=20261124b">
-  <link rel="stylesheet" href="css/layout.css?v=20261124b">
-  <link rel="stylesheet" href="css/calendar.css?v=20261124b">
-  <link rel="stylesheet" href="css/tasks.css?v=20261124b">
-  <link rel="stylesheet" href="css/notes.css?v=20261124b">
-  <link rel="stylesheet" href="css/schedule.css?v=20261124b">
-  <link rel="stylesheet" href="css/components.css?v=20261124b">
-  <link rel="stylesheet" href="css/admin.css?v=20261124b">
-  <link rel="stylesheet" href="css/responsive.css?v=20261124b">
+  <link rel="stylesheet" href="css/fonts.css?v=20261124c">
+  <link rel="stylesheet" href="css/base.css?v=20261124c">
+  <link rel="stylesheet" href="css/layout.css?v=20261124c">
+  <link rel="stylesheet" href="css/calendar.css?v=20261124c">
+  <link rel="stylesheet" href="css/tasks.css?v=20261124c">
+  <link rel="stylesheet" href="css/notes.css?v=20261124c">
+  <link rel="stylesheet" href="css/schedule.css?v=20261124c">
+  <link rel="stylesheet" href="css/components.css?v=20261124c">
+  <link rel="stylesheet" href="css/admin.css?v=20261124c">
+  <link rel="stylesheet" href="css/responsive.css?v=20261124c">
 </head>
 <body>
 <div class="app">
@@ -82,20 +82,17 @@
         <div class="admin-grid">
           <div class="admin-access">
             <h2 id="adminTitle">Administrador</h2>
-            <form data-form="admin-login" id="adminLoginForm" class="stack" autocomplete="off">
-              <p class="muted small">Inicia sesión para desbloquear el panel.</p>
-              <label>Usuario <input name="user" required autocomplete="username"></label>
-              <label>Contraseña <input type="password" name="pass" required autocomplete="current-password"></label>
-              <p class="err" id="adminErr" hidden></p>
-              <button class="btn btn-primary">Desbloquear</button>
-            </form>
+            <div id="adminLoginBox" class="stack">
+              <p class="muted small">Inicia sesión con Google para administrar tus datos: respaldos, datos de prueba, categorías y vaciar todo. Cada cuenta solo puede ver y cambiar sus propios datos.</p>
+              <button class="btn btn-primary" data-action="cloud-signin">Entrar con Google</button>
+            </div>
             <div id="adminSession" class="stack" hidden>
-              <p>✅ Sesión de administrador activa.</p>
-              <button class="btn btn-ghost" data-action="admin-lock">Bloquear panel</button>
+              <p>✅ Sesión iniciada como <b id="adminEmail"></b></p>
+              <p class="muted small">Tus datos se guardan en tu cuenta. Para cerrar sesión usa el botón ☁ de la barra superior.</p>
             </div>
           </div>
           <div class="admin-tools locked" id="adminTools">
-            <div class="lock-banner">🔒 Bloqueado · inicia sesión para usar el panel</div>
+            <div class="lock-banner">🔒 Bloqueado · inicia sesión con Google para usar el panel</div>
             <div class="dash" id="adminDash"></div>
             <div class="admin-actions">
               <button class="btn" data-action="export" disabled>⬇ Descargar respaldo</button>
@@ -397,21 +394,21 @@
 <div id="toasts" aria-live="polite"></div>
 <input type="file" id="importFile" accept=".json,application/json" hidden>
 
-<script src="js/core/utils.js?v=20261124b"></script>
-<script src="js/core/storage.js?v=20261124b"></script>
-<script src="js/core/state.js?v=20261124b"></script>
-<script src="js/core/calendar-engine.js?v=20261124b"></script>
-<script src="js/ui/feedback.js?v=20261124b"></script>
-<script src="js/ui/header.js?v=20261124b"></script>
-<script src="js/views/calendar.js?v=20261124b"></script>
-<script src="js/views/birthdays.js?v=20261124b"></script>
-<script src="js/views/tasks.js?v=20261124b"></script>
-<script src="js/views/notes.js?v=20261124b"></script>
-<script src="js/views/schedule.js?v=20261124b"></script>
-<script src="js/ui/router.js?v=20261124b"></script>
-<script src="js/ui/actions.js?v=20261124b"></script>
-<script src="js/ui/events.js?v=20261124b"></script>
-<script src="js/main.js?v=20261124b"></script>
-<script type="module" src="js/core/cloud.js?v=20261124b"></script>
+<script src="js/core/utils.js?v=20261124c"></script>
+<script src="js/core/storage.js?v=20261124c"></script>
+<script src="js/core/state.js?v=20261124c"></script>
+<script src="js/core/calendar-engine.js?v=20261124c"></script>
+<script src="js/ui/feedback.js?v=20261124c"></script>
+<script src="js/ui/header.js?v=20261124c"></script>
+<script src="js/views/calendar.js?v=20261124c"></script>
+<script src="js/views/birthdays.js?v=20261124c"></script>
+<script src="js/views/tasks.js?v=20261124c"></script>
+<script src="js/views/notes.js?v=20261124c"></script>
+<script src="js/views/schedule.js?v=20261124c"></script>
+<script src="js/ui/router.js?v=20261124c"></script>
+<script src="js/ui/actions.js?v=20261124c"></script>
+<script src="js/ui/events.js?v=20261124c"></script>
+<script src="js/main.js?v=20261124c"></script>
+<script type="module" src="js/core/cloud.js?v=20261124c"></script>
 </body>
 </html>

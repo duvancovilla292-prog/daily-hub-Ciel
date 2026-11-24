@@ -13,7 +13,10 @@ const defaultState = () => ({
   settings: { theme: 'dark', filters: [...TYPES], font: 'normal' }
 });
 
-const normLink = l => (l && typeof l.sid === 'string' && typeof l.iid === 'string') ? { sid: l.sid, iid: l.iid } : null;
+/* Los ids solo pueden tener letras, números, "_" y "-": se usan en atributos HTML y como nombre de documento en la nube */
+const ID_RE = /^[\w-]{1,64}$/;
+const validId = v => typeof v === 'string' && ID_RE.test(v);
+const normLink = l => (l && validId(l.sid) && validId(l.iid)) ? { sid: l.sid, iid: l.iid } : null;
 
 const Store = {
   available: true,
@@ -22,7 +25,7 @@ const Store = {
     try {
       const raw = localStorage.getItem(KEY);
       if (!raw) return defaultState();
-      return Store.normalize(JSON.parse(raw), false);
+      return Store.normalize(JSON.parse(raw), false, { keepLinks: true });
     } catch (e) {
       console.warn('No se pudo leer localStorage, se usa estado vacío.', e);
       Store.available = false;
@@ -49,11 +52,14 @@ const Store = {
   },
 
   /** Limpia/normaliza (también migra respaldos de versiones anteriores).
-      strict=true lanza error ante datos corruptos; false los descarta. */
-  normalize(raw, strict) {
+      strict=true lanza error ante datos corruptos; false los descarta.
+      opts.keepLinks=true conserva vínculos y categorías aunque su destino aún no exista (sincronización por partes). */
+  normalize(raw, strict, opts = {}) {
     const out = defaultState();
     const bad = msg => { if (strict) throw new Error(msg); return null; };
     const nowIso = new Date().toISOString();
+    const used = new Set();                                    // ids inválidos o repetidos se reemplazan
+    const cid = v => { const s = v === undefined || v === null ? '' : String(v); const id = ID_RE.test(s) && !used.has(s) ? s : uid(); used.add(id); return id; };
 
     (raw.tasks || []).forEach((t, i) => {
       if (!t || typeof t.title !== 'string' || !t.title.trim()) return bad(`la tarea #${i + 1} no tiene título`);
@@ -62,17 +68,17 @@ const Store = {
       const due = D.isValidKey(t.due) && t.due >= t.date ? t.due : '';
       if (mode === 'span' && !due) mode = 'once';
       const doneDates = mode === 'repeat' && Array.isArray(t.doneDates) ? [...new Set(t.doneDates.filter(D.isValidKey))].sort() : [];
-      out.tasks.push({ id: String(t.id || uid()), title: t.title.trim(), date: t.date, completed: !!t.completed, priority: PRIO[t.priority] ? t.priority : 'medium', link: normLink(t.link), mode, due: mode === 'once' ? '' : due, doneDates });
+      out.tasks.push({ id: cid(t.id), title: t.title.trim(), date: t.date, completed: !!t.completed, priority: PRIO[t.priority] ? t.priority : 'medium', link: normLink(t.link), mode, due: mode === 'once' ? '' : due, doneDates });
     });
 
     const readNote = (n, key) => {
       if (typeof n === 'string') n = { content: n };                       // formato antiguo
       if (!n || typeof n !== 'object') return bad(`una nota del ${key} no es válida`);
       const content = typeof n.content === 'string' ? n.content : '';
-      const items = Array.isArray(n.items) ? n.items.filter(i => i && typeof i.text === 'string' && i.text.trim()).map(i => ({ id: String(i.id || uid()), text: i.text.trim(), done: !!i.done })) : [];
+      const items = Array.isArray(n.items) ? n.items.filter(i => i && typeof i.text === 'string' && i.text.trim()).map(i => ({ id: cid(i.id), text: i.text.trim(), done: !!i.done })) : [];
       const title = typeof n.title === 'string' ? n.title.trim().slice(0, 80) : '';
       if (!title && !content.trim() && !items.length) return null;
-      return { id: String(n.id || uid()), title, type: n.type === 'list' ? 'list' : 'text', content, items, link: normLink(n.link), updatedAt: typeof n.updatedAt === 'string' ? n.updatedAt : nowIso };
+      return { id: cid(n.id), title, type: n.type === 'list' ? 'list' : 'text', content, items, link: normLink(n.link), updatedAt: typeof n.updatedAt === 'string' ? n.updatedAt : nowIso };
     };
     Object.entries(raw.notes || {}).forEach(([k, v]) => {
       if (!D.isValidKey(k)) return bad(`hay una nota con fecha inválida ("${k}")`);
@@ -87,7 +93,7 @@ const Store = {
         const name = c && typeof c.name === 'string' ? c.name.trim().slice(0, 30) : '';
         if (!name || seen.has(norm(name))) return;
         seen.add(norm(name));
-        out.birthdayCategories.push({ id: String(c.id || uid()), name });
+        out.birthdayCategories.push({ id: cid(c.id), name });
       });
     }
     const catIds = new Set(out.birthdayCategories.map(c => c.id));
@@ -98,8 +104,8 @@ const Store = {
       if (!Number.isInteger(m) || m < 1 || m > 12) return bad(`el cumpleaños #${i + 1} tiene un mes inválido`);
       if (!Number.isInteger(d) || d < 1 || d > D.daysIn(2024, m)) return bad(`el cumpleaños #${i + 1} tiene un día inválido`);
       const y = Number(b.year);
-      out.birthdays.push({ id: String(b.id || uid()), name: b.name.trim(), month: m, day: d, year: Number.isInteger(y) && y >= 1900 && y <= 2100 ? y : null,
-        category: catIds.has(String(b.category)) ? String(b.category) : null,
+      out.birthdays.push({ id: cid(b.id), name: b.name.trim(), month: m, day: d, year: Number.isInteger(y) && y >= 1900 && y <= 2100 ? y : null,
+        category: validId(b.category) && (opts.keepLinks || catIds.has(b.category)) ? b.category : null,
         tag: typeof b.tag === 'string' ? b.tag.trim().slice(0, 30) : '' });
     });
 
@@ -110,7 +116,7 @@ const Store = {
       (Array.isArray(s.items) ? s.items : []).forEach(it => {
         if (!it || typeof it.title !== 'string' || !it.title.trim()) return bad(`una actividad de "${s.name}" no tiene título`);
         const item = {
-          id: String(it.id || uid()), title: it.title.trim(),
+          id: cid(it.id), title: it.title.trim(),
           start: /^\d{2}:\d{2}$/.test(it.start || '') ? it.start : '',
           end: /^\d{2}:\d{2}$/.test(it.end || '') ? it.end : '',
           days: Array.isArray(it.days) ? it.days.map(Number).filter(n => Number.isInteger(n) && n >= 0 && n <= 6) : [],
@@ -124,7 +130,7 @@ const Store = {
       let hs = okH(s.hourStart) ? Number(s.hourStart) : 6, he = okH(s.hourEnd) ? Number(s.hourEnd) : 21;
       if (he < hs) { hs = 6; he = 21; }
       out.schedules.push({
-        id: String(s.id || uid()), name: s.name.trim(), type: s.type,
+        id: cid(s.id), name: s.name.trim(), type: s.type,
         color: /^#[0-9a-f]{6}$/i.test(s.color || '') ? s.color : SCHED_COLORS[0],
         startDate: D.isValidKey(s.startDate) ? s.startDate : '',
         endDate: D.isValidKey(s.endDate) ? s.endDate : '',
@@ -145,10 +151,10 @@ const Store = {
       }
     }
 
-    // Quita vínculos que apunten a actividades que no existen
+    // Quita vínculos que apunten a actividades que no existen (salvo en la sincronización, donde pueden llegar después)
     const valid = new Set();
     out.schedules.forEach(s => s.items.forEach(i => valid.add(s.id + '|' + i.id)));
-    const ok = l => (l && valid.has(l.sid + '|' + l.iid)) ? l : null;
+    const ok = l => (l && (opts.keepLinks || valid.has(l.sid + '|' + l.iid))) ? l : null;
     out.tasks.forEach(t => { t.link = ok(t.link); if (t.mode === 'repeat' && !t.link) { t.mode = 'once'; t.due = ''; t.doneDates = []; } });
     Object.values(out.notes).forEach(arr => arr.forEach(n => { n.link = ok(n.link); }));
     return out;

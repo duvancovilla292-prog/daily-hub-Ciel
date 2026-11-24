@@ -51,7 +51,7 @@ function renderBirthdays() {
     <div class="bday-row"><span>🎂</span>
       <div class="info"><b>${esc(x.b.name)}</b><span class="muted small">${x.b.day} de ${MONTHS[x.b.month - 1]}${x.b.year ? ' de ' + x.b.year : ''} · ${x.left === 0 ? '¡hoy!' : 'faltan ' + x.left + ' d'}${x.turns ? ' · cumplirá ' + x.turns : ''}</span>
         ${x.b.category || x.b.tag ? `<div class="bday-tags">${bdayTags(x.b)}</div>` : ''}</div>
-      <button class="icon-btn" data-action="edit-bday" data-id="${x.b.id}" aria-label="Editar cumpleaños" title="Editar">${ICON_EDIT}</button>
-      <button class="icon-btn del" data-action="del-bday" data-id="${x.b.id}" aria-label="Eliminar cumpleaños" title="Eliminar">${ICON_X}</button>
+      <button class="icon-btn" data-action="edit-bday" data-id="${esc(x.b.id)}" aria-label="Editar cumpleaños" title="Editar">${ICON_EDIT}</button>
+      <button class="icon-btn del" data-action="del-bday" data-id="${esc(x.b.id)}" aria-label="Eliminar cumpleaños" title="Eliminar">${ICON_X}</button>
     </div>`).join('') : `<p class="empty-note">${q || ui.bdayCat !== 'all' ? 'Sin coincidencias.' : 'Aún no hay cumpleaños guardados.'}</p>`;
 }
