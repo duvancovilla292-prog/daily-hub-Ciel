@@ -34,6 +34,8 @@
   .tl > .tl-acts { left: 92px; }
   .period b { min-width: 0; flex: 1; }
   .pp-grid { grid-template-columns: 1fr; }
+  .bday-controls { flex-basis: 100%; }
+  .bday-controls select { max-width: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }

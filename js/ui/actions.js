@@ -105,6 +105,13 @@ const actions = {
     if (t.mode === 'span') t.due = to < t.date ? t.date : to; else t.date = to;
     commit(); render(); toast(`Tarea movida a ${el.dataset.to === '0' ? 'hoy' : 'mañana'}`, 'ok');
   },
+  'row-menu': el => {
+    const id = el.dataset.id;
+    openMenu(el, [
+      { label: 'Editar', action: 'edit-bday', id, icon: ICON_EDIT },
+      { label: 'Eliminar', action: 'del-bday', id, icon: ICON_X, cls: 'danger' }
+    ]);
+  },
   'del-bday': async el => {
     const b = state.birthdays.find(x => x.id === el.dataset.id); if (!b) return;
     const ok = await modal({ title: 'Eliminar cumpleaños', body: `¿Seguro que quieres eliminar el cumpleaños de <b>${esc(b.name)}</b> (${b.day} de ${MONTHS[b.month - 1]})?`, actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
@@ -357,11 +364,16 @@ const actions = {
 
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-action]');
-  if (el && actions[el.dataset.action]) actions[el.dataset.action](el, e);
+  if (el && actions[el.dataset.action]) {
+    const inMenu = !!el.closest('.pop-menu');
+    actions[el.dataset.action](el, e);
+    if (inMenu) closeMenu();                               // elegir una opción cierra el menú ⋮
+  }
 });
 $('#daySheet').addEventListener('mousedown', e => { if (e.target.id === 'daySheet') actions['close-sheet'](); });
 $('#adminPanel').addEventListener('mousedown', e => { if (e.target.id === 'adminPanel') actions['admin-close'](); });
 document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && menuBtn) { const b = menuBtn; closeMenu(); b.focus(); return; }
   if (e.key === 'Escape' && !$('#modalRoot').firstChild && sheetOpen()) { requestCloseSheet(); return; }
   if (e.key === 'Escape' && !$('#modalRoot').firstChild) {
     if (ui.adminOpen) actions['admin-close']();

@@ -10,6 +10,36 @@ function toast(msg, type = 'info') {
   setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 320); }, type === 'error' ? 5000 : 2600);
 }
 
+/* ===== Menú ⋮ de una fila (Editar / Eliminar…) =====
+   items: [{ label, action, id, icon, cls }] → botones con data-action, que se atienden como cualquier otro clic. */
+let menuBtn = null, menuAt = 0;
+function openMenu(btn, items) {
+  const again = menuBtn === btn;
+  closeMenu();
+  if (again) return;                                       // tocar ⋮ otra vez lo cierra
+  const m = document.createElement('div');
+  m.className = 'pop-menu';
+  m.setAttribute('role', 'menu');
+  m.innerHTML = items.map(i => `<button type="button" role="menuitem" class="${i.cls || ''}" data-action="${i.action}" data-id="${esc(i.id)}">${i.icon || ''}<span>${esc(i.label)}</span></button>`).join('');
+  document.body.appendChild(m);
+  const r = btn.getBoundingClientRect(), w = m.offsetWidth, h = m.offsetHeight;
+  let top = r.bottom + 4;
+  if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 4);
+  m.style.left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8)) + 'px';
+  m.style.top = top + 'px';
+  btn.setAttribute('aria-expanded', 'true');
+  menuBtn = btn;
+  menuAt = Date.now();
+  m.querySelector('button')?.focus({ preventScroll: true });
+}
+function closeMenu() {
+  document.querySelector('.pop-menu')?.remove();
+  if (menuBtn) { menuBtn.setAttribute('aria-expanded', 'false'); menuBtn = null; }
+}
+document.addEventListener('pointerdown', e => { if (menuBtn && !e.target.closest('.pop-menu') && e.target.closest('[data-action=row-menu]') !== menuBtn) closeMenu(); }, true);
+window.addEventListener('resize', () => closeMenu());
+window.addEventListener('scroll', () => { if (menuBtn && Date.now() - menuAt > 300) closeMenu(); }, true);   // al desplazar la página (no al abrirlo)
+
 /* ===== Ventana emergente para crear o editar =====
    Puede mover dentro un formulario que ya existe en la página (#formStore: conserva sus ids y eventos)
    o mostrar uno armado al momento. Si se escribió algo y se intenta cerrar, pregunta antes de descartarlo.

@@ -93,12 +93,64 @@ button.cal-cell:hover { background: color-mix(in srgb, var(--accent) 9%, transpa
 .alert .em { font-size: 1.4rem; }
 @keyframes pop { from { transform: translateY(-6px); opacity: 0; } to { transform: none; opacity: 1; } }
 
-.bday-list { display: flex; flex-direction: column; gap: 6px; }
-.bday-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--card2); border-radius: 12px; border: 1px solid var(--line); }
+.bday-list { display: flex; flex-direction: column; gap: 8px; }
+.bday-row { position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 6px 10px 12px; background: var(--card2); border-radius: 14px; border: 1px solid var(--line); overflow: hidden; }
 .bday-row .info { flex: 1; min-width: 0; }
-.bday-row .info b { display: block; overflow-wrap: anywhere; }
-.bday-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
-.bt { display: inline-block; font-size: .7rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.bt.cat { background: color-mix(in srgb, var(--accent2) 22%, transparent); color: var(--accent2); }
-.bt.tag { border: 1px solid var(--line); color: var(--muted); }
+.bday-row .info b { display: block; overflow-wrap: anywhere; line-height: 1.3; }
+.bday-row .info .small { display: block; margin-top: 1px; }
+.bday-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
 
+/* Avatar con iniciales, del color de la categoría */
+.avatar { position: relative; flex: none; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: .9rem; letter-spacing: .02em;
+  color: var(--cc); background: linear-gradient(135deg, color-mix(in srgb, var(--cc) 32%, var(--card)), color-mix(in srgb, var(--cc) 12%, var(--card)));
+  border: 1px solid color-mix(in srgb, var(--cc) 45%, transparent); }
+.av-cake { position: absolute; right: -6px; bottom: -6px; font-size: .95rem; line-height: 1; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .4)); }
+
+/* Cuenta regresiva y menú */
+.countdown { flex: none; font-size: .75rem; font-weight: 700; padding: 4px 10px; border-radius: 99px; color: var(--muted); background: color-mix(in srgb, var(--text) 7%, transparent); white-space: nowrap; }
+.bday-row.is-soon .countdown { color: var(--task); background: color-mix(in srgb, var(--task) 16%, transparent); }
+.bday-row .icon-btn.more { width: 32px; height: 36px; border: 0; background: transparent; font-size: 1.25rem; font-weight: 700; color: var(--muted); flex: none; }
+.bday-row .icon-btn.more:hover, .bday-row .icon-btn.more[aria-expanded="true"] { color: var(--text); background: color-mix(in srgb, var(--text) 8%, transparent); }
+
+/* Hoy: tarjeta destacada con borde en degradado, resplandor, pastel con pulso y confeti */
+.bday-row.is-today { padding: 14px 6px 14px 14px; border: 2px solid transparent;
+  background: linear-gradient(color-mix(in srgb, #a855f7 10%, var(--card2)), color-mix(in srgb, #38bdf8 8%, var(--card2))) padding-box,
+              linear-gradient(120deg, #a855f7, #38bdf8) border-box;
+  box-shadow: 0 0 0 1px rgba(168, 85, 247, .15), 0 8px 28px rgba(168, 85, 247, .28), 0 0 22px rgba(56, 189, 248, .18); }
+.bday-row.is-today .avatar { width: 48px; height: 48px; font-size: 1rem; }
+.bday-row.is-today .av-cake { font-size: 1.15rem; animation: cake-pulse 1.6s ease-in-out infinite; }
+.bday-row.is-today .info b { font-size: 1.05rem; }
+.bday-row.is-today .countdown { color: #fff; background: linear-gradient(120deg, #a855f7, #38bdf8); box-shadow: 0 2px 10px rgba(168, 85, 247, .35); }
+@keyframes cake-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.22); } }
+.confetti { position: absolute; inset: 0; pointer-events: none; }
+.confetti i { position: absolute; top: -8px; width: 6px; height: 9px; border-radius: 2px; opacity: 0; animation: confetti-fall 3.6s linear infinite; }
+.confetti i:nth-child(5n+1) { background: #a855f7; } .confetti i:nth-child(5n+2) { background: #38bdf8; }
+.confetti i:nth-child(5n+3) { background: #f59e0b; } .confetti i:nth-child(5n+4) { background: #34d399; } .confetti i:nth-child(5n) { background: #f472b6; }
+.confetti i:nth-child(1) { left: 8%; animation-delay: 0s; } .confetti i:nth-child(2) { left: 18%; animation-delay: 1.2s; }
+.confetti i:nth-child(3) { left: 29%; animation-delay: .5s; } .confetti i:nth-child(4) { left: 41%; animation-delay: 2.1s; }
+.confetti i:nth-child(5) { left: 52%; animation-delay: .9s; } .confetti i:nth-child(6) { left: 63%; animation-delay: 2.7s; }
+.confetti i:nth-child(7) { left: 72%; animation-delay: 1.6s; } .confetti i:nth-child(8) { left: 81%; animation-delay: .2s; }
+.confetti i:nth-child(9) { left: 89%; animation-delay: 2.4s; } .confetti i:nth-child(10) { left: 95%; animation-delay: 1s; }
+@keyframes confetti-fall { 0% { transform: translateY(0) rotate(0); opacity: 0; } 10% { opacity: .9; } 85% { opacity: .9; } 100% { transform: translateY(110px) rotate(320deg); opacity: 0; } }
+
+/* Encabezado compacto: título y, en una fila, el filtro y "+ Nuevo" */
+.bday-head { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.bday-head h2 { margin: 0; }
+.bday-head h2 small { font-size: .8rem; font-weight: 500; }
+.bday-controls { display: flex; align-items: center; gap: 8px; flex: 1 1 260px; justify-content: flex-end; min-width: 0; }
+.bday-controls select { flex: 1 1 auto; min-width: 0; max-width: 260px; }
+.btn-compact { padding: 8px 14px; white-space: nowrap; flex: none; }
+
+/* Menú ⋮ */
+.pop-menu { position: fixed; z-index: 65; min-width: 150px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 5px; display: flex; flex-direction: column; animation: pop .15s; }
+.pop-menu button { display: flex; align-items: center; gap: 10px; border: 0; background: transparent; color: var(--text); text-align: left; padding: 10px 12px; border-radius: 8px; font-size: .9rem; }
+.pop-menu button:hover, .pop-menu button:focus-visible { background: var(--card2); outline: none; }
+.pop-menu button.danger { color: var(--danger); }
+.bt { display: inline-block; font-size: .7rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bt.cat { --cc: var(--accent2); background: color-mix(in srgb, var(--cc) 18%, transparent); color: var(--cc); }
+.bt.tag { border: 1px solid var(--line); background: transparent; color: var(--muted); font-weight: 500; }
+
+
+/* Tema claro: iniciales y categorías más oscuras para que se lean bien */
+[data-theme="light"] .avatar { color: color-mix(in srgb, var(--cc) 62%, #000); }
+[data-theme="light"] .bt.cat { color: color-mix(in srgb, var(--cc) 60%, #000); background: color-mix(in srgb, var(--cc) 16%, transparent); }

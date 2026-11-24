@@ -127,3 +127,24 @@ function parseTags(v) {
   return out;
 }
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/* ===== Nombres para mostrar =====
+   Mayúscula inicial en cada palabra (sin tocar lo guardado ni el resto de la palabra: "GB" sigue igual),
+   salvo partículas como "de", "del", "y" en medio del nombre. */
+const NAME_SMALL = new Set(['de', 'del', 'la', 'las', 'los', 'y', 'e', 'da', 'do', 'van', 'von']);
+function displayName(s) {
+  let first = true;
+  return String(s).split(/(\s+)/).map(w => {
+    if (!w.trim()) return w;
+    const m = w.match(/^([^\p{L}]*)(\p{L})(.*)$/u);
+    if (!m) return w;
+    const small = !first && NAME_SMALL.has(w.toLowerCase());
+    first = false;
+    return small ? w.toLowerCase() : m[1] + m[2].toLocaleUpperCase('es') + m[3];
+  }).join('');
+}
+/** Iniciales (máximo 2) de las palabras importantes del nombre. */
+function initials(s) {
+  const words = String(s).replace(/\(.*?\)/g, ' ').split(/\s+/).map(w => w.replace(/[^\p{L}]/gu, '')).filter(w => w && !NAME_SMALL.has(w.toLowerCase()));
+  return ((words[0] || '?')[0] + (words[1] ? words[1][0] : '')).toLocaleUpperCase('es');
+}

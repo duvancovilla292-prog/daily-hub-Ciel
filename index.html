@@ -9,17 +9,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap" rel="stylesheet">
   <!-- ?v=… : al publicar cambios, sube este número en TODOS los archivos para que el navegador no use copias viejas -->
-  <link rel="stylesheet" href="css/fonts.css?v=20261124f">
-  <link rel="stylesheet" href="css/base.css?v=20261124f">
-  <link rel="stylesheet" href="css/layout.css?v=20261124f">
-  <link rel="stylesheet" href="css/calendar.css?v=20261124f">
-  <link rel="stylesheet" href="css/tasks.css?v=20261124f">
-  <link rel="stylesheet" href="css/notes.css?v=20261124f">
-  <link rel="stylesheet" href="css/schedule.css?v=20261124f">
-  <link rel="stylesheet" href="css/components.css?v=20261124f">
-  <link rel="stylesheet" href="css/admin.css?v=20261124f">
-  <link rel="stylesheet" href="css/today.css?v=20261124f">
-  <link rel="stylesheet" href="css/responsive.css?v=20261124f">
+  <link rel="stylesheet" href="css/fonts.css?v=20261124g">
+  <link rel="stylesheet" href="css/base.css?v=20261124g">
+  <link rel="stylesheet" href="css/layout.css?v=20261124g">
+  <link rel="stylesheet" href="css/calendar.css?v=20261124g">
+  <link rel="stylesheet" href="css/tasks.css?v=20261124g">
+  <link rel="stylesheet" href="css/notes.css?v=20261124g">
+  <link rel="stylesheet" href="css/schedule.css?v=20261124g">
+  <link rel="stylesheet" href="css/components.css?v=20261124g">
+  <link rel="stylesheet" href="css/admin.css?v=20261124g">
+  <link rel="stylesheet" href="css/today.css?v=20261124g">
+  <link rel="stylesheet" href="css/responsive.css?v=20261124g">
 </head>
 <body>
 <div class="app">
@@ -252,11 +252,11 @@
       <div id="bdayAlerts2"></div>
       <div class="bday-single">
         <section class="card">
-          <div class="toolbar tight">
-            <h2>Cumpleaños</h2>
-            <div class="toolbar-right">
+          <div class="bday-head">
+            <h2>Cumpleaños <small id="bdayCount" class="muted"></small></h2>
+            <div class="bday-controls">
               <select id="bdayCatFilter" data-change="bday-cat-filter" aria-label="Filtrar por categoría"></select>
-              <button class="btn btn-primary" data-action="new-bday">+ Nuevo cumpleaños</button>
+              <button class="btn btn-primary btn-compact" data-action="new-bday" aria-label="Nuevo cumpleaños">+ Nuevo</button>
             </div>
           </div>
           <div id="bdayList" class="bday-list"></div>
@@ -420,22 +420,22 @@
 <div id="toasts" aria-live="polite"></div>
 <input type="file" id="importFile" accept=".json,application/json" hidden>
 
-<script src="js/core/utils.js?v=20261124f"></script>
-<script src="js/core/storage.js?v=20261124f"></script>
-<script src="js/core/state.js?v=20261124f"></script>
-<script src="js/core/calendar-engine.js?v=20261124f"></script>
-<script src="js/ui/feedback.js?v=20261124f"></script>
-<script src="js/ui/header.js?v=20261124f"></script>
-<script src="js/views/today.js?v=20261124f"></script>
-<script src="js/views/calendar.js?v=20261124f"></script>
-<script src="js/views/birthdays.js?v=20261124f"></script>
-<script src="js/views/tasks.js?v=20261124f"></script>
-<script src="js/views/notes.js?v=20261124f"></script>
-<script src="js/views/schedule.js?v=20261124f"></script>
-<script src="js/ui/router.js?v=20261124f"></script>
-<script src="js/ui/actions.js?v=20261124f"></script>
-<script src="js/ui/events.js?v=20261124f"></script>
-<script src="js/main.js?v=20261124f"></script>
-<script type="module" src="js/core/cloud.js?v=20261124f"></script>
+<script src="js/core/utils.js?v=20261124g"></script>
+<script src="js/core/storage.js?v=20261124g"></script>
+<script src="js/core/state.js?v=20261124g"></script>
+<script src="js/core/calendar-engine.js?v=20261124g"></script>
+<script src="js/ui/feedback.js?v=20261124g"></script>
+<script src="js/ui/header.js?v=20261124g"></script>
+<script src="js/views/today.js?v=20261124g"></script>
+<script src="js/views/calendar.js?v=20261124g"></script>
+<script src="js/views/birthdays.js?v=20261124g"></script>
+<script src="js/views/tasks.js?v=20261124g"></script>
+<script src="js/views/notes.js?v=20261124g"></script>
+<script src="js/views/schedule.js?v=20261124g"></script>
+<script src="js/ui/router.js?v=20261124g"></script>
+<script src="js/ui/actions.js?v=20261124g"></script>
+<script src="js/ui/events.js?v=20261124g"></script>
+<script src="js/main.js?v=20261124g"></script>
+<script type="module" src="js/core/cloud.js?v=20261124g"></script>
 </body>
 </html>
