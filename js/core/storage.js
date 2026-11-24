@@ -71,7 +71,7 @@ const Store = {
       const subtasks = (Array.isArray(t.subtasks) ? t.subtasks : []).filter(x => x && typeof x.text === 'string' && x.text.trim()).slice(0, 30)
         .map(x => ({ id: cid(x.id), text: x.text.trim().slice(0, 100), done: !!x.done }));
       out.tasks.push({ id: cid(t.id), title: t.title.trim(), date: t.date, completed: !!t.completed, priority: PRIO[t.priority] ? t.priority : 'medium', link: normLink(t.link), mode, due: mode === 'once' ? '' : due, doneDates,
-        time: TIME_RE.test(t.time || '') ? t.time : '', tags: parseTags(t.tags), subtasks });
+        time: TIME_RE.test(t.time || '') ? t.time : '', tags: parseTags(t.tags), subtasks, person: validId(t.person) ? t.person : '' });
     });
 
     const readNote = (n, key) => {
@@ -81,7 +81,7 @@ const Store = {
       const items = Array.isArray(n.items) ? n.items.filter(i => i && typeof i.text === 'string' && i.text.trim()).map(i => ({ id: cid(i.id), text: i.text.trim(), done: !!i.done })) : [];
       const title = typeof n.title === 'string' ? n.title.trim().slice(0, 80) : '';
       if (!title && !content.trim() && !items.length) return null;
-      return { id: cid(n.id), title, type: n.type === 'list' ? 'list' : 'text', content, items, link: normLink(n.link), updatedAt: typeof n.updatedAt === 'string' ? n.updatedAt : nowIso, pinned: !!n.pinned };
+      return { id: cid(n.id), title, type: n.type === 'list' ? 'list' : 'text', content, items, link: normLink(n.link), updatedAt: typeof n.updatedAt === 'string' ? n.updatedAt : nowIso, pinned: !!n.pinned, person: validId(n.person) ? n.person : '' };
     };
     Object.entries(raw.notes || {}).forEach(([k, v]) => {
       if (!D.isValidKey(k)) return bad(`hay una nota con fecha inválida ("${k}")`);
@@ -96,7 +96,7 @@ const Store = {
         const name = c && typeof c.name === 'string' ? c.name.trim().slice(0, 30) : '';
         if (!name || seen.has(norm(name))) return;
         seen.add(norm(name));
-        out.birthdayCategories.push({ id: cid(c.id), name });
+        out.birthdayCategories.push({ id: cid(c.id), name, pets: !!c.pets });
       });
     }
     const catIds = new Set(out.birthdayCategories.map(c => c.id));
@@ -109,7 +109,9 @@ const Store = {
       const y = Number(b.year);
       out.birthdays.push({ id: cid(b.id), name: b.name.trim(), month: m, day: d, year: Number.isInteger(y) && y >= 1900 && y <= 2100 ? y : null,
         category: validId(b.category) && (opts.keepLinks || catIds.has(b.category)) ? b.category : null,
-        tag: typeof b.tag === 'string' ? b.tag.trim().slice(0, 30) : '' });
+        tag: typeof b.tag === 'string' ? b.tag.trim().slice(0, 30) : '',
+        remind: Number.isInteger(+b.remind) && +b.remind >= 1 && +b.remind <= 60 ? +b.remind : 0,          // días antes para el regalo (0 = no)
+        giftYears: Array.isArray(b.giftYears) ? [...new Set(b.giftYears.map(Number).filter(n => Number.isInteger(n) && n > 1900 && n < 2200))].sort() : [] });
     });
 
     (raw.schedules || []).forEach((s, i) => {
@@ -162,6 +164,11 @@ const Store = {
     const ok = l => (l && (opts.keepLinks || valid.has(l.sid + '|' + l.iid))) ? l : null;
     out.tasks.forEach(t => { t.link = ok(t.link); if (t.mode === 'repeat' && !t.link) { t.mode = 'once'; t.due = ''; t.doneDates = []; } });
     Object.values(out.notes).forEach(arr => arr.forEach(n => { n.link = ok(n.link); }));
+    // Vínculos a personas (cumpleaños)
+    const pIds = new Set(out.birthdays.map(b => b.id));
+    const okP = p => p && (opts.keepLinks || pIds.has(p)) ? p : '';
+    out.tasks.forEach(t => { t.person = okP(t.person); });
+    Object.values(out.notes).forEach(arr => arr.forEach(n => { n.person = okP(n.person); }));
     return out;
   },
 
@@ -221,39 +228,42 @@ const Store = {
       const [sid, iid] = m.split('|'); return { sid, iid };
     };
 
-    /* 2) Tareas */
+    /* 2) Categorías de cumpleaños (por nombre) y cumpleaños */
+    const catMap = {};                                          // idViejo -> idNuevo
+    inc.birthdayCategories.forEach(c => {
+      let ex = out.birthdayCategories.find(x => norm(x.name) === norm(c.name));
+      if (ex) rep.cats.skip++;
+      else { ex = { id: freeId(c.id), name: c.name, pets: !!c.pets }; out.birthdayCategories.push(ex); rep.cats.add++; }
+      catMap[c.id] = ex.id;
+    });
+    const bSig = b => [norm(b.name), b.month, b.day].join('|');
+    const bMap = {};                                            // idViejo -> id de la persona en el resultado
+    inc.birthdays.forEach(b => {
+      const ex = out.birthdays.find(x => bSig(x) === bSig(b));
+      if (ex) { rep.birthdays.skip++; bMap[b.id] = ex.id; return; }
+      const nb = { ...b, id: freeId(b.id), category: b.category ? catMap[b.category] || null : null };
+      out.birthdays.push(nb); bMap[b.id] = nb.id; rep.birthdays.add++;
+    });
+    const relinkP = p => p ? (bMap[p] || (out.birthdays.some(x => x.id === p) ? p : '')) : '';
+
+    /* 3) Tareas */
     const tSig = t => norm(t.title) + '|' + t.date;
     const haveT = new Set(out.tasks.map(tSig));
     inc.tasks.forEach(t => {
       if (haveT.has(tSig(t))) { rep.tasks.skip++; return; }
-      out.tasks.push({ ...t, id: freeId(t.id), link: relink(t.link) }); haveT.add(tSig(t)); rep.tasks.add++;
+      out.tasks.push({ ...t, id: freeId(t.id), link: relink(t.link), person: relinkP(t.person) }); haveT.add(tSig(t)); rep.tasks.add++;
     });
 
-    /* 3) Notas (por fecha) */
+    /* 4) Notas (por fecha) */
     const nSig = n => JSON.stringify([n.title.trim(), n.type, n.content.trim(), n.items.map(i => i.text)]);
     Object.entries(inc.notes).forEach(([k, arr]) => {
       const list = out.notes[k] = out.notes[k] || [];
       const have = new Set(list.map(nSig));
       arr.forEach(n => {
         if (have.has(nSig(n))) { rep.notes.skip++; return; }
-        list.push({ ...clone(n), id: freeId(n.id), link: relink(n.link) }); have.add(nSig(n)); rep.notes.add++;
+        list.push({ ...clone(n), id: freeId(n.id), link: relink(n.link), person: relinkP(n.person) }); have.add(nSig(n)); rep.notes.add++;
       });
       if (!list.length) delete out.notes[k];
-    });
-
-    /* 4) Categorías de cumpleaños (por nombre) y cumpleaños */
-    const catMap = {};                                          // idViejo -> idNuevo
-    inc.birthdayCategories.forEach(c => {
-      let ex = out.birthdayCategories.find(x => norm(x.name) === norm(c.name));
-      if (ex) rep.cats.skip++;
-      else { ex = { id: freeId(c.id), name: c.name }; out.birthdayCategories.push(ex); rep.cats.add++; }
-      catMap[c.id] = ex.id;
-    });
-    const bSig = b => [norm(b.name), b.month, b.day].join('|');
-    const haveB = new Set(out.birthdays.map(bSig));
-    inc.birthdays.forEach(b => {
-      if (haveB.has(bSig(b))) { rep.birthdays.skip++; return; }
-      out.birthdays.push({ ...b, id: freeId(b.id), category: b.category ? catMap[b.category] || null : null }); haveB.add(bSig(b)); rep.birthdays.add++;
     });
 
     /* 5) Bloc rápido */

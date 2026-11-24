@@ -34,6 +34,19 @@ const changes = {
   'note-scope': el => { ui.noteScope = el.value; renderNotesList(); },
   'note-date': el => { if (D.isValidKey(el.value)) { ui.editor.date = el.value; markDirty(); } },
   'note-link': el => { ui.editor.link = el.value; markDirty(); },
+  'note-person': el => { ui.editor.person = el.value; markDirty(); },
+  'bday-remind': el => {
+    const b = state.birthdays.find(x => x.id === el.dataset.id); if (!b) return;
+    const days = +(el.closest('.person-remind')?.querySelector('input[type=number]')?.value) || 7;
+    b.remind = el.checked ? Math.min(60, Math.max(1, days)) : 0;
+    commit(); const n = ensureGiftTasks(); render();
+    toast(el.checked ? (n ? `Recordatorio activado: se creó la tarea del regalo` : `Recordatorio activado: la tarea aparecerá ${b.remind} ${b.remind === 1 ? 'día' : 'días'} antes (se crea en el mes del cumpleaños)`) : 'Recordatorio desactivado', 'ok');
+  },
+  'bday-remind-days': el => {
+    const b = state.birthdays.find(x => x.id === el.dataset.id); if (!b) return;
+    const v = Math.min(60, Math.max(1, Math.round(+el.value) || 7)); el.value = v;
+    if (b.remind) { b.remind = v; commit(); ensureGiftTasks(); render(); }
+  },
   'li-done': el => { ui.editor.items[+el.dataset.i].done = el.checked; markDirty(); updateCount(); },
   'sched-hour': el => {
     const s = state.schedules.find(x => x.id === el.dataset.id); if (!s) return;
@@ -144,7 +157,7 @@ const forms = {
     const name = f.elements.name.value.trim().slice(0, 30);
     if (!name) return;
     if (state.birthdayCategories.some(c => norm(c.name) === norm(name))) return toast('Esa categoría ya existe', 'error');
-    state.birthdayCategories.push({ id: uid(), name });
+    state.birthdayCategories.push({ id: uid(), name, pets: !!(f.elements.pets && f.elements.pets.checked) });
     commit(); render(); toast(`Categoría “${name}” creada`, 'ok');
     return true;
   },
@@ -223,6 +236,7 @@ document.addEventListener('visibilitychange', () => {
     const followed = ui.active === ui.today;
     ui.today = D.todayKey();
     if (followed) setActiveSilent(ui.today);
+    ensureGiftTasks();
     render();
   }
 });

@@ -5,11 +5,11 @@
 let state = Store.load();
 const t0 = D.today();
 
-const newEditor = date => ({ id: null, date, title: '', type: 'text', content: '', items: [], link: '', dirty: false, reading: false, pinned: false });
+const newEditor = date => ({ id: null, date, title: '', type: 'text', content: '', items: [], link: '', person: '', dirty: false, reading: false, pinned: false });
 const linkValue = l => l ? l.sid + '|' + l.iid : '';
 const parseLink = v => { if (!v) return null; const [sid, iid] = String(v).split('|'); return sid && iid ? { sid, iid } : null; };
 // Una nota guardada se abre en modo lectura: solo se edita con el botón "Editar"
-const editorFrom = (n, date) => ({ id: n.id, date, title: n.title, type: n.type, content: n.content, items: clone(n.items), link: linkValue(n.link), dirty: false, reading: true, pinned: !!n.pinned });
+const editorFrom = (n, date) => ({ id: n.id, date, title: n.title, type: n.type, content: n.content, items: clone(n.items), link: linkValue(n.link), person: n.person || '', dirty: false, reading: true, pinned: !!n.pinned });
 
 const ui = {
   tab: 'today',                                       // la app abre en "Hoy"
@@ -29,7 +29,8 @@ const ui = {
   openOpts: new Set(),                                // horarios con "Festivos y días sin actividades" abierto
   anchors: {},                                        // fecha que muestra cada horario
   panelMode: {},                                      // apartados de Tareas/Notas de cada horario: 'all' | 'linked'
-  bdayCat: 'all',                                     // filtro de categoría en Cumpleaños
+  bdayCat: 'all',
+  personOpen: null,                                   // ficha de persona abierta (id del cumpleaños)                                     // filtro de categoría en Cumpleaños
   adminOpen: false,
   admin: false,                                       // true con sesión de Google iniciada
   adminEmail: ''

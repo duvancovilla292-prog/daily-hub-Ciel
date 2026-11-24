@@ -6,6 +6,7 @@ function render() {
   renderHeader();
   ({ today: renderToday, calendar: renderCalendar, tasks: renderTasks, notes: renderNotes, birthdays: renderBirthdays, schedule: renderSchedule })[ui.tab]();
   renderSheet();
+  refreshPersonSheet();
 }
 
 function goTab(tab) {

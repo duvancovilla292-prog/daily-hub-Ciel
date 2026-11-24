@@ -9,17 +9,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap" rel="stylesheet">
   <!-- ?v=… : al publicar cambios, sube este número en TODOS los archivos para que el navegador no use copias viejas -->
-  <link rel="stylesheet" href="css/fonts.css?v=20261124g">
-  <link rel="stylesheet" href="css/base.css?v=20261124g">
-  <link rel="stylesheet" href="css/layout.css?v=20261124g">
-  <link rel="stylesheet" href="css/calendar.css?v=20261124g">
-  <link rel="stylesheet" href="css/tasks.css?v=20261124g">
-  <link rel="stylesheet" href="css/notes.css?v=20261124g">
-  <link rel="stylesheet" href="css/schedule.css?v=20261124g">
-  <link rel="stylesheet" href="css/components.css?v=20261124g">
-  <link rel="stylesheet" href="css/admin.css?v=20261124g">
-  <link rel="stylesheet" href="css/today.css?v=20261124g">
-  <link rel="stylesheet" href="css/responsive.css?v=20261124g">
+  <link rel="stylesheet" href="css/fonts.css?v=20261124h">
+  <link rel="stylesheet" href="css/base.css?v=20261124h">
+  <link rel="stylesheet" href="css/layout.css?v=20261124h">
+  <link rel="stylesheet" href="css/calendar.css?v=20261124h">
+  <link rel="stylesheet" href="css/tasks.css?v=20261124h">
+  <link rel="stylesheet" href="css/notes.css?v=20261124h">
+  <link rel="stylesheet" href="css/schedule.css?v=20261124h">
+  <link rel="stylesheet" href="css/components.css?v=20261124h">
+  <link rel="stylesheet" href="css/admin.css?v=20261124h">
+  <link rel="stylesheet" href="css/today.css?v=20261124h">
+  <link rel="stylesheet" href="css/responsive.css?v=20261124h">
 </head>
 <body>
 <div class="app">
@@ -315,6 +315,7 @@
       </label>
       <label>Vincular al horario <select name="link" id="taskLink"></select></label>
     </div>
+    <label>Persona <select name="person" id="taskPerson"></select></label>
     <p class="muted small mode-help" hidden></p>
     <details class="more-opts">
       <summary>Etiquetas y subtareas</summary>
@@ -406,7 +407,10 @@
       <div id="liRows"></div>
       <button class="btn btn-ghost" data-action="li-add">+ Agregar ítem</button>
     </div>
-    <label>Vincular al horario <select id="noteLink" data-change="note-link"></select></label>
+    <div class="row2">
+      <label>Vincular al horario <select id="noteLink" data-change="note-link"></select></label>
+      <label>Persona <select id="notePerson" data-change="note-person"></select></label>
+    </div>
     <p id="noteCount" class="muted small"></p>
     <div class="editor-foot">
       <button class="btn btn-danger" id="btnDelNote" data-action="del-note" hidden>Eliminar</button>
@@ -420,22 +424,22 @@
 <div id="toasts" aria-live="polite"></div>
 <input type="file" id="importFile" accept=".json,application/json" hidden>
 
-<script src="js/core/utils.js?v=20261124g"></script>
-<script src="js/core/storage.js?v=20261124g"></script>
-<script src="js/core/state.js?v=20261124g"></script>
-<script src="js/core/calendar-engine.js?v=20261124g"></script>
-<script src="js/ui/feedback.js?v=20261124g"></script>
-<script src="js/ui/header.js?v=20261124g"></script>
-<script src="js/views/today.js?v=20261124g"></script>
-<script src="js/views/calendar.js?v=20261124g"></script>
-<script src="js/views/birthdays.js?v=20261124g"></script>
-<script src="js/views/tasks.js?v=20261124g"></script>
-<script src="js/views/notes.js?v=20261124g"></script>
-<script src="js/views/schedule.js?v=20261124g"></script>
-<script src="js/ui/router.js?v=20261124g"></script>
-<script src="js/ui/actions.js?v=20261124g"></script>
-<script src="js/ui/events.js?v=20261124g"></script>
-<script src="js/main.js?v=20261124g"></script>
-<script type="module" src="js/core/cloud.js?v=20261124g"></script>
+<script src="js/core/utils.js?v=20261124h"></script>
+<script src="js/core/storage.js?v=20261124h"></script>
+<script src="js/core/state.js?v=20261124h"></script>
+<script src="js/core/calendar-engine.js?v=20261124h"></script>
+<script src="js/ui/feedback.js?v=20261124h"></script>
+<script src="js/ui/header.js?v=20261124h"></script>
+<script src="js/views/today.js?v=20261124h"></script>
+<script src="js/views/calendar.js?v=20261124h"></script>
+<script src="js/views/birthdays.js?v=20261124h"></script>
+<script src="js/views/tasks.js?v=20261124h"></script>
+<script src="js/views/notes.js?v=20261124h"></script>
+<script src="js/views/schedule.js?v=20261124h"></script>
+<script src="js/ui/router.js?v=20261124h"></script>
+<script src="js/ui/actions.js?v=20261124h"></script>
+<script src="js/ui/events.js?v=20261124h"></script>
+<script src="js/main.js?v=20261124h"></script>
+<script type="module" src="js/core/cloud.js?v=20261124h"></script>
 </body>
 </html>

@@ -30,6 +30,7 @@ function renderEditor() {
   $('#noteArea').value = e.content;
   renderListEditor();
   fillLinkSelect($('#noteLink'), e.link);
+  $('#notePerson').innerHTML = personOptions(e.person);
   $('#btnDelNote').hidden = !e.id;
   updateCount();
 }
@@ -44,7 +45,7 @@ function renderNoteRead(e) {
   $('#noteRead').innerHTML = `
     <div class="read-top"><h3 class="read-title">${e.pinned ? '📌 ' : ''}${e.type === 'list' ? '☑' : '📝'} ${esc(label)}</h3>
       <button class="btn btn-ghost btn-xs" data-action="pin-note" aria-pressed="${e.pinned}">${e.pinned ? 'Quitar de fijadas' : '📌 Fijar arriba'}</button></div>
-    <p class="muted small">${esc(cap(D.long(e.date)))}${lk ? ` · <span class="lk-mini">🔗 ${esc(lk)}</span>` : ''}</p>
+    <p class="muted small">${esc(cap(D.long(e.date)))}${lk ? ` · <span class="lk-mini">🔗 ${esc(lk)}</span>` : ''}${personName(e.person) ? ` · <button class="t-person" data-action="open-person" data-id="${esc(e.person)}">👤 ${esc(personName(e.person))}</button>` : ''}</p>
     ${body}
     <div class="editor-foot">
       <button class="btn btn-danger" data-action="del-note">Eliminar</button>
@@ -64,7 +65,7 @@ function renderNotesList() {
   let entries = [];
   Object.entries(state.notes).forEach(([k, arr]) => arr.forEach(n => entries.push([k, n])));
   if (ui.noteScope === 'active') entries = entries.filter(([k]) => k === ui.active);
-  entries = entries.filter(([k, n]) => hit(noteText(n), q) || hit(D.long(k), q) || hit(linkLabel(n.link), q))
+  entries = entries.filter(([k, n]) => hit(noteText(n), q) || hit(D.long(k), q) || hit(linkLabel(n.link), q) || hit(personName(n.person), q))
     .sort((a, b) => b[0].localeCompare(a[0]) || b[1].updatedAt.localeCompare(a[1].updatedAt));
 
   // Las fijadas van arriba, en su propio grupo
@@ -78,7 +79,7 @@ function renderNotesList() {
       ? `${n.items.filter(i => i.done).length}/${n.items.length} · ${n.items.slice(0, 3).map(i => i.text).join(', ')}`
       : n.content.trim().slice(0, 120);
     html += `<button class="note-item ${ui.notesMode === 'day' && ui.editor.id === n.id ? 'on' : ''}" data-action="open-note" data-key="${esc(k)}" data-id="${esc(n.id)}">
-      <b>${n.pinned ? '📌 ' : ''}${n.type === 'list' ? '☑' : '📝'} ${esc(noteLabel(n))}</b>${n.pinned ? `<small class="muted">${esc(D.short(k))}</small>` : ''}${prev ? `<span>${esc(prev)}</span>` : ''}${lk ? `<em class="lk-mini">🔗 ${esc(lk)}</em>` : ''}</button>`;
+      <b>${n.pinned ? '📌 ' : ''}${n.type === 'list' ? '☑' : '📝'} ${esc(noteLabel(n))}</b>${n.pinned ? `<small class="muted">${esc(D.short(k))}</small>` : ''}${prev ? `<span>${esc(prev)}</span>` : ''}${lk ? `<em class="lk-mini">🔗 ${esc(lk)}</em>` : ''}${personName(n.person) ? `<em class="lk-mini">👤 ${esc(personName(n.person))}</em>` : ''}</button>`;
   });
   $('#notesList').innerHTML = html || `<p class="empty-note">${q ? 'Sin coincidencias.' : (ui.noteScope === 'active' ? 'No hay notas en la fecha activa.' : 'Aún no hay notas guardadas.')}</p>`;
 }
@@ -111,7 +112,7 @@ function saveNote() {
   else items = e.items.filter(i => i.text.trim()).map(i => ({ id: i.id, text: i.text.trim(), done: i.done }));
   if (!title && !content.trim() && !items.length) return toast('La nota está vacía: escribe algo para guardarla', 'error');
   if (!D.isValidKey(e.date)) return toast('Elige una fecha válida', 'error');
-  const note = { id: e.id || uid(), title, type: e.type, content, items, link: parseLink(e.link), updatedAt: new Date().toISOString(), pinned: !!e.pinned };
+  const note = { id: e.id || uid(), title, type: e.type, content, items, link: parseLink(e.link), updatedAt: new Date().toISOString(), pinned: !!e.pinned, person: state.birthdays.some(b => b.id === e.person) ? e.person : '' };
   Object.keys(state.notes).forEach(k => {                       // si cambió de fecha, la saca de la anterior
     state.notes[k] = state.notes[k].filter(n => n.id !== note.id);
     if (!state.notes[k].length) delete state.notes[k];

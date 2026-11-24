@@ -16,8 +16,8 @@ function downloadBackup() {
   } catch (e) { toast('No se pudo descargar: ' + e.message, 'error'); }
 }
 
-/** Abre el editor de notas en una ventana (nueva o editar). */
-function openNoteSheet() {
+/** Abre el editor de notas en una ventana (nueva o editar). `after` se ejecuta al cerrarla (ej. volver a la ficha de la persona). */
+function openNoteSheet(after) {
   const e = ui.editor;
   e.reading = false;
   renderEditor();
@@ -25,7 +25,7 @@ function openNoteSheet() {
     title: e.id ? 'Editar nota' : 'Nueva nota', node: $('#noteForm'), wide: true,
     isDirty: () => ui.editor.dirty,
     onCancel: () => { const f = ui.editor.id && findNote(ui.editor.id); ui.editor = f ? editorFrom(f[1], f[0]) : newEditor(ui.active); },
-    onClose: () => renderNotes()
+    onClose: () => { renderNotes(); if (after) setTimeout(after, 0); }
   });
 }
 const findNote = id => Object.entries(state.notes).flatMap(([k, arr]) => arr.map(n => [k, n])).find(([, n]) => n.id === id) || null;
@@ -74,6 +74,7 @@ const actions = {
           <label>Prioridad <select name="priority">${Object.entries(PRIO).map(([k, p]) => `<option value="${k}" ${k === t.priority ? 'selected' : ''}>${p.label}</option>`).join('')}</select></label>
           <label>Vincular al horario <select name="link"><option value="">Sin vincular</option>${linkOptions().map(o => `<option value="${o.value}" ${o.value === cur ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}</select></label>
         </div>
+        <label>Persona <select name="person">${personOptions(t.person || '')}</select></label>
         <p class="muted small mode-help" hidden></p>
         <label>Etiquetas <input name="tags" maxlength="160" placeholder="casa, campus (opcional)" value="${esc((t.tags || []).join(', '))}"></label>
         <label>Subtareas <textarea name="subtasks" rows="3" placeholder="Una por línea (opcional)">${esc((t.subtasks || []).map(x => x.text).join('\n'))}</textarea></label>`,
@@ -108,6 +109,7 @@ const actions = {
   'row-menu': el => {
     const id = el.dataset.id;
     openMenu(el, [
+      { label: 'Ver ficha', action: 'open-person', id, icon: '👤' },
       { label: 'Editar', action: 'edit-bday', id, icon: ICON_EDIT },
       { label: 'Eliminar', action: 'del-bday', id, icon: ICON_X, cls: 'danger' }
     ]);
@@ -144,12 +146,13 @@ const actions = {
     const c = state.birthdayCategories.find(x => x.id === el.dataset.id); if (!c || !ui.admin) return;
     const f = await formModal({
       title: 'Renombrar categoría', desc: '',
-      fields: `<label>Nombre <input name="name" required maxlength="30" value="${esc(c.name)}"></label>`,
+      fields: `<label>Nombre <input name="name" required maxlength="30" value="${esc(c.name)}"></label>
+        <label class="inline-chk"><input type="checkbox" name="pets" ${c.pets ? 'checked' : ''}> Son mascotas (no se muestra la generación)</label>`,
       submit: 'Guardar',
       check: form => { const n = form.elements.name.value.trim(); if (!n) return 'Escribe un nombre'; return state.birthdayCategories.some(x => x.id !== c.id && norm(x.name) === norm(n)) ? 'Ya existe una categoría con ese nombre' : true; }
     });
     if (!f) return;
-    c.name = f.elements.name.value.trim(); commit(); render(); toast('Categoría renombrada', 'ok');
+    c.name = f.elements.name.value.trim(); c.pets = f.elements.pets.checked; commit(); render(); toast('Categoría guardada', 'ok');
   },
   'cat-del': async el => {
     const c = state.birthdayCategories.find(x => x.id === el.dataset.id); if (!c || !ui.admin) return;
@@ -165,7 +168,24 @@ const actions = {
   /* notas */
   'notes-mode': el => { flushScratch(); ui.notesMode = el.dataset.v; renderNotes(); },
   'new-note': async () => { if (!(await confirmDiscard())) return; ui.editor = newEditor(ui.active); ui.notesMode = 'day'; renderNotes(); openNoteSheet(); },
+  'open-person': el => openPersonSheet(el.dataset.id),
+  'gift-note': el => {
+    const b = state.birthdays.find(x => x.id === el.dataset.id); if (!b) return;
+    const ex = Object.entries(state.notes).flatMap(([k, a]) => a.map(n => [k, n])).find(([, n]) => n.person === b.id && /^ideas de regalo/i.test(n.title));
+    closeSheetNow();
+    if (ex) ui.editor = editorFrom(ex[1], ex[0]);
+    else { ui.editor = newEditor(ui.today); Object.assign(ui.editor, { type: 'list', title: 'Ideas de regalo', person: b.id, items: [{ id: uid(), text: '', done: false }] }); }
+    ui.notesMode = 'day';
+    openNoteSheet(() => openPersonSheet(b.id));
+  },
+  'person-note': el => {
+    const b = state.birthdays.find(x => x.id === el.dataset.id); if (!b) return;
+    closeSheetNow();
+    ui.editor = newEditor(ui.today); ui.editor.person = b.id; ui.notesMode = 'day';
+    openNoteSheet(() => openPersonSheet(b.id));
+  },
   'open-note': async el => {
+    if (sheetOpen()) closeSheetNow();                                   // desde la ficha de una persona
     if (!(await confirmDiscard())) { if (ui.tab !== 'notes') goTab('notes'); return; }
     flushScratch();
     const key = el.dataset.key;
@@ -239,8 +259,10 @@ const actions = {
     f.reset();
     f.elements.date.value = el.dataset.key && D.isValidKey(el.dataset.key) ? el.dataset.key : ui.active;
     fillLinkSelect($('#taskLink'), '');
+    $('#taskPerson').innerHTML = personOptions(el.dataset.person || '');
     syncTaskForm(f);
-    openSheet({ title: 'Nueva tarea', node: f });
+    const back = el.dataset.back === 'person' ? el.dataset.person : '';
+    openSheet({ title: 'Nueva tarea', node: f, onClose: back ? () => setTimeout(() => openPersonSheet(back), 0) : null });
   },
   'new-bday': () => {
     const f = $('form[data-form=birthday]');
@@ -252,6 +274,7 @@ const actions = {
     if (!ui.admin) return toast('Inicia sesión con Google para crear categorías', 'error');
     openSheet({ title: 'Nueva categoría de cumpleaños', html: `<form data-form="bday-cat" class="stack" autocomplete="off">
       <label>Nombre <input name="name" required maxlength="30" placeholder="Ej. Trabajo, Familia"></label>
+      <label class="inline-chk"><input type="checkbox" name="pets"> Son mascotas (no se muestra la generación)</label>
       <div class="sheet-foot"><button type="button" class="btn btn-ghost" data-action="sheet-close">Cancelar</button><button class="btn btn-primary">Crear categoría</button></div></form>` });
   },
   'sheet-close': () => requestCloseSheet(),
@@ -373,6 +396,8 @@ document.addEventListener('click', e => {
 $('#daySheet').addEventListener('mousedown', e => { if (e.target.id === 'daySheet') actions['close-sheet'](); });
 $('#adminPanel').addEventListener('mousedown', e => { if (e.target.id === 'adminPanel') actions['admin-close'](); });
 document.addEventListener('keydown', e => {
+  // Las filas que se abren al tocarlas (role="button") también con Enter o Espacio
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.getAttribute && e.target.getAttribute('role') === 'button' && e.target.dataset.action) { e.preventDefault(); e.target.click(); return; }
   if (e.key === 'Escape' && menuBtn) { const b = menuBtn; closeMenu(); b.focus(); return; }
   if (e.key === 'Escape' && !$('#modalRoot').firstChild && sheetOpen()) { requestCloseSheet(); return; }
   if (e.key === 'Escape' && !$('#modalRoot').firstChild) {

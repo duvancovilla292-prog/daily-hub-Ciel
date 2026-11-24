@@ -148,3 +148,22 @@ function initials(s) {
   const words = String(s).replace(/\(.*?\)/g, ' ').split(/\s+/).map(w => w.replace(/[^\p{L}]/gu, '')).filter(w => w && !NAME_SMALL.has(w.toLowerCase()));
   return ((words[0] || '?')[0] + (words[1] ? words[1][0] : '')).toLocaleUpperCase('es');
 }
+
+/* ===== Signo zodiacal (por día y mes) y generación (por año) ===== */
+const ZODIAC = [[1, 20, 'Capricornio', '♑'], [2, 19, 'Acuario', '♒'], [3, 21, 'Piscis', '♓'], [4, 20, 'Aries', '♈'], [5, 21, 'Tauro', '♉'], [6, 21, 'Géminis', '♊'],
+  [7, 23, 'Cáncer', '♋'], [8, 23, 'Leo', '♌'], [9, 23, 'Virgo', '♍'], [10, 23, 'Libra', '♎'], [11, 22, 'Escorpio', '♏'], [12, 22, 'Sagitario', '♐'], [13, 1, 'Capricornio', '♑']];
+/** Cada fila dice: "antes del [mes, día] es este signo". */
+function zodiac(day, month) {
+  const z = ZODIAC.find(([m, d]) => month < m || (month === m && day < d));
+  return { name: z[2], sym: z[3] };
+}
+function generation(y) {
+  if (!y) return '';
+  if (y >= 2025) return 'Generación Beta';
+  if (y >= 2013) return 'Generación Alpha';
+  if (y >= 1997) return 'Generación Z';
+  if (y >= 1981) return 'Millennial';
+  if (y >= 1965) return 'Generación X';
+  if (y >= 1946) return 'Baby Boomer';
+  return 'Generación Silenciosa';
+}

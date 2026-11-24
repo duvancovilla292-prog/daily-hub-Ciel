@@ -269,6 +269,7 @@ async function onUser(u) {
       if (legacy) mergeIn(legacy);
     }
     if (legacy) markLegacy = uid;
+    ensureGiftTasks();
     track();
     rec.confirmed = true;
     saveRec();

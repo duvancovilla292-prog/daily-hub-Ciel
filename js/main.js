@@ -8,6 +8,7 @@ $('form[data-form=schedule] select[name=hstart]').innerHTML = hourOptions(6);
 $('form[data-form=schedule] select[name=hend]').innerHTML = hourOptions(21);
 syncSchedForm();
 syncTaskForm($('form[data-form=task]'));
+ensureGiftTasks();
 applyTheme();
 applyFont();
 render();

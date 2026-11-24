@@ -56,7 +56,7 @@ function renderToday() {
   const notes = Cal.notesOn(k);
   const bdays = Cal.birthdaysOn(k);
   let side = '';
-  if (bdays.length) side += `<div class="panel" style="--c:var(--accent2)"><span class="ptitle">Cumpleaños</span><ul class="mini-list">${bdays.map(x => `<li>🎂 <b>${esc(displayName(x.b.name))}</b>${x.age ? ` — cumple ${x.age}` : ''} ${bdayTags(x.b)}</li>`).join('')}</ul></div>`;
+  if (bdays.length) side += `<div class="panel" style="--c:var(--accent2)"><span class="ptitle">Cumpleaños</span><ul class="mini-list">${bdays.map(x => `<li class="person-link" data-action="open-person" data-id="${esc(x.b.id)}" role="button" tabindex="0">🎂 <b>${esc(displayName(x.b.name))}</b>${x.age ? ` — cumple ${x.age}` : ''} ${bdayTags(x.b)}</li>`).join('')}</ul></div>`;
   side += `<div class="panel" style="--c:var(--accent)"><span class="ptitle">Tareas</span>${dayTasks.length ? `<ul class="tasks">${dayTasks.sort(byTime).map(t => taskRow(t, k)).join('')}</ul>` : '<p class="empty-note">Sin tareas para este día.</p>'}
     <button class="btn btn-ghost" data-action="new-task" data-key="${esc(k)}">+ Nueva tarea</button></div>`;
   if (overdue.length) {                                         // las 5 más antiguas; el resto, en Tareas → Atrasadas
