@@ -14,5 +14,5 @@ applyFont();
 render();
 
 const todays = Cal.birthdaysOn(ui.today);
-if (todays.length) toast('🎂 Hoy cumple años: ' + todays.map(x => displayName(x.b.name)).join(', '), 'ok');
+if (todays.length) toast('🎉 Hoy: ' + todays.map(x => kindIcon(x.b) + ' ' + dateName(x.b)).join(', '), 'ok');
 if (!Store.available) toast('El almacenamiento del navegador no está disponible: los datos no se conservarán al cerrar.', 'error');

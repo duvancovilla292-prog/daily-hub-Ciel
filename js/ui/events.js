@@ -34,13 +34,14 @@ const changes = {
   'note-scope': el => { ui.noteScope = el.value; renderNotesList(); },
   'note-date': el => { if (D.isValidKey(el.value)) { ui.editor.date = el.value; markDirty(); } },
   'note-link': el => { ui.editor.link = el.value; markDirty(); },
+  'bday-kind': el => syncBdayForm(el.closest('form')),
   'note-person': el => { ui.editor.person = el.value; markDirty(); },
   'bday-remind': el => {
     const b = state.birthdays.find(x => x.id === el.dataset.id); if (!b) return;
     const days = +(el.closest('.person-remind')?.querySelector('input[type=number]')?.value) || 7;
     b.remind = el.checked ? Math.min(60, Math.max(1, days)) : 0;
     commit(); const n = ensureGiftTasks(); render();
-    toast(el.checked ? (n ? `Recordatorio activado: se creó la tarea del regalo` : `Recordatorio activado: la tarea aparecerá ${b.remind} ${b.remind === 1 ? 'día' : 'días'} antes (se crea en el mes del cumpleaños)`) : 'Recordatorio desactivado', 'ok');
+    toast(el.checked ? (n ? 'Recordatorio activado: se creó la tarea' : `Recordatorio activado: la tarea aparecerá ${b.remind} ${b.remind === 1 ? 'día' : 'días'} antes (se crea en el mes de la fecha)`) : 'Recordatorio desactivado', 'ok');
   },
   'bday-remind-days': el => {
     const b = state.birthdays.find(x => x.id === el.dataset.id); if (!b) return;
@@ -97,7 +98,7 @@ async function importData(raw, title) {
     return;
   }
   const { state: merged, report } = Store.merge(state, incoming);
-  const rows = [['Tareas', 'tasks'], ['Notas', 'notes'], ['Cumpleaños', 'birthdays'], ['Categorías de cumpleaños', 'cats'], ['Horarios', 'schedules'], ['Actividades de horarios', 'items']];
+  const rows = [['Tareas', 'tasks'], ['Notas', 'notes'], ['Fechas importantes', 'birthdays'], ['Categorías de fechas', 'cats'], ['Horarios', 'schedules'], ['Actividades de horarios', 'items']];
   const added = rows.reduce((a, [, k]) => a + report[k].add, 0) + (report.scratch ? 1 : 0);
   if (!added) { toast('No hay nada nuevo: todo lo del archivo ya existe, no se duplicó nada', 'ok'); return; }
   const ok = await modal({
@@ -149,7 +150,7 @@ const forms = {
     const b = readBdayForm(f);
     if (typeof b === 'string') return toast(b, 'error');
     state.birthdays.push({ id: uid(), ...b });
-    commit(); f.reset(); render(); toast(`Cumpleaños de ${b.name} agregado`, 'ok');
+    commit(); f.reset(); syncBdayForm(f); render(); toast(`${DATE_KINDS[b.kind].icon} ${dateName(b)} agregado`, 'ok');
     return true;
   },
   'bday-cat'(f) {

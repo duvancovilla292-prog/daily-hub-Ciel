@@ -9,17 +9,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap" rel="stylesheet">
   <!-- ?v=… : al publicar cambios, sube este número en TODOS los archivos para que el navegador no use copias viejas -->
-  <link rel="stylesheet" href="css/fonts.css?v=20261124h">
-  <link rel="stylesheet" href="css/base.css?v=20261124h">
-  <link rel="stylesheet" href="css/layout.css?v=20261124h">
-  <link rel="stylesheet" href="css/calendar.css?v=20261124h">
-  <link rel="stylesheet" href="css/tasks.css?v=20261124h">
-  <link rel="stylesheet" href="css/notes.css?v=20261124h">
-  <link rel="stylesheet" href="css/schedule.css?v=20261124h">
-  <link rel="stylesheet" href="css/components.css?v=20261124h">
-  <link rel="stylesheet" href="css/admin.css?v=20261124h">
-  <link rel="stylesheet" href="css/today.css?v=20261124h">
-  <link rel="stylesheet" href="css/responsive.css?v=20261124h">
+  <link rel="stylesheet" href="css/fonts.css?v=20261124i">
+  <link rel="stylesheet" href="css/base.css?v=20261124i">
+  <link rel="stylesheet" href="css/layout.css?v=20261124i">
+  <link rel="stylesheet" href="css/calendar.css?v=20261124i">
+  <link rel="stylesheet" href="css/tasks.css?v=20261124i">
+  <link rel="stylesheet" href="css/notes.css?v=20261124i">
+  <link rel="stylesheet" href="css/schedule.css?v=20261124i">
+  <link rel="stylesheet" href="css/components.css?v=20261124i">
+  <link rel="stylesheet" href="css/admin.css?v=20261124i">
+  <link rel="stylesheet" href="css/today.css?v=20261124i">
+  <link rel="stylesheet" href="css/responsive.css?v=20261124i">
 </head>
 <body>
 <div class="app">
@@ -54,7 +54,7 @@
 
     <label class="search">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="searchInput" type="search" placeholder="Buscar en tareas, notas, cumpleaños y horarios…" autocomplete="off">
+      <input id="searchInput" type="search" placeholder="Buscar en tareas, notas, fechas y horarios…" autocomplete="off">
       <button type="button" class="icon-btn" id="searchClear" data-action="clear-search" aria-label="Limpiar búsqueda" hidden>✕</button>
     </label>
 
@@ -103,7 +103,7 @@
             </div>
             <p class="muted small">Cargar un respaldo lo compara con lo que ya tienes: solo agrega lo nuevo y nunca borra ni duplica.</p>
             <div class="cat-admin">
-              <h3>Categorías de cumpleaños</h3>
+              <h3>Categorías de fechas</h3>
               <div id="catList" class="cat-list"></div>
               <button class="btn btn-primary" data-action="new-cat" disabled>+ Nueva categoría</button>
             </div>
@@ -132,7 +132,7 @@
     </button>
     <button class="tab" role="tab" data-action="go-tab" data-tab="birthdays" aria-selected="false">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h16v-7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2z"/><path d="M4 17c2 1.5 3 1.5 4 0s3-1.5 4 0 3 1.5 4 0 3-1.5 4 0M12 12V8M12 5.5c1-1 1-2 0-3-1 1-1 2 0 3z"/></svg>
-      <span>Cumpleaños</span>
+      <span>Fechas</span>
     </button>
     <button class="tab" role="tab" data-action="go-tab" data-tab="schedule" aria-selected="false">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
@@ -171,7 +171,7 @@
           <span><i class="d t"></i> Tareas pendientes</span>
           <span><i class="d t done"></i> Tareas hechas</span>
           <span><i class="d n"></i> Notas</span>
-          <span><i class="d b"></i> Cumpleaños</span>
+          <span><i class="d b"></i> Fechas</span>
           <span><i class="d s"></i> Horarios</span>
         </div>
         <div class="cal-notes" id="calNotes"></div>
@@ -253,11 +253,17 @@
       <div class="bday-single">
         <section class="card">
           <div class="bday-head">
-            <h2>Cumpleaños <small id="bdayCount" class="muted"></small></h2>
+            <h2>Fechas importantes <small id="bdayCount" class="muted"></small></h2>
             <div class="bday-controls">
               <select id="bdayCatFilter" data-change="bday-cat-filter" aria-label="Filtrar por categoría"></select>
-              <button class="btn btn-primary btn-compact" data-action="new-bday" aria-label="Nuevo cumpleaños">+ Nuevo</button>
+              <button class="btn btn-primary btn-compact" data-action="new-bday" aria-label="Nueva fecha importante">+ Nueva</button>
             </div>
+          </div>
+          <div class="seg kind-seg" id="bdayKindSeg" role="group" aria-label="Tipo de fecha">
+            <button data-action="bday-kind-filter" data-v="all" class="on">Todas</button>
+            <button data-action="bday-kind-filter" data-v="birthday">🎂 Cumpleaños</button>
+            <button data-action="bday-kind-filter" data-v="anniversary">💍 Aniversarios</button>
+            <button data-action="bday-kind-filter" data-v="event">📅 Otras</button>
           </div>
           <div id="bdayList" class="bday-list"></div>
         </section>
@@ -315,7 +321,7 @@
       </label>
       <label>Vincular al horario <select name="link" id="taskLink"></select></label>
     </div>
-    <label>Persona <select name="person" id="taskPerson"></select></label>
+    <label>Persona o fecha <select name="person" id="taskPerson"></select></label>
     <p class="muted small mode-help" hidden></p>
     <details class="more-opts">
       <summary>Etiquetas y subtareas</summary>
@@ -327,17 +333,24 @@
     <div class="sheet-foot"><button type="button" class="btn btn-ghost" data-action="sheet-close">Cancelar</button><button class="btn btn-primary">Agregar tarea</button></div>
   </form>
   <form data-form="birthday" class="stack" autocomplete="off">
-    <label>Nombre <input name="name" required maxlength="60" placeholder="Nombre de la persona"></label>
+    <label>Tipo
+      <select name="kind" data-change="bday-kind">
+        <option value="birthday">🎂 Cumpleaños</option>
+        <option value="anniversary">💍 Aniversario</option>
+        <option value="event">📅 Otra fecha</option>
+      </select>
+    </label>
+    <label><span class="lbl-name">Nombre de la persona</span> <input name="name" required maxlength="60" placeholder="Nombre de la persona"></label>
     <div class="row3">
       <label>Día <input name="day" type="number" min="1" max="31" required placeholder="15"></label>
       <label>Mes <select name="month" id="bdayMonth" required></select></label>
-      <label>Año <input name="year" type="number" min="1900" max="2100" placeholder="Opcional"></label>
+      <label><span class="lbl-year">Año de nacimiento</span> <input name="year" type="number" min="1900" max="2100" placeholder="Opcional"></label>
     </div>
     <div class="row2">
       <label>Categoría <select name="category" id="bdayCat"></select></label>
       <label>Etiqueta <input name="tag" maxlength="30" placeholder="Opcional (ej. vecina)"></label>
     </div>
-    <div class="sheet-foot"><button type="button" class="btn btn-ghost" data-action="sheet-close">Cancelar</button><button class="btn btn-primary">Agregar cumpleaños</button></div>
+    <div class="sheet-foot"><button type="button" class="btn btn-ghost" data-action="sheet-close">Cancelar</button><button class="btn btn-primary">Guardar fecha</button></div>
   </form>
   <form data-form="schedule" class="stack" autocomplete="off">
     <div class="row2">
@@ -409,7 +422,7 @@
     </div>
     <div class="row2">
       <label>Vincular al horario <select id="noteLink" data-change="note-link"></select></label>
-      <label>Persona <select id="notePerson" data-change="note-person"></select></label>
+      <label>Persona o fecha <select id="notePerson" data-change="note-person"></select></label>
     </div>
     <p id="noteCount" class="muted small"></p>
     <div class="editor-foot">
@@ -424,22 +437,22 @@
 <div id="toasts" aria-live="polite"></div>
 <input type="file" id="importFile" accept=".json,application/json" hidden>
 
-<script src="js/core/utils.js?v=20261124h"></script>
-<script src="js/core/storage.js?v=20261124h"></script>
-<script src="js/core/state.js?v=20261124h"></script>
-<script src="js/core/calendar-engine.js?v=20261124h"></script>
-<script src="js/ui/feedback.js?v=20261124h"></script>
-<script src="js/ui/header.js?v=20261124h"></script>
-<script src="js/views/today.js?v=20261124h"></script>
-<script src="js/views/calendar.js?v=20261124h"></script>
-<script src="js/views/birthdays.js?v=20261124h"></script>
-<script src="js/views/tasks.js?v=20261124h"></script>
-<script src="js/views/notes.js?v=20261124h"></script>
-<script src="js/views/schedule.js?v=20261124h"></script>
-<script src="js/ui/router.js?v=20261124h"></script>
-<script src="js/ui/actions.js?v=20261124h"></script>
-<script src="js/ui/events.js?v=20261124h"></script>
-<script src="js/main.js?v=20261124h"></script>
-<script type="module" src="js/core/cloud.js?v=20261124h"></script>
+<script src="js/core/utils.js?v=20261124i"></script>
+<script src="js/core/storage.js?v=20261124i"></script>
+<script src="js/core/state.js?v=20261124i"></script>
+<script src="js/core/calendar-engine.js?v=20261124i"></script>
+<script src="js/ui/feedback.js?v=20261124i"></script>
+<script src="js/ui/header.js?v=20261124i"></script>
+<script src="js/views/today.js?v=20261124i"></script>
+<script src="js/views/calendar.js?v=20261124i"></script>
+<script src="js/views/birthdays.js?v=20261124i"></script>
+<script src="js/views/tasks.js?v=20261124i"></script>
+<script src="js/views/notes.js?v=20261124i"></script>
+<script src="js/views/schedule.js?v=20261124i"></script>
+<script src="js/ui/router.js?v=20261124i"></script>
+<script src="js/ui/actions.js?v=20261124i"></script>
+<script src="js/ui/events.js?v=20261124i"></script>
+<script src="js/main.js?v=20261124i"></script>
+<script type="module" src="js/core/cloud.js?v=20261124i"></script>
 </body>
 </html>

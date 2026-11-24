@@ -698,7 +698,8 @@
       "day": 21,
       "year": 2000,
       "category": "cat-amigos",
-      "tag": "del colegio"
+      "tag": "del colegio",
+      "kind": "birthday"
     },
     {
       "id": "b02",
@@ -707,7 +708,8 @@
       "day": 24,
       "year": 1999,
       "category": "cat-amigos",
-      "tag": ""
+      "tag": "",
+      "kind": "birthday"
     },
     {
       "id": "b03",
@@ -716,7 +718,8 @@
       "day": 1,
       "year": null,
       "category": "cat-amigos",
-      "tag": "vecina"
+      "tag": "vecina",
+      "kind": "birthday"
     },
     {
       "id": "b04",
@@ -725,7 +728,8 @@
       "day": 15,
       "year": 1975,
       "category": "cat-familia",
-      "tag": ""
+      "tag": "",
+      "kind": "birthday"
     },
     {
       "id": "b05",
@@ -734,7 +738,8 @@
       "day": 3,
       "year": 1972,
       "category": "cat-familia",
-      "tag": ""
+      "tag": "",
+      "kind": "birthday"
     },
     {
       "id": "b06",
@@ -743,7 +748,8 @@
       "day": 29,
       "year": 2004,
       "category": null,
-      "tag": "prima lejana"
+      "tag": "prima lejana",
+      "kind": "birthday"
     },
     {
       "id": "b07",
@@ -752,7 +758,8 @@
       "day": 14,
       "year": 2001,
       "category": "cat-amigos",
-      "tag": ""
+      "tag": "",
+      "kind": "birthday"
     },
     {
       "id": "b08",
@@ -761,7 +768,28 @@
       "day": 9,
       "year": null,
       "category": "cat-estudio",
-      "tag": "Campuslands"
+      "tag": "Campuslands",
+      "kind": "birthday"
+    },
+    {
+      "id": "b-aniv",
+      "kind": "anniversary",
+      "name": "Aniversario de mis papás",
+      "month": 12,
+      "day": 12,
+      "year": 1998,
+      "category": "cat-familia",
+      "tag": ""
+    },
+    {
+      "id": "b-grad",
+      "kind": "event",
+      "name": "Graduación del colegio",
+      "month": 12,
+      "day": 5,
+      "year": 2025,
+      "category": null,
+      "tag": "recuerdo"
     }
   ],
   "birthdayCategories": [

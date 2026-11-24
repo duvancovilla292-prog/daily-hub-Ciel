@@ -30,6 +30,7 @@ const ui = {
   anchors: {},                                        // fecha que muestra cada horario
   panelMode: {},                                      // apartados de Tareas/Notas de cada horario: 'all' | 'linked'
   bdayCat: 'all',
+  bdayKind: 'all',                                    // filtro por tipo de fecha
   personOpen: null,                                   // ficha de persona abierta (id del cumpleaños)                                     // filtro de categoría en Cumpleaños
   adminOpen: false,
   admin: false,                                       // true con sesión de Google iniciada

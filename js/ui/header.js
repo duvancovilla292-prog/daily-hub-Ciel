@@ -37,12 +37,12 @@ function renderAdmin() {
   $$('#adminTools button, #adminTools input').forEach(b => { b.disabled = !ui.admin; });
 }
 
-/* Categorías de cumpleaños (solo el administrador las crea, renombra o borra) */
+/* Categorías de fechas importantes (solo con sesión se crean, renombran o borran) */
 function renderCats() {
   const cats = state.birthdayCategories;
   $('#catList').innerHTML = cats.length ? cats.map(c => {
     const n = state.birthdays.filter(b => b.category === c.id).length;
-    return `<div class="cat-row"><span class="bt cat" style="--cc:${catColor(c.id)}">${c.pets ? '🐾 ' : ''}${esc(c.name)}</span><span class="muted small">${plural(n, 'cumpleaños', 'cumpleaños')}</span>
+    return `<div class="cat-row"><span class="bt cat" style="--cc:${catColor(c.id)}">${c.pets ? '🐾 ' : ''}${esc(c.name)}</span><span class="muted small">${plural(n, 'fecha', 'fechas')}</span>
       <button class="icon-btn" data-action="cat-rename" data-id="${esc(c.id)}" aria-label="Renombrar ${esc(c.name)}" title="Renombrar">${ICON_EDIT}</button>
       <button class="icon-btn del" data-action="cat-del" data-id="${esc(c.id)}" aria-label="Eliminar ${esc(c.name)}" title="Eliminar">${ICON_X}</button></div>`;
   }).join('') : '<p class="empty-note">Aún no hay categorías.</p>';
@@ -57,7 +57,7 @@ function renderDash() {
   $('#adminDash').innerHTML =
     tile(v(st?.tasks), 'Tareas', ui.admin ? `${st.pending} pendientes · ${st.done} hechas${st.overdue ? ' · ' + st.overdue + ' atrasadas' : ''}` : 'bloqueado') +
     tile(v(st?.notes), 'Notas', ui.admin ? `${st.notes - st.lists} de texto · ${st.lists} listas` : 'bloqueado') +
-    tile(v(st?.birthdays), 'Cumpleaños', ui.admin ? plural(st.cats, 'categoría', 'categorías') : 'bloqueado') +
+    tile(v(st?.birthdays), 'Fechas', ui.admin ? plural(st.cats, 'categoría', 'categorías') : 'bloqueado') +
     tile(v(st?.schedules), 'Horarios', ui.admin ? `${st.daily} diarios · ${st.weekly} semanales · ${st.monthly} mensuales` : 'bloqueado') +
     tile(v(st?.items), 'Actividades', ui.admin ? 'en todos los horarios' : 'bloqueado') +
     tile(v(st?.links), 'Vínculos', ui.admin ? 'tareas y notas con horario' : 'bloqueado') +

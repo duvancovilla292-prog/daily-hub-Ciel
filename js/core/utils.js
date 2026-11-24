@@ -4,7 +4,7 @@
 
 const KEY = 'daily_hub_v1';
 const TYPES = ['tasks', 'notes', 'birthdays', 'schedules'];
-const TYPE_LABEL = { tasks: 'Tareas', notes: 'Notas', birthdays: 'Cumpleaños', schedules: 'Horarios' };
+const TYPE_LABEL = { tasks: 'Tareas', notes: 'Notas', birthdays: 'Fechas', schedules: 'Horarios' };
 const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 const WD_SHORT = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const WD_LONG = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
@@ -131,7 +131,7 @@ const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 /* ===== Nombres para mostrar =====
    Mayúscula inicial en cada palabra (sin tocar lo guardado ni el resto de la palabra: "GB" sigue igual),
    salvo partículas como "de", "del", "y" en medio del nombre. */
-const NAME_SMALL = new Set(['de', 'del', 'la', 'las', 'los', 'y', 'e', 'da', 'do', 'van', 'von']);
+const NAME_SMALL = new Set(['de', 'del', 'la', 'las', 'los', 'el', 'al', 'y', 'e', 'o', 'u', 'a', 'en', 'con', 'por', 'para', 'que', 'mi', 'mis', 'tu', 'tus', 'su', 'sus', 'da', 'do', 'van', 'von']);
 function displayName(s) {
   let first = true;
   return String(s).split(/(\s+)/).map(w => {

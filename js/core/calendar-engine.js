@@ -165,3 +165,14 @@ function taskMeta(t) {
   }
   return '';
 }
+
+/* ===== Por vencer: tareas de prioridad Alta que vencen en las próximas 48 horas =====
+   Una de un día vence a su hora (o al final del día si no tiene); una de periodo, al final de su fecha límite. */
+function hoursToDue(t) {
+  if (t.mode === 'repeat' || t.completed) return null;
+  const d = D.parse(t.mode === 'span' ? t.due : t.date);
+  if (t.mode !== 'span' && t.time) d.setHours(+t.time.slice(0, 2), +t.time.slice(3, 5)); else d.setHours(23, 59, 59);
+  return (d - Date.now()) / 3600000;
+}
+const dueSoon = t => { if (t.priority !== 'high') return false; const h = hoursToDue(t); return h !== null && h > 0 && h <= 48; };
+const dueLabel = t => { const h = hoursToDue(t); return h < 1 ? 'vence en menos de 1 h' : `vence en ${Math.round(h)} h`; };

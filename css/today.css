@@ -91,3 +91,10 @@
 .person-actions .btn { display: inline-flex; align-items: center; gap: 6px; }
 .person .sub { margin: 4px 0 0; }
 .person-notes { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* Fechas importantes: avatar con ícono, filtro por tipo y "por vencer" */
+.avatar.icon { font-size: 1.25rem; }
+.avatar.big.icon { font-size: 1.9rem; }
+.kind-seg { margin: -4px 0 12px; flex-wrap: wrap; max-width: 100%; }
+.kind-seg button { font-size: .78rem; padding: 6px 10px; }
+.t-due { font-size: .72rem; font-weight: 700; color: var(--task); }

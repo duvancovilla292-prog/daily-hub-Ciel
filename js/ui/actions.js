@@ -74,7 +74,7 @@ const actions = {
           <label>Prioridad <select name="priority">${Object.entries(PRIO).map(([k, p]) => `<option value="${k}" ${k === t.priority ? 'selected' : ''}>${p.label}</option>`).join('')}</select></label>
           <label>Vincular al horario <select name="link"><option value="">Sin vincular</option>${linkOptions().map(o => `<option value="${o.value}" ${o.value === cur ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}</select></label>
         </div>
-        <label>Persona <select name="person">${personOptions(t.person || '')}</select></label>
+        <label>Persona o fecha <select name="person">${personOptions(t.person || '')}</select></label>
         <p class="muted small mode-help" hidden></p>
         <label>Etiquetas <input name="tags" maxlength="160" placeholder="casa, campus (opcional)" value="${esc((t.tags || []).join(', '))}"></label>
         <label>Subtareas <textarea name="subtasks" rows="3" placeholder="Una por línea (opcional)">${esc((t.subtasks || []).map(x => x.text).join('\n'))}</textarea></label>`,
@@ -106,6 +106,7 @@ const actions = {
     if (t.mode === 'span') t.due = to < t.date ? t.date : to; else t.date = to;
     commit(); render(); toast(`Tarea movida a ${el.dataset.to === '0' ? 'hoy' : 'mañana'}`, 'ok');
   },
+  'bday-kind-filter': el => { ui.bdayKind = el.dataset.v; renderBirthdays(); },
   'row-menu': el => {
     const id = el.dataset.id;
     openMenu(el, [
@@ -116,21 +117,22 @@ const actions = {
   },
   'del-bday': async el => {
     const b = state.birthdays.find(x => x.id === el.dataset.id); if (!b) return;
-    const ok = await modal({ title: 'Eliminar cumpleaños', body: `¿Seguro que quieres eliminar el cumpleaños de <b>${esc(b.name)}</b> (${b.day} de ${MONTHS[b.month - 1]})?`, actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
+    const ok = await modal({ title: 'Eliminar fecha', body: `¿Seguro que quieres eliminar ${kindOf(b) === 'birthday' ? 'el cumpleaños de ' : ''}<b>${esc(dateName(b))}</b> (${b.day} de ${MONTHS[b.month - 1]})?`, actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
     if (!ok) return;
     const snap = snapshot();
-    state.birthdays = state.birthdays.filter(x => x.id !== b.id); commit(); render(); offerUndo(snap, 'Cumpleaños eliminado');
+    state.birthdays = state.birthdays.filter(x => x.id !== b.id); commit(); render(); offerUndo(snap, 'Fecha eliminada');
   },
   'edit-bday': async el => {
     const b = state.birthdays.find(x => x.id === el.dataset.id); if (!b) return;
     let data;
-    const f = await formModal({
-      title: 'Editar cumpleaños', desc: '',
-      fields: `<label>Nombre <input name="name" required maxlength="60" value="${esc(b.name)}"></label>
+    const pending = formModal({
+      title: 'Editar fecha', desc: '',
+      fields: `<label>Tipo <select name="kind" data-change="bday-kind">${kindOptions(kindOf(b))}</select></label>
+        <label><span class="lbl-name">Nombre</span> <input name="name" required maxlength="60" value="${esc(b.name)}"></label>
         <div class="row3">
           <label>Día <input name="day" type="number" min="1" max="31" required value="${b.day}"></label>
           <label>Mes <select name="month">${MONTHS.map((m, i) => `<option value="${i + 1}" ${i + 1 === b.month ? 'selected' : ''}>${cap(m)}</option>`).join('')}</select></label>
-          <label>Año <input name="year" type="number" min="1900" max="2100" placeholder="Opcional" value="${b.year ?? ''}"></label>
+          <label><span class="lbl-year">Año</span> <input name="year" type="number" min="1900" max="2100" placeholder="Opcional" value="${b.year ?? ''}"></label>
         </div>
         <div class="row2">
           <label>Categoría <select name="category">${catOptions(b.category)}</select></label>
@@ -139,8 +141,10 @@ const actions = {
       submit: 'Guardar cambios',
       check: form => { const r = readBdayForm(form); if (typeof r === 'string') return r; data = r; return true; }
     });
+    syncBdayForm($('#fm'));
+    const f = await pending;
     if (!f) return;
-    Object.assign(b, data); commit(); render(); toast('Cumpleaños actualizado', 'ok');
+    Object.assign(b, data); commit(); render(); toast('Fecha actualizada', 'ok');
   },
   'cat-rename': async el => {
     const c = state.birthdayCategories.find(x => x.id === el.dataset.id); if (!c || !ui.admin) return;
@@ -157,7 +161,7 @@ const actions = {
   'cat-del': async el => {
     const c = state.birthdayCategories.find(x => x.id === el.dataset.id); if (!c || !ui.admin) return;
     const n = state.birthdays.filter(b => b.category === c.id).length;
-    const ok = await modal({ title: 'Eliminar categoría', body: `Se eliminará la categoría <b>${esc(c.name)}</b>.${n ? ` ${plural(n, 'cumpleaños quedará', 'cumpleaños quedarán')} sin categoría (no se borran).` : ''}`, actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
+    const ok = await modal({ title: 'Eliminar categoría', body: `Se eliminará la categoría <b>${esc(c.name)}</b>.${n ? ` ${plural(n, 'fecha quedará', 'fechas quedarán')} sin categoría (no se borran).` : ''}`, actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
     if (!ok) return;
     const snap = snapshot();
     state.birthdays.forEach(b => { if (b.category === c.id) b.category = null; });
@@ -264,15 +268,17 @@ const actions = {
     const back = el.dataset.back === 'person' ? el.dataset.person : '';
     openSheet({ title: 'Nueva tarea', node: f, onClose: back ? () => setTimeout(() => openPersonSheet(back), 0) : null });
   },
-  'new-bday': () => {
+  'new-bday': el => {
     const f = $('form[data-form=birthday]');
     f.reset();
     $('#bdayCat').innerHTML = catOptions('');
-    openSheet({ title: 'Nuevo cumpleaños', node: f });
+    if (el && el.dataset && DATE_KINDS[el.dataset.kind]) f.elements.kind.value = el.dataset.kind;
+    syncBdayForm(f);
+    openSheet({ title: 'Nueva fecha importante', node: f });
   },
   'new-cat': () => {
     if (!ui.admin) return toast('Inicia sesión con Google para crear categorías', 'error');
-    openSheet({ title: 'Nueva categoría de cumpleaños', html: `<form data-form="bday-cat" class="stack" autocomplete="off">
+    openSheet({ title: 'Nueva categoría de fechas', html: `<form data-form="bday-cat" class="stack" autocomplete="off">
       <label>Nombre <input name="name" required maxlength="30" placeholder="Ej. Trabajo, Familia"></label>
       <label class="inline-chk"><input type="checkbox" name="pets"> Son mascotas (no se muestra la generación)</label>
       <div class="sheet-foot"><button type="button" class="btn btn-ghost" data-action="sheet-close">Cancelar</button><button class="btn btn-primary">Crear categoría</button></div></form>` });
@@ -371,7 +377,7 @@ const actions = {
     if (!ui.admin) return;
     const f = await formModal({
       title: 'Vaciar todo',
-      desc: 'Se borrarán <b>todas</b> las tareas, notas, cumpleaños, horarios y el bloc rápido. Podrás deshacerlo solo durante unos segundos: descarga un respaldo antes si lo necesitas.',
+      desc: 'Se borrarán <b>todas</b> las tareas, notas, fechas importantes, horarios y el bloc rápido. Podrás deshacerlo solo durante unos segundos: descarga un respaldo antes si lo necesitas.',
       fields: '<label>Escribe <b>VACIAR</b> para confirmar <input name="word" autocomplete="off"></label>',
       submit: 'Vaciar todo',
       check: f => f.elements.word.value.trim().toUpperCase() === 'VACIAR' || 'Escribe VACIAR para confirmar'

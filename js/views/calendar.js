@@ -20,7 +20,7 @@ function renderCalendar() {
     const chips = [], dots = [];
     if (f.has('birthdays') && info.bdays.length) {
       dots.push('<i class="d b"></i>');
-      info.bdays.forEach(x => chips.push({ c: 'b', txt: '🎂 ' + displayName(x.b.name) }));
+      info.bdays.forEach(x => chips.push({ c: 'b', txt: kindIcon(x.b) + ' ' + dateName(x.b) }));
     }
     // En la cuadrícula, las tareas de periodo solo se marcan en su inicio y su fecha límite (para no llenar todos los días)
     const cellTasks = info.tasks.filter(x => x.mode !== 'span' || key === x.date || key === x.due);
@@ -71,10 +71,13 @@ function renderAlerts() {
   }
   let html = '';
   if (here.length) {
-    html += `<div class="alert"><span class="em">🎂</span><div><b>${rel ? rel + ' ' : ''}${here.map(x => esc(displayName(x.b.name)) + (x.age ? ` cumple ${x.age} años` : ' está de cumpleaños')).join(' · ')}</b><div class="muted small">${cap(D.long(k))}</div></div></div>`;
+    const one = x => kindOf(x.b) === 'birthday'
+      ? `${esc(dateName(x.b))}${x.age ? ` cumple ${x.age} años` : ' está de cumpleaños'}`
+      : `${kindIcon(x.b)} ${esc(dateName(x.b))}${x.age ? ` (${yearsText(x.b, x.age, true)})` : ''}`;
+    html += `<div class="alert"><span class="em">${kindIcon(here[0].b)}</span><div><b>${rel ? rel + ': ' : ''}${here.map(one).join(' · ')}</b><div class="muted small">${cap(D.long(k))}</div></div></div>`;
   }
   if (up.length) {
-    html += `<div class="alert soft"><span class="em">🎈</span><div><b>Próximos 7 días</b><div class="small muted">${up.map(x => `${esc(displayName(x.b.name))} — ${x.i === 1 ? 'al día siguiente' : 'en ' + x.i + ' días'} (${D.short(x.key)})${x.age ? ', cumple ' + x.age : ''}`).join('<br>')}</div></div></div>`;
+    html += `<div class="alert soft"><span class="em">🎈</span><div><b>Próximos 7 días</b><div class="small muted">${up.map(x => `${kindOf(x.b) === 'birthday' ? '' : kindIcon(x.b) + ' '}${esc(dateName(x.b))} — ${x.i === 1 ? 'al día siguiente' : 'en ' + x.i + ' días'} (${D.short(x.key)})${x.age ? ', ' + yearsText(x.b, x.age, false) : ''}`).join('<br>')}</div></div></div>`;
   }
   $('#bdayAlerts').innerHTML = html;
   $('#bdayAlerts2').innerHTML = html;
@@ -86,9 +89,9 @@ function detailHtml(k) {
   const info = Cal.dayInfo(k, ''), rel = D.rel(k);
   let h = `<h2>${esc(cap(D.long(k)))}${rel ? `<span class="pill">${rel}</span>` : ''}</h2>${holidayName(k) ? `<p class="hol-badge">🇨🇴 Festivo: ${esc(holidayName(k))}</p>` : ''}`;
 
-  h += '<section><h3>Cumpleaños</h3>' + (info.bdays.length
-    ? `<ul class="mini-list">${info.bdays.map(x => `<li class="person-link" data-action="open-person" data-id="${esc(x.b.id)}" role="button" tabindex="0">🎂 <b>${esc(displayName(x.b.name))}</b>${x.age ? ` — cumple ${x.age} años` : ''}${x.b.category || x.b.tag ? ` <span class="bday-tags" style="display:inline-flex">${bdayTags(x.b)}</span>` : ''}</li>`).join('')}</ul>`
-    : '<p class="empty-note">Nadie cumple años este día.</p>') + '</section>';
+  h += '<section><h3>Fechas importantes</h3>' + (info.bdays.length
+    ? `<ul class="mini-list">${info.bdays.map(x => `<li class="person-link" data-action="open-person" data-id="${esc(x.b.id)}" role="button" tabindex="0">${kindIcon(x.b)} <b>${esc(dateName(x.b))}</b>${x.age ? ` — ${yearsText(x.b, x.age, true)}` : ''}${x.b.category || x.b.tag ? ` <span class="bday-tags" style="display:inline-flex">${bdayTags(x.b)}</span>` : ''}</li>`).join('')}</ul>`
+    : '<p class="empty-note">Sin fechas importantes este día.</p>') + '</section>';
 
   h += `<section><h3>Tareas</h3>${info.tasks.length ? `<ul class="tasks">${info.tasks.map(t => taskRow(t, k)).join('')}</ul>` : '<p class="empty-note">Sin tareas para este día.</p>'}
     <button class="btn btn-ghost" style="margin-top:8px" data-action="new-task" data-key="${esc(k)}">+ Nueva tarea</button></section>`;

@@ -56,9 +56,11 @@ function renderToday() {
   const notes = Cal.notesOn(k);
   const bdays = Cal.birthdaysOn(k);
   let side = '';
-  if (bdays.length) side += `<div class="panel" style="--c:var(--accent2)"><span class="ptitle">Cumpleaños</span><ul class="mini-list">${bdays.map(x => `<li class="person-link" data-action="open-person" data-id="${esc(x.b.id)}" role="button" tabindex="0">🎂 <b>${esc(displayName(x.b.name))}</b>${x.age ? ` — cumple ${x.age}` : ''} ${bdayTags(x.b)}</li>`).join('')}</ul></div>`;
+  if (bdays.length) side += `<div class="panel" style="--c:var(--accent2)"><span class="ptitle">Fechas</span><ul class="mini-list">${bdays.map(x => `<li class="person-link" data-action="open-person" data-id="${esc(x.b.id)}" role="button" tabindex="0">${kindIcon(x.b)} <b>${esc(dateName(x.b))}</b>${x.age ? ` — ${yearsText(x.b, x.age, true)}` : ''} ${bdayTags(x.b)}</li>`).join('')}</ul></div>`;
   side += `<div class="panel" style="--c:var(--accent)"><span class="ptitle">Tareas</span>${dayTasks.length ? `<ul class="tasks">${dayTasks.sort(byTime).map(t => taskRow(t, k)).join('')}</ul>` : '<p class="empty-note">Sin tareas para este día.</p>'}
     <button class="btn btn-ghost" data-action="new-task" data-key="${esc(k)}">+ Nueva tarea</button></div>`;
+  const soon = state.tasks.filter(t => dueSoon(t) && !(isToday && dayTasks.includes(t))).sort((x, y) => hoursToDue(x) - hoursToDue(y));
+  if (soon.length) side += `<div class="panel" style="--c:var(--task)"><span class="ptitle">⏰ Por vencer</span><p class="muted small">Prioridad alta, vencen en menos de 48 horas.</p><ul class="tasks">${soon.map(t => taskRow(t)).join('')}</ul></div>`;
   if (overdue.length) {                                         // las 5 más antiguas; el resto, en Tareas → Atrasadas
     const first = overdue.sort((x, y) => (x.mode === 'span' ? x.due : x.date).localeCompare(y.mode === 'span' ? y.due : y.date)).slice(0, 5);
     side += `<div class="panel" style="--c:var(--danger)"><span class="ptitle">Atrasadas</span><ul class="tasks">${first.map(t => taskRow(t)).join('')}</ul>

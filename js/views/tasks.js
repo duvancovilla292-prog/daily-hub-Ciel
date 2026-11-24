@@ -16,6 +16,7 @@ function taskInfo(t) {
   const parts = [];
   const tags = t.tags || [], subs = t.subtasks || [];
   if (t.time) parts.push(`<span class="t-time">⏰ ${fmtT(t.time)}</span>`);
+  if (dueSoon(t)) parts.push(`<span class="t-due">⏳ ${dueLabel(t)}</span>`);
   const pn = personName(t.person);
   if (pn) parts.push(`<button class="t-person" data-action="open-person" data-id="${esc(t.person)}" title="Ver la ficha de ${esc(pn)}">👤 ${esc(pn)}</button>`);
   tags.forEach(g => parts.push(`<span class="t-tag">#${esc(g)}</span>`));
