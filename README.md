@@ -72,6 +72,8 @@ daily-hub/
 ```
 
 ## Apartados
+Para agregar o editar cualquier cosa (tarea, nota, cumpleaños, horario, actividad, día saltado o categoría) se usa un botón **"+ Nuevo…"** que abre una **ventana emergente**; no hay formularios fijos en las pantallas. Si se escribió algo y se cierra la ventana (✕, Cancelar, Esc o tocando fuera), pregunta antes de descartarlo. Los formularios viven ocultos en `#formStore` (index.html) y se mueven a la ventana al abrirla (`openSheet` en `js/ui/feedback.js`).
+
 - **Hoy** (se abre por defecto): la agenda del día activo en una sola pantalla. Una línea de tiempo con las actividades de todos los horarios y las tareas con hora (⚠ marca choques), y al lado las tareas del día (con agregar rápido, también con hora), las atrasadas (con **→ Hoy / → Mañana**), las notas y los cumpleaños. Indica si el día es festivo y qué horarios no aplican.
 - **Calendario:** mes actual por defecto, con flechas para cambiar de mes. Filtros (todo / tareas / notas / cumpleaños / horarios), búsqueda y ventana de detalle al tocar un día.
 - **Tareas:** con prioridad, **hora opcional**, **etiquetas** (filtro por etiqueta), **subtareas** (lista con avance que se marca sin abrir la edición), filtros y vínculo opcional a una actividad de un horario. Las atrasadas se mueven a hoy o mañana con un toque. Se editan solo con el botón ✏️. Hay tres tipos:

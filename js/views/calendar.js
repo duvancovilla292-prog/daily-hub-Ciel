@@ -91,11 +91,7 @@ function detailHtml(k) {
     : '<p class="empty-note">Nadie cumple años este día.</p>') + '</section>';
 
   h += `<section><h3>Tareas</h3>${info.tasks.length ? `<ul class="tasks">${info.tasks.map(t => taskRow(t, k)).join('')}</ul>` : '<p class="empty-note">Sin tareas para este día.</p>'}
-    <form data-form="quick-task" class="quick" autocomplete="off">
-      <input name="title" placeholder="Nueva tarea…" maxlength="140" required aria-label="Nueva tarea">
-      <select name="priority" aria-label="Prioridad"><option value="low">Baja</option><option value="medium" selected>Media</option><option value="high">Alta</option></select>
-      <button class="btn btn-primary" aria-label="Agregar">+</button>
-    </form></section>`;
+    <button class="btn btn-ghost" style="margin-top:8px" data-action="new-task" data-key="${esc(k)}">+ Nueva tarea</button></section>`;
 
   h += '<section><h3>Notas</h3>' + (info.notes.length
     ? `<div class="mini-list">${info.notes.map(n => `<button class="note-item" data-action="open-note" data-key="${esc(k)}" data-id="${esc(n.id)}"><b>${n.type === 'list' ? '☑' : '📝'} ${esc(noteLabel(n))}</b></button>`).join('')}</div>`

@@ -9,17 +9,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap" rel="stylesheet">
   <!-- ?v=… : al publicar cambios, sube este número en TODOS los archivos para que el navegador no use copias viejas -->
-  <link rel="stylesheet" href="css/fonts.css?v=20261124e">
-  <link rel="stylesheet" href="css/base.css?v=20261124e">
-  <link rel="stylesheet" href="css/layout.css?v=20261124e">
-  <link rel="stylesheet" href="css/calendar.css?v=20261124e">
-  <link rel="stylesheet" href="css/tasks.css?v=20261124e">
-  <link rel="stylesheet" href="css/notes.css?v=20261124e">
-  <link rel="stylesheet" href="css/schedule.css?v=20261124e">
-  <link rel="stylesheet" href="css/components.css?v=20261124e">
-  <link rel="stylesheet" href="css/admin.css?v=20261124e">
-  <link rel="stylesheet" href="css/today.css?v=20261124e">
-  <link rel="stylesheet" href="css/responsive.css?v=20261124e">
+  <link rel="stylesheet" href="css/fonts.css?v=20261124f">
+  <link rel="stylesheet" href="css/base.css?v=20261124f">
+  <link rel="stylesheet" href="css/layout.css?v=20261124f">
+  <link rel="stylesheet" href="css/calendar.css?v=20261124f">
+  <link rel="stylesheet" href="css/tasks.css?v=20261124f">
+  <link rel="stylesheet" href="css/notes.css?v=20261124f">
+  <link rel="stylesheet" href="css/schedule.css?v=20261124f">
+  <link rel="stylesheet" href="css/components.css?v=20261124f">
+  <link rel="stylesheet" href="css/admin.css?v=20261124f">
+  <link rel="stylesheet" href="css/today.css?v=20261124f">
+  <link rel="stylesheet" href="css/responsive.css?v=20261124f">
 </head>
 <body>
 <div class="app">
@@ -105,10 +105,7 @@
             <div class="cat-admin">
               <h3>Categorías de cumpleaños</h3>
               <div id="catList" class="cat-list"></div>
-              <form data-form="bday-cat" class="quick" autocomplete="off">
-                <input name="name" required maxlength="30" placeholder="Nueva categoría (ej. Trabajo)" aria-label="Nueva categoría">
-                <button class="btn btn-primary">Agregar</button>
-              </form>
+              <button class="btn btn-primary" data-action="new-cat" disabled>+ Nueva categoría</button>
             </div>
           </div>
         </div>
@@ -185,41 +182,7 @@
     <section id="view-tasks" class="view" hidden>
       <div class="bento tasks-bento">
         <section class="card">
-          <h2>Nueva tarea</h2>
-          <form data-form="task" class="stack" autocomplete="off">
-            <label>Título <input name="title" required maxlength="140" placeholder="¿Qué hay que hacer?"></label>
-            <label>Tipo
-              <select name="mode" data-change="task-mode">
-                <option value="once">Un solo día</option>
-                <option value="span">Con fecha límite (abarca un periodo)</option>
-                <option value="repeat">Se repite con la actividad vinculada</option>
-              </select>
-            </label>
-            <div class="row2">
-              <label><span class="lbl-date">Fecha</span> <input type="date" name="date" id="taskDate" required></label>
-              <label>Hora <input type="time" name="time" aria-label="Hora (opcional)"></label>
-            </div>
-            <label class="due-wrap" hidden><span class="lbl-due">Fecha límite</span> <input type="date" name="due"></label>
-            <div class="row2">
-              <label>Prioridad
-                <select name="priority">
-                  <option value="low">Baja</option>
-                  <option value="medium" selected>Media</option>
-                  <option value="high">Alta</option>
-                </select>
-              </label>
-              <label>Vincular al horario <select name="link" id="taskLink"></select></label>
-            </div>
-            <p class="muted small mode-help" hidden></p>
-            <details class="more-opts">
-              <summary>Etiquetas y subtareas</summary>
-              <div class="stack">
-                <label>Etiquetas <input name="tags" maxlength="160" placeholder="casa, campus (opcional)"></label>
-                <label>Subtareas <textarea name="subtasks" rows="3" placeholder="Una por línea (opcional)"></textarea></label>
-              </div>
-            </details>
-            <button class="btn btn-primary">Agregar tarea</button>
-          </form>
+          <div class="card-head"><h2>Tareas</h2><button class="btn btn-primary" data-action="new-task">+ Nueva tarea</button></div>
           <div id="taskStats" class="stats"></div>
         </section>
 
@@ -268,33 +231,10 @@
 
           <div id="dayEditor">
             <div class="editor-top">
-              <h2 id="editorTitle">Nueva nota</h2>
-              <button class="btn btn-ghost" data-action="new-note">+ Nueva nota</button>
+              <h2 id="editorTitle">Notas</h2>
+              <button class="btn btn-primary" data-action="new-note">+ Nueva nota</button>
             </div>
-            <div id="noteRead" class="note-read" hidden></div>
-            <div class="stack" id="noteForm">
-              <div class="row2">
-                <label>Título <input id="noteTitle" maxlength="80" placeholder="Opcional"></label>
-                <label>Fecha <input type="date" id="noteDate" data-change="note-date"></label>
-              </div>
-              <div class="seg" id="noteTypeSeg" role="group" aria-label="Tipo de nota">
-                <button data-action="note-type" data-v="text" class="on">Texto</button>
-                <button data-action="note-type" data-v="list">Lista</button>
-              </div>
-              <textarea id="noteArea" spellcheck="true" placeholder="Escribe tu nota…"></textarea>
-              <p class="muted small md-hint" id="mdHint">Admite Markdown: **negrita**, *cursiva*, # título, - lista, - [ ] pendiente, &gt; cita, [enlace](https://…)</p>
-              <div id="listEditor" hidden>
-                <div id="liRows"></div>
-                <button class="btn btn-ghost" data-action="li-add">+ Agregar ítem</button>
-              </div>
-              <label>Vincular al horario <select id="noteLink" data-change="note-link"></select></label>
-              <p id="noteCount" class="muted small"></p>
-              <div class="editor-foot">
-                <button class="btn btn-danger" id="btnDelNote" data-action="del-note" hidden>Eliminar</button>
-                <button class="btn btn-ghost" id="btnCancelNote" data-action="cancel-note" hidden>Cancelar</button>
-                <button class="btn btn-primary" data-action="save-note">Guardar nota</button>
-              </div>
-            </div>
+            <div id="noteRead" class="note-read"></div>
           </div>
 
           <div id="scratchEditor" hidden>
@@ -310,27 +250,14 @@
     <!-- ================= CUMPLEAÑOS ================= -->
     <section id="view-birthdays" class="view" hidden>
       <div id="bdayAlerts2"></div>
-      <div class="bento bday-bento">
-        <section class="card">
-          <h2>Nuevo cumpleaños</h2>
-          <form data-form="birthday" class="stack" autocomplete="off">
-            <label>Nombre <input name="name" required maxlength="60" placeholder="Nombre de la persona"></label>
-            <div class="row3">
-              <label>Día <input name="day" type="number" min="1" max="31" required placeholder="15"></label>
-              <label>Mes <select name="month" id="bdayMonth" required></select></label>
-              <label>Año <input name="year" type="number" min="1900" max="2100" placeholder="Opcional"></label>
-            </div>
-            <div class="row2">
-              <label>Categoría <select name="category" id="bdayCat"></select></label>
-              <label>Etiqueta <input name="tag" maxlength="30" placeholder="Opcional (ej. vecina)"></label>
-            </div>
-            <button class="btn btn-primary">Agregar cumpleaños</button>
-          </form>
-        </section>
+      <div class="bday-single">
         <section class="card">
           <div class="toolbar tight">
-            <h2>Cumpleaños guardados</h2>
-            <select id="bdayCatFilter" data-change="bday-cat-filter" aria-label="Filtrar por categoría"></select>
+            <h2>Cumpleaños</h2>
+            <div class="toolbar-right">
+              <select id="bdayCatFilter" data-change="bday-cat-filter" aria-label="Filtrar por categoría"></select>
+              <button class="btn btn-primary" data-action="new-bday">+ Nuevo cumpleaños</button>
+            </div>
           </div>
           <div id="bdayList" class="bday-list"></div>
         </section>
@@ -346,65 +273,9 @@
           <button data-action="sched-filter" data-v="weekly">Semanales</button>
           <button data-action="sched-filter" data-v="monthly">Mensuales</button>
         </div>
-        <button class="btn btn-primary" data-action="toggle-new-sched">+ Nuevo horario</button>
+        <button class="btn btn-primary" data-action="new-sched">+ Nuevo horario</button>
       </div>
 
-      <section class="card" id="newSchedCard" hidden>
-        <h2>Nuevo horario</h2>
-        <form data-form="schedule" class="stack" autocomplete="off">
-          <div class="row2">
-            <label>Nombre <input name="name" required maxlength="60" placeholder="Ej. Clases, Rutina de gym, Pagos"></label>
-            <label>Tipo
-              <select name="type" data-change="sched-type">
-                <option value="daily">Diario (franjas por hora de un día)</option>
-                <option value="weekly">Semanal (tabla de horas × días)</option>
-                <option value="monthly">Mensual (calendario del mes)</option>
-              </select>
-            </label>
-          </div>
-          <div class="row3b">
-            <label>Empieza <input type="date" name="start" id="schedStart" required></label>
-            <label>Duración
-              <select name="duration" data-change="sched-duration">
-                <option value="none">Sin fecha final</option>
-                <option value="1w">1 semana</option>
-                <option value="2w">2 semanas</option>
-                <option value="4w">4 semanas</option>
-                <option value="1m">1 mes</option>
-                <option value="3m">3 meses</option>
-                <option value="6m">6 meses</option>
-                <option value="12m">12 meses</option>
-                <option value="custom">Hasta una fecha…</option>
-              </select>
-            </label>
-            <label id="endWrap" hidden>Termina <input type="date" name="end"></label>
-          </div>
-          <div class="row2" id="hoursWrap">
-            <label>Hora inicial de la tabla <select name="hstart"></select></label>
-            <label>Hora final de la tabla <select name="hend"></select></label>
-          </div>
-          <div id="wdaysWrap">
-            <span class="lbl">Días en que aplica</span>
-            <div class="daychecks">
-              <label class="daychk"><input type="checkbox" name="wdays" value="0" checked><span>Lun</span></label>
-              <label class="daychk"><input type="checkbox" name="wdays" value="1" checked><span>Mar</span></label>
-              <label class="daychk"><input type="checkbox" name="wdays" value="2" checked><span>Mié</span></label>
-              <label class="daychk"><input type="checkbox" name="wdays" value="3" checked><span>Jue</span></label>
-              <label class="daychk"><input type="checkbox" name="wdays" value="4" checked><span>Vie</span></label>
-              <label class="daychk"><input type="checkbox" name="wdays" value="5" checked><span>Sáb</span></label>
-              <label class="daychk"><input type="checkbox" name="wdays" value="6" checked><span>Dom</span></label>
-            </div>
-          </div>
-          <div>
-            <span class="lbl">Color</span>
-            <div class="swatches" id="schedColors"></div>
-          </div>
-          <div>
-            <label class="inline-chk"><input type="checkbox" name="skipHolidays" checked> No aplica en festivos de Colombia</label>
-          </div>
-          <button class="btn btn-primary">Crear horario</button>
-        </form>
-      </section>
 
       <div id="schedList" class="sched-list"></div>
     </section>
@@ -418,26 +289,153 @@
   </div>
 </div>
 
+<!-- Formularios: viven aquí ocultos y se mueven a una ventana emergente al presionar "+ Nuevo…" (ver openSheet en js/ui/feedback.js) -->
+<div id="formStore" hidden>
+  <form data-form="task" class="stack" autocomplete="off">
+    <label>Título <input name="title" required maxlength="140" placeholder="¿Qué hay que hacer?"></label>
+    <label>Tipo
+      <select name="mode" data-change="task-mode">
+        <option value="once">Un solo día</option>
+        <option value="span">Con fecha límite (abarca un periodo)</option>
+        <option value="repeat">Se repite con la actividad vinculada</option>
+      </select>
+    </label>
+    <div class="row2">
+      <label><span class="lbl-date">Fecha</span> <input type="date" name="date" id="taskDate" required></label>
+      <label>Hora <input type="time" name="time" aria-label="Hora (opcional)"></label>
+    </div>
+    <label class="due-wrap" hidden><span class="lbl-due">Fecha límite</span> <input type="date" name="due"></label>
+    <div class="row2">
+      <label>Prioridad
+        <select name="priority">
+          <option value="low">Baja</option>
+          <option value="medium" selected>Media</option>
+          <option value="high">Alta</option>
+        </select>
+      </label>
+      <label>Vincular al horario <select name="link" id="taskLink"></select></label>
+    </div>
+    <p class="muted small mode-help" hidden></p>
+    <details class="more-opts">
+      <summary>Etiquetas y subtareas</summary>
+      <div class="stack">
+        <label>Etiquetas <input name="tags" maxlength="160" placeholder="casa, campus (opcional)"></label>
+        <label>Subtareas <textarea name="subtasks" rows="3" placeholder="Una por línea (opcional)"></textarea></label>
+      </div>
+    </details>
+    <div class="sheet-foot"><button type="button" class="btn btn-ghost" data-action="sheet-close">Cancelar</button><button class="btn btn-primary">Agregar tarea</button></div>
+  </form>
+  <form data-form="birthday" class="stack" autocomplete="off">
+    <label>Nombre <input name="name" required maxlength="60" placeholder="Nombre de la persona"></label>
+    <div class="row3">
+      <label>Día <input name="day" type="number" min="1" max="31" required placeholder="15"></label>
+      <label>Mes <select name="month" id="bdayMonth" required></select></label>
+      <label>Año <input name="year" type="number" min="1900" max="2100" placeholder="Opcional"></label>
+    </div>
+    <div class="row2">
+      <label>Categoría <select name="category" id="bdayCat"></select></label>
+      <label>Etiqueta <input name="tag" maxlength="30" placeholder="Opcional (ej. vecina)"></label>
+    </div>
+    <div class="sheet-foot"><button type="button" class="btn btn-ghost" data-action="sheet-close">Cancelar</button><button class="btn btn-primary">Agregar cumpleaños</button></div>
+  </form>
+  <form data-form="schedule" class="stack" autocomplete="off">
+    <div class="row2">
+      <label>Nombre <input name="name" required maxlength="60" placeholder="Ej. Clases, Rutina de gym, Pagos"></label>
+      <label>Tipo
+        <select name="type" data-change="sched-type">
+          <option value="daily">Diario (franjas por hora de un día)</option>
+          <option value="weekly">Semanal (tabla de horas × días)</option>
+          <option value="monthly">Mensual (calendario del mes)</option>
+        </select>
+      </label>
+    </div>
+    <div class="row3b">
+      <label>Empieza <input type="date" name="start" id="schedStart" required></label>
+      <label>Duración
+        <select name="duration" data-change="sched-duration">
+          <option value="none">Sin fecha final</option>
+          <option value="1w">1 semana</option>
+          <option value="2w">2 semanas</option>
+          <option value="4w">4 semanas</option>
+          <option value="1m">1 mes</option>
+          <option value="3m">3 meses</option>
+          <option value="6m">6 meses</option>
+          <option value="12m">12 meses</option>
+          <option value="custom">Hasta una fecha…</option>
+        </select>
+      </label>
+      <label id="endWrap" hidden>Termina <input type="date" name="end"></label>
+    </div>
+    <div class="row2" id="hoursWrap">
+      <label>Hora inicial de la tabla <select name="hstart"></select></label>
+      <label>Hora final de la tabla <select name="hend"></select></label>
+    </div>
+    <div id="wdaysWrap">
+      <span class="lbl">Días en que aplica</span>
+      <div class="daychecks">
+        <label class="daychk"><input type="checkbox" name="wdays" value="0" checked><span>Lun</span></label>
+        <label class="daychk"><input type="checkbox" name="wdays" value="1" checked><span>Mar</span></label>
+        <label class="daychk"><input type="checkbox" name="wdays" value="2" checked><span>Mié</span></label>
+        <label class="daychk"><input type="checkbox" name="wdays" value="3" checked><span>Jue</span></label>
+        <label class="daychk"><input type="checkbox" name="wdays" value="4" checked><span>Vie</span></label>
+        <label class="daychk"><input type="checkbox" name="wdays" value="5" checked><span>Sáb</span></label>
+        <label class="daychk"><input type="checkbox" name="wdays" value="6" checked><span>Dom</span></label>
+      </div>
+    </div>
+    <div>
+      <span class="lbl">Color</span>
+      <div class="swatches" id="schedColors"></div>
+    </div>
+    <div>
+      <label class="inline-chk"><input type="checkbox" name="skipHolidays" checked> No aplica en festivos de Colombia</label>
+    </div>
+    <div class="sheet-foot"><button type="button" class="btn btn-ghost" data-action="sheet-close">Cancelar</button><button class="btn btn-primary">Crear horario</button></div>
+  </form>
+  <div class="stack" id="noteForm">
+    <div class="row2">
+      <label>Título <input id="noteTitle" maxlength="80" placeholder="Opcional"></label>
+      <label>Fecha <input type="date" id="noteDate" data-change="note-date"></label>
+    </div>
+    <div class="seg" id="noteTypeSeg" role="group" aria-label="Tipo de nota">
+      <button data-action="note-type" data-v="text" class="on">Texto</button>
+      <button data-action="note-type" data-v="list">Lista</button>
+    </div>
+    <textarea id="noteArea" spellcheck="true" placeholder="Escribe tu nota…"></textarea>
+    <p class="muted small md-hint" id="mdHint">Admite Markdown: **negrita**, *cursiva*, # título, - lista, - [ ] pendiente, &gt; cita, [enlace](https://…)</p>
+    <div id="listEditor" hidden>
+      <div id="liRows"></div>
+      <button class="btn btn-ghost" data-action="li-add">+ Agregar ítem</button>
+    </div>
+    <label>Vincular al horario <select id="noteLink" data-change="note-link"></select></label>
+    <p id="noteCount" class="muted small"></p>
+    <div class="editor-foot">
+      <button class="btn btn-danger" id="btnDelNote" data-action="del-note" hidden>Eliminar</button>
+      <button class="btn btn-ghost" id="btnCancelNote" data-action="cancel-note">Cancelar</button>
+      <button class="btn btn-primary" data-action="save-note">Guardar nota</button>
+    </div>
+  </div>
+</div>
+<div id="sheetRoot"></div>
 <div id="modalRoot"></div>
 <div id="toasts" aria-live="polite"></div>
 <input type="file" id="importFile" accept=".json,application/json" hidden>
 
-<script src="js/core/utils.js?v=20261124e"></script>
-<script src="js/core/storage.js?v=20261124e"></script>
-<script src="js/core/state.js?v=20261124e"></script>
-<script src="js/core/calendar-engine.js?v=20261124e"></script>
-<script src="js/ui/feedback.js?v=20261124e"></script>
-<script src="js/ui/header.js?v=20261124e"></script>
-<script src="js/views/today.js?v=20261124e"></script>
-<script src="js/views/calendar.js?v=20261124e"></script>
-<script src="js/views/birthdays.js?v=20261124e"></script>
-<script src="js/views/tasks.js?v=20261124e"></script>
-<script src="js/views/notes.js?v=20261124e"></script>
-<script src="js/views/schedule.js?v=20261124e"></script>
-<script src="js/ui/router.js?v=20261124e"></script>
-<script src="js/ui/actions.js?v=20261124e"></script>
-<script src="js/ui/events.js?v=20261124e"></script>
-<script src="js/main.js?v=20261124e"></script>
-<script type="module" src="js/core/cloud.js?v=20261124e"></script>
+<script src="js/core/utils.js?v=20261124f"></script>
+<script src="js/core/storage.js?v=20261124f"></script>
+<script src="js/core/state.js?v=20261124f"></script>
+<script src="js/core/calendar-engine.js?v=20261124f"></script>
+<script src="js/ui/feedback.js?v=20261124f"></script>
+<script src="js/ui/header.js?v=20261124f"></script>
+<script src="js/views/today.js?v=20261124f"></script>
+<script src="js/views/calendar.js?v=20261124f"></script>
+<script src="js/views/birthdays.js?v=20261124f"></script>
+<script src="js/views/tasks.js?v=20261124f"></script>
+<script src="js/views/notes.js?v=20261124f"></script>
+<script src="js/views/schedule.js?v=20261124f"></script>
+<script src="js/ui/router.js?v=20261124f"></script>
+<script src="js/ui/actions.js?v=20261124f"></script>
+<script src="js/ui/events.js?v=20261124f"></script>
+<script src="js/main.js?v=20261124f"></script>
+<script type="module" src="js/core/cloud.js?v=20261124f"></script>
 </body>
 </html>

@@ -24,7 +24,7 @@ const ui = {
   notesMode: 'day', noteScope: 'all',
   editor: null,
   scratchStatus: 'saved',
-  schedFilter: 'all', newSchedOpen: false,
+  schedFilter: 'all',
   openForms: new Set(),
   openOpts: new Set(),                                // horarios con "Festivos y días sin actividades" abierto
   anchors: {},                                        // fecha que muestra cada horario

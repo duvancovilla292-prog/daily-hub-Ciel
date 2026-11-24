@@ -17,15 +17,11 @@ function renderNotes() {
 
 function renderEditor() {
   const e = ui.editor;
-  const reading = !!(e.id && e.reading);
-  $('#noteRead').hidden = !reading;
-  $('#noteForm').hidden = reading;
-  if (reading) {
-    $('#editorTitle').textContent = 'Nota';
-    renderNoteRead();
-    return;
-  }
-  $('#editorTitle').textContent = e.id ? 'Editar nota' : 'Nueva nota';
+  // Tarjeta: lectura de la nota guardada (o una indicación). El formulario vive en la ventana emergente.
+  const saved = e.id && findNote(e.id);
+  $('#editorTitle').textContent = saved ? 'Nota' : 'Notas';
+  if (saved) renderNoteRead(editorFrom(saved[1], saved[0]));
+  else $('#noteRead').innerHTML = '<p class="empty-note note-empty">Elige una nota de la lista para leerla, o crea una con «+ Nueva nota».</p>';
   $('#noteTitle').value = e.title;
   $('#noteDate').value = e.date;
   $$('#noteTypeSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === e.type));
@@ -34,14 +30,13 @@ function renderEditor() {
   $('#noteArea').value = e.content;
   renderListEditor();
   fillLinkSelect($('#noteLink'), e.link);
-  $('#btnCancelNote').hidden = !e.id;
   $('#btnDelNote').hidden = !e.id;
   updateCount();
 }
 
 /* Vista de solo lectura de una nota guardada */
-function renderNoteRead() {
-  const e = ui.editor, lk = linkLabel(parseLink(e.link));
+function renderNoteRead(e) {
+  const lk = linkLabel(parseLink(e.link));
   const label = e.title || noteLabel({ title: '', type: e.type, content: e.content, items: e.items });
   const body = e.type === 'list'
     ? (e.items.length ? `<ul class="read-list">${e.items.map(i => `<li class="${i.done ? 'done' : ''}"><span class="mk">${i.done ? '✓' : '○'}</span><span>${esc(i.text)}</span></li>`).join('')}</ul>` : '<p class="empty-note">Lista vacía.</p>')
@@ -124,6 +119,7 @@ function saveNote() {
   (state.notes[e.date] = state.notes[e.date] || []).push(note);
   commit();
   ui.editor = editorFrom(note, e.date);
+  closeSheetNow();
   renderNotes();
   toast('Nota guardada', 'ok');
 }

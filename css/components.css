@@ -19,3 +19,26 @@
 .view:not([hidden]) { animation: fade .25s; }
 
 .err { color: var(--danger); font-size: .82rem; }
+
+/* Ventana emergente para crear/editar (formularios) */
+.sheet-overlay { z-index: 55; align-items: start; overflow-y: auto; }
+.form-sheet { position: relative; max-width: 480px; margin: 4vh auto; }
+.form-sheet.wide { max-width: 640px; }
+.form-sheet > h3 { padding-right: 40px; margin-bottom: 14px; }
+.form-sheet .sheet-x { position: absolute; top: 12px; right: 12px; }
+.sheet-foot { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.form-sheet .editor-foot { margin-top: 8px; }
+.form-sheet #noteArea { min-height: 220px; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+.card-head h2 { margin: 0; }
+.toolbar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.bday-single { max-width: 900px; }
+.add-btn { margin-top: 12px; }
+.note-empty { padding: 18px 4px; }
+@media (max-width: 720px) {
+  .form-sheet { margin: 0 auto 70px; }
+  .sheet-overlay { padding: 10px; }
+}
+/* Las confirmaciones siempre por encima de la ventana de formulario; los avisos encima de todo */
+#modalRoot .overlay { z-index: 60; }
+#toasts { z-index: 70; }

@@ -4,7 +4,7 @@
   .topbar { grid-template-columns: 1fr auto; }
   .date-nav { grid-column: 1 / -1; order: 3; flex-wrap: wrap; }
   .search { grid-column: 1 / -1; order: 4; }
-  .tasks-bento, .notes-bento, .bday-bento { grid-template-columns: 1fr; }
+  .tasks-bento, .notes-bento { grid-template-columns: 1fr; }
   .daily { grid-template-columns: 1fr; }
   .d-side { flex-direction: row; flex-wrap: wrap; gap: 22px 14px; }
   .d-side .panel { flex: 1 1 220px; }

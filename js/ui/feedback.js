@@ -10,6 +10,47 @@ function toast(msg, type = 'info') {
   setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 320); }, type === 'error' ? 5000 : 2600);
 }
 
+/* ===== Ventana emergente para crear o editar =====
+   Puede mover dentro un formulario que ya existe en la página (#formStore: conserva sus ids y eventos)
+   o mostrar uno armado al momento. Si se escribió algo y se intenta cerrar, pregunta antes de descartarlo.
+   Los formularios que se guardan bien (sus funciones devuelven true) cierran la ventana solos. */
+let sheet = null;
+function openSheet({ title, node, html, wide, isDirty, onCancel, onClose }) {
+  closeSheetNow();
+  const root = $('#sheetRoot');
+  root.innerHTML = `<div class="overlay sheet-overlay"><div class="modal form-sheet ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+    <button type="button" class="icon-btn sheet-x" data-action="sheet-close" aria-label="Cerrar">✕</button><h3>${esc(title)}</h3><div class="sheet-body"></div></div></div>`;
+  const body = $('.sheet-body', root);
+  let home = null;
+  if (node) { home = { parent: node.parentNode, next: node.nextSibling }; body.appendChild(node); }
+  else body.innerHTML = html;
+  sheet = { node, home, dirty: false, isDirty, onCancel, onClose };
+  $('.overlay', root).addEventListener('mousedown', e => { if (e.target.classList.contains('overlay')) requestCloseSheet(); });
+  setTimeout(() => body.querySelector('input:not([type=checkbox]):not([type=radio]):not([type=hidden]), textarea')?.focus(), 30);
+  return body;
+}
+const sheetOpen = () => !!sheet;
+function closeSheetNow() {
+  if (!sheet) return;
+  const { node, home, onClose } = sheet;
+  sheet = null;
+  if (node && home) home.parent.insertBefore(node, home.next);
+  $('#sheetRoot').innerHTML = '';
+  if (onClose) onClose();
+}
+/** Cerrar por ✕, Cancelar, Esc o tocando fuera: si hay algo escrito, pregunta. */
+async function requestCloseSheet() {
+  if (!sheet) return;
+  const dirty = sheet.isDirty ? sheet.isDirty() : sheet.dirty;
+  if (dirty) {
+    const ok = await modal({ title: 'Descartar', body: 'Escribiste algo que no se ha guardado. ¿Quieres descartarlo?', actions: [{ label: 'Seguir editando', value: false }, { label: 'Descartar', value: true, cls: 'btn-danger' }] });
+    if (!ok || !sheet) return;
+  }
+  if (sheet.node && sheet.node.tagName === 'FORM') sheet.node.reset();
+  if (sheet.onCancel) sheet.onCancel();
+  closeSheetNow();
+}
+
 /** Aviso con un botón de acción (ej. "Deshacer"). Dura más que un aviso normal. */
 function toastAction(msg, label, fn, ms = 7000) {
   const el = document.createElement('div');

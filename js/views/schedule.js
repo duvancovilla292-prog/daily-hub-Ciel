@@ -185,18 +185,25 @@ function monthlyView(s, key) {
   return h + `<div class="period-panels">${panelToggle(s)}<div class="pp-grid">${periodPanels(s, first, last, 'este mes')}</div></div>`;
 }
 
+/** Formulario de nueva actividad (los campos dependen del tipo de horario). */
+function itemFormHtml(s) {
+  const extra = s.type === 'weekly'
+    ? `<div><span class="lbl">Días</span><div class="daychecks">${WD_SHORT.map((n, i) => `<label class="daychk"><input type="checkbox" name="days" value="${i}"><span>${n}</span></label>`).join('')}</div></div>`
+    : s.type === 'monthly' ? '<label>Día del mes <input type="number" name="day" min="1" max="31" required placeholder="1–31"></label>' : '';
+  return `<form data-form="item" data-sid="${esc(s.id)}" class="stack" autocomplete="off">
+    <label>Actividad <input name="title" required maxlength="100" placeholder="Ej. Clase de matemáticas"></label>
+    <div class="row2"><label>Inicio <input type="time" name="start"></label><label>Fin <input type="time" name="end"></label></div>
+    ${extra}
+    <div class="sheet-foot"><button type="button" class="btn btn-ghost" data-action="sheet-close">Cancelar</button><button class="btn btn-primary">Agregar actividad</button></div>
+  </form>`;
+}
+
 function schedCard(s) {
   const a = anchorOf(s);
   const view = s.type === 'daily' ? dailyView(s, a) : s.type === 'weekly' ? weeklyView(s, a) : monthlyView(s, a);
   const items = s.items.length
     ? `<div class="it-list">${s.items.slice().sort(byStart).map(it => { const c = itemConflicts(s, it); return `<span class="it-chip ${c.length ? 'clashing' : ''}" style="--c:${s.color}" ${c.length ? `title="Se cruza con: ${esc(c.map(o => o.title).join(', '))}"` : ''}>${c.length ? '⚠ ' : ''}<b>${esc(it.title)}</b> · ${esc(itemWhen(s, it))}<button class="icon-btn mini edit" data-action="edit-item" data-sid="${esc(s.id)}" data-iid="${esc(it.id)}" aria-label="Editar actividad" title="Editar">${ICON_EDIT}</button><button class="icon-btn mini" data-action="del-item" data-sid="${esc(s.id)}" data-iid="${esc(it.id)}" aria-label="Eliminar actividad">${ICON_X}</button></span>`; }).join('')}</div>`
     : '<p class="empty-note">Aún no tiene actividades. Agrégalas con el botón de abajo.</p>';
-
-  const extra = s.type === 'weekly'
-    ? `<div><span class="lbl">Días</span><div class="daychecks">${WD_SHORT.map((n, i) => `<label class="daychk"><input type="checkbox" name="days" value="${i}"><span>${n}</span></label>`).join('')}</div></div>`
-    : s.type === 'monthly'
-      ? '<label>Día del mes <input type="number" name="day" min="1" max="31" required placeholder="1–31"></label>'
-      : '';
 
   const hoursEdit = s.type === 'monthly' ? '' : `<span class="hours-edit">Horas
       <select data-change="sched-hour" data-id="${esc(s.id)}" data-k="start" aria-label="Hora inicial">${hourOptions(s.hourStart)}</select> a
@@ -221,28 +228,16 @@ function schedCard(s) {
       <summary>Festivos y días sin actividades${s.skipDates.length ? ` (${s.skipDates.length})` : ''}</summary>
       <div class="stack">
         <label class="inline-chk"><input type="checkbox" data-change="sched-holidays" data-id="${esc(s.id)}" ${s.skipHolidays ? 'checked' : ''}> No aplica en festivos de Colombia</label>
-        <form data-form="skip-day" data-sid="${esc(s.id)}" class="quick" autocomplete="off">
-          <input type="date" name="day" required aria-label="Día sin actividades">
-          <button class="btn btn-primary">Saltar ese día</button>
-        </form>
+        <button class="btn btn-ghost add-btn" data-action="new-skip" data-id="${esc(s.id)}">+ Saltar un día</button>
         ${s.skipDates.length ? `<div class="it-list">${s.skipDates.map(k => `<span class="it-chip" style="--c:var(--muted)">🚫 ${esc(D.full(k))}<button class="icon-btn mini" data-action="unskip" data-id="${esc(s.id)}" data-key="${esc(k)}" aria-label="Restaurar ${esc(D.full(k))}" title="Restaurar">${ICON_X}</button></span>`).join('')}</div>` : '<p class="empty-note">No hay días saltados.</p>'}
       </div>
     </details>
-    <details class="add-item" data-sid="${esc(s.id)}" ${ui.openForms.has(s.id) ? 'open' : ''}>
-      <summary>+ Agregar actividad</summary>
-      <form data-form="item" data-sid="${esc(s.id)}" class="stack" autocomplete="off">
-        <label>Actividad <input name="title" required maxlength="100" placeholder="Ej. Clase de matemáticas"></label>
-        <div class="row2"><label>Inicio <input type="time" name="start"></label><label>Fin <input type="time" name="end"></label></div>
-        ${extra}
-        <button class="btn btn-primary">Agregar actividad</button>
-      </form>
-    </details>
+    <button class="btn btn-ghost add-btn" data-action="new-item" data-sid="${esc(s.id)}">+ Agregar actividad</button>
   </section>`;
 }
 
 function renderSchedule() {
   $$('#schedFilterSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === ui.schedFilter));
-  $('#newSchedCard').hidden = !ui.newSchedOpen;
   const q = ui.query;
   const cards = state.schedules
     .filter(s => ui.schedFilter === 'all' || s.type === ui.schedFilter)
@@ -252,7 +247,7 @@ function renderSchedule() {
 }
 
 function syncSchedForm() {
-  const f = $('#newSchedCard form');
+  const f = $('form[data-form=schedule]');
   $('#wdaysWrap').hidden = f.elements.type.value !== 'daily';
   $('#hoursWrap').hidden = f.elements.type.value === 'monthly';
   $('#endWrap').hidden = f.elements.duration.value !== 'custom';

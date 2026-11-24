@@ -4,8 +4,8 @@
 
 $('#bdayMonth').innerHTML = MONTHS.map((m, i) => `<option value="${i + 1}">${cap(m)}</option>`).join('');
 $('#schedColors').innerHTML = SCHED_COLORS.map((c, i) => `<label class="sw" style="--c:${c}"><input type="radio" name="color" value="${c}" ${i === 0 ? 'checked' : ''}><span></span></label>`).join('');
-$('#newSchedCard select[name=hstart]').innerHTML = hourOptions(6);
-$('#newSchedCard select[name=hend]').innerHTML = hourOptions(21);
+$('form[data-form=schedule] select[name=hstart]').innerHTML = hourOptions(6);
+$('form[data-form=schedule] select[name=hend]').innerHTML = hourOptions(21);
 syncSchedForm();
 syncTaskForm($('form[data-form=task]'));
 applyTheme();

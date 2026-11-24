@@ -58,11 +58,7 @@ function renderToday() {
   let side = '';
   if (bdays.length) side += `<div class="panel" style="--c:var(--accent2)"><span class="ptitle">Cumpleaños</span><ul class="mini-list">${bdays.map(x => `<li>🎂 <b>${esc(x.b.name)}</b>${x.age ? ` — cumple ${x.age}` : ''} ${bdayTags(x.b)}</li>`).join('')}</ul></div>`;
   side += `<div class="panel" style="--c:var(--accent)"><span class="ptitle">Tareas</span>${dayTasks.length ? `<ul class="tasks">${dayTasks.sort(byTime).map(t => taskRow(t, k)).join('')}</ul>` : '<p class="empty-note">Sin tareas para este día.</p>'}
-    <form data-form="quick-task" class="quick" autocomplete="off">
-      <input name="title" placeholder="Nueva tarea…" maxlength="140" required aria-label="Nueva tarea">
-      <input type="time" name="time" aria-label="Hora (opcional)" class="quick-time">
-      <button class="btn btn-primary" aria-label="Agregar">+</button>
-    </form></div>`;
+    <button class="btn btn-ghost" data-action="new-task" data-key="${esc(k)}">+ Nueva tarea</button></div>`;
   if (overdue.length) {                                         // las 5 más antiguas; el resto, en Tareas → Atrasadas
     const first = overdue.sort((x, y) => (x.mode === 'span' ? x.due : x.date).localeCompare(y.mode === 'span' ? y.due : y.date)).slice(0, 5);
     side += `<div class="panel" style="--c:var(--danger)"><span class="ptitle">Atrasadas</span><ul class="tasks">${first.map(t => taskRow(t)).join('')}</ul>

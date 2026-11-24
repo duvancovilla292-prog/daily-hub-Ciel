@@ -16,6 +16,20 @@ function downloadBackup() {
   } catch (e) { toast('No se pudo descargar: ' + e.message, 'error'); }
 }
 
+/** Abre el editor de notas en una ventana (nueva o editar). */
+function openNoteSheet() {
+  const e = ui.editor;
+  e.reading = false;
+  renderEditor();
+  openSheet({
+    title: e.id ? 'Editar nota' : 'Nueva nota', node: $('#noteForm'), wide: true,
+    isDirty: () => ui.editor.dirty,
+    onCancel: () => { const f = ui.editor.id && findNote(ui.editor.id); ui.editor = f ? editorFrom(f[1], f[0]) : newEditor(ui.active); },
+    onClose: () => renderNotes()
+  });
+}
+const findNote = id => Object.entries(state.notes).flatMap(([k, arr]) => arr.map(n => [k, n])).find(([, n]) => n.id === id) || null;
+
 /** Si la nota que se está editando tiene cambios sin guardar, pregunta antes de perderlos. */
 async function confirmDiscard() {
   if (!ui.editor.dirty) return true;
@@ -143,7 +157,7 @@ const actions = {
 
   /* notas */
   'notes-mode': el => { flushScratch(); ui.notesMode = el.dataset.v; renderNotes(); },
-  'new-note': async () => { if (!(await confirmDiscard())) return; ui.editor = newEditor(ui.active); renderNotes(); },
+  'new-note': async () => { if (!(await confirmDiscard())) return; ui.editor = newEditor(ui.active); ui.notesMode = 'day'; renderNotes(); openNoteSheet(); },
   'open-note': async el => {
     if (!(await confirmDiscard())) { if (ui.tab !== 'notes') goTab('notes'); return; }
     flushScratch();
@@ -156,6 +170,7 @@ const actions = {
     setActiveSilent(key);
     ui.editor.date = key;
     goTab('notes');
+    if (!el.dataset.id) { openNoteSheet(); return; }                 // "+ Nueva nota" desde Hoy o el calendario
     if (matchMedia('(max-width: 1000px)').matches) $('.editor-card').scrollIntoView({ behavior: 'smooth', block: 'start' });   // en celular la nota queda debajo de la lista
   },
   'note-type': el => {
@@ -177,32 +192,62 @@ const actions = {
     n.pinned = !n.pinned; e.pinned = n.pinned;
     commit(); renderNotes(); toast(n.pinned ? 'Nota fijada arriba' : 'Nota quitada de fijadas', 'ok');
   },
-  'edit-note': () => { ui.editor.reading = false; renderNotes(); $('#noteTitle').focus(); },
-  'cancel-note': async () => {
-    const e = ui.editor; if (!e.id) return;
-    if (!(await confirmDiscard())) return;
-    const n = Object.entries(state.notes).flatMap(([k, arr]) => arr.map(x => [k, x])).find(([, x]) => x.id === e.id);
-    ui.editor = n ? editorFrom(n[1], n[0]) : newEditor(ui.active);
-    renderNotes();
+  'edit-note': () => {
+    const f = findNote(ui.editor.id); if (!f) return;
+    ui.editor = editorFrom(f[1], f[0]); ui.editor.reading = false;
+    renderNotes(); openNoteSheet();
   },
+  'cancel-note': () => requestCloseSheet(),
   'del-note': async () => {
     const e = ui.editor; if (!e.id) return;
     const ok = await modal({ title: 'Eliminar nota', body: 'Se eliminará esta nota.', actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
     if (!ok) return;
     const snap = snapshot();
     Object.keys(state.notes).forEach(k => { state.notes[k] = state.notes[k].filter(n => n.id !== e.id); if (!state.notes[k].length) delete state.notes[k]; });
-    commit(); ui.editor = newEditor(ui.active); renderNotes(); offerUndo(snap, 'Nota eliminada');
+    commit(); ui.editor = newEditor(ui.active); closeSheetNow(); renderNotes(); offerUndo(snap, 'Nota eliminada');
   },
 
   /* horarios */
   'panel-mode': el => { ui.panelMode[el.dataset.id] = el.dataset.v; renderSchedule(); },
   'sched-filter': el => { ui.schedFilter = el.dataset.v; renderSchedule(); },
-  'toggle-new-sched': () => {
-    ui.newSchedOpen = !ui.newSchedOpen;
-    if (ui.newSchedOpen && !$('#schedStart').value) $('#schedStart').value = ui.active;
-    renderSchedule();
-    if (ui.newSchedOpen) $('#newSchedCard input[name=name]').focus();
+  'new-sched': () => {
+    const f = $('form[data-form=schedule]');
+    if (!$('#schedStart').value) $('#schedStart').value = ui.active;
+    syncSchedForm();
+    openSheet({ title: 'Nuevo horario', node: f, wide: true, onCancel: () => { f.reset(); $('#schedColors input').checked = true; syncSchedForm(); } });
   },
+  'new-item': el => {
+    const s = state.schedules.find(x => x.id === el.dataset.sid); if (!s) return;
+    openSheet({ title: `Nueva actividad · ${s.name}`, html: itemFormHtml(s) });
+  },
+  'new-skip': el => {
+    const s = state.schedules.find(x => x.id === el.dataset.id); if (!s) return;
+    openSheet({ title: `Saltar un día · ${s.name}`, html: `<form data-form="skip-day" data-sid="${esc(s.id)}" class="stack" autocomplete="off">
+      <p class="muted small">Ese día no aparecerá ninguna actividad de este horario. Se puede restaurar después.</p>
+      <label>Día <input type="date" name="day" required value="${esc(ui.active)}"></label>
+      <div class="sheet-foot"><button type="button" class="btn btn-ghost" data-action="sheet-close">Cancelar</button><button class="btn btn-primary">Saltar ese día</button></div></form>` });
+  },
+  'new-task': el => {
+    const f = $('form[data-form=task]');
+    f.reset();
+    f.elements.date.value = el.dataset.key && D.isValidKey(el.dataset.key) ? el.dataset.key : ui.active;
+    fillLinkSelect($('#taskLink'), '');
+    syncTaskForm(f);
+    openSheet({ title: 'Nueva tarea', node: f });
+  },
+  'new-bday': () => {
+    const f = $('form[data-form=birthday]');
+    f.reset();
+    $('#bdayCat').innerHTML = catOptions('');
+    openSheet({ title: 'Nuevo cumpleaños', node: f });
+  },
+  'new-cat': () => {
+    if (!ui.admin) return toast('Inicia sesión con Google para crear categorías', 'error');
+    openSheet({ title: 'Nueva categoría de cumpleaños', html: `<form data-form="bday-cat" class="stack" autocomplete="off">
+      <label>Nombre <input name="name" required maxlength="30" placeholder="Ej. Trabajo, Familia"></label>
+      <div class="sheet-foot"><button type="button" class="btn btn-ghost" data-action="sheet-close">Cancelar</button><button class="btn btn-primary">Crear categoría</button></div></form>` });
+  },
+  'sheet-close': () => requestCloseSheet(),
   'sched-nav': el => { const s = state.schedules.find(x => x.id === el.dataset.id); if (s) { shiftAnchor(s, +el.dataset.d); renderSchedule(); } },
   'sched-follow': el => { delete ui.anchors[el.dataset.id]; renderSchedule(); },
   'dup-sched': el => {
@@ -317,6 +362,7 @@ document.addEventListener('click', e => {
 $('#daySheet').addEventListener('mousedown', e => { if (e.target.id === 'daySheet') actions['close-sheet'](); });
 $('#adminPanel').addEventListener('mousedown', e => { if (e.target.id === 'adminPanel') actions['admin-close'](); });
 document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !$('#modalRoot').firstChild && sheetOpen()) { requestCloseSheet(); return; }
   if (e.key === 'Escape' && !$('#modalRoot').firstChild) {
     if (ui.adminOpen) actions['admin-close']();
     else if (ui.sheet) actions['close-sheet']();

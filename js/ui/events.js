@@ -119,6 +119,7 @@ const forms = {
     if (s.skipDates.includes(k)) return toast('Ese día ya está saltado', 'error');
     s.skipDates = [...s.skipDates, k].sort(); commit(); render();
     toast(`“${s.name}” no tendrá actividades el ${D.full(k)}`, 'ok');
+    return true;
   },
   task(f) {
     const r = readTaskForm(f);
@@ -127,21 +128,16 @@ const forms = {
     state.tasks.push({ id: uid(), ...data, subtasks: mergeSubtasks([], subTexts), completed: false, doneDates: [] });
     commit();
     ['title', 'link', 'due', 'time', 'tags', 'subtasks'].forEach(n => { f.elements[n].value = ''; });
-    f.elements.mode.value = 'once'; syncTaskForm(f); f.elements.title.focus();
-    renderTasks(); renderHeader(); toast('Tarea agregada', 'ok');
-  },
-  'quick-task'(f) {
-    const fd = new FormData(f), title = String(fd.get('title')).trim(), time = String(fd.get('time') || '');
-    if (!title) return;
-    state.tasks.push({ id: uid(), title, date: ui.active, time: TIME_RE.test(time) ? time : '', completed: false, priority: PRIO[fd.get('priority')] ? String(fd.get('priority')) : 'medium', link: null, mode: 'once', due: '', doneDates: [], tags: [], subtasks: [] });
-    commit(); render(); toast('Tarea agregada', 'ok');
-    (ui.sheet ? $('#dayDetail input[name=title]') : $('#todaySide input[name=title]'))?.focus();
+    f.elements.mode.value = 'once'; syncTaskForm(f);
+    render(); toast('Tarea agregada', 'ok');
+    return true;
   },
   birthday(f) {
     const b = readBdayForm(f);
     if (typeof b === 'string') return toast(b, 'error');
     state.birthdays.push({ id: uid(), ...b });
     commit(); f.reset(); render(); toast(`Cumpleaños de ${b.name} agregado`, 'ok');
+    return true;
   },
   'bday-cat'(f) {
     if (!ui.admin) return toast('Inicia sesión con Google para crear categorías', 'error');
@@ -149,7 +145,8 @@ const forms = {
     if (!name) return;
     if (state.birthdayCategories.some(c => norm(c.name) === norm(name))) return toast('Esa categoría ya existe', 'error');
     state.birthdayCategories.push({ id: uid(), name });
-    commit(); f.reset(); render(); f.elements.name.focus(); toast(`Categoría “${name}” creada`, 'ok');
+    commit(); render(); toast(`Categoría “${name}” creada`, 'ok');
+    return true;
   },
   schedule(f) {
     const fd = new FormData(f);
@@ -172,9 +169,10 @@ const forms = {
     const s = { id: uid(), name, type, color: String(fd.get('color') || SCHED_COLORS[0]), startDate: start, endDate: end, weekdays, hourStart: hs, hourEnd: he, skipHolidays: fd.get('skipHolidays') === 'on', skipDates: [], items: [] };
     state.schedules.push(s);
     commit(); f.reset(); $('#schedColors input').checked = true; syncSchedForm();
-    ui.newSchedOpen = false; ui.schedFilter = 'all'; ui.openForms.add(s.id);
+    ui.schedFilter = 'all';
     ui.anchors[s.id] = start > ui.active || (end && end < ui.active) ? start : ui.active;   // muestra el periodo vigente
     renderSchedule(); toast('Horario creado: ya puedes agregar actividades', 'ok');
+    return true;
   },
   item(f) {
     const s = state.schedules.find(x => x.id === f.dataset.sid); if (!s) return;
@@ -192,18 +190,20 @@ const forms = {
       if (!Number.isInteger(item.day) || item.day < 1 || item.day > 31) return toast('Día del mes inválido', 'error');
     }
     s.items.push(item);
-    ui.openForms.add(s.id);
     commit(); renderSchedule();
-    $(`details[data-sid="${s.id}"] input[name=title]`)?.focus();
     warnConflicts(s, item, 'Actividad agregada');
+    return true;
   }
 };
 document.addEventListener('submit', e => {
   const f = e.target.closest('form[data-form]');
   if (!f) return;
   e.preventDefault();
-  forms[f.dataset.form]?.(f);
+  const ok = forms[f.dataset.form]?.(f);
+  if (ok === true && f.closest('#sheetRoot')) { f.reset?.(); closeSheetNow(); }    // guardado: se cierra la ventana
 });
+// Algo escrito dentro de la ventana emergente = hay cambios por perder
+['input', 'change'].forEach(t => document.addEventListener(t, e => { if (sheet && e.target.closest && e.target.closest('#sheetRoot')) sheet.dirty = true; }, true));
 
 /* <details> no propaga "toggle": se escucha en captura para recordar formularios abiertos */
 document.addEventListener('toggle', e => {

@@ -28,8 +28,6 @@ function bdayTags(b) {
 
 function renderBirthdays() {
   renderAlerts();
-  const sel = $('#bdayCat'), keep = sel.value;
-  sel.innerHTML = catOptions(keep);
   const fsel = $('#bdayCatFilter');
   if (ui.bdayCat !== 'all' && ui.bdayCat !== 'none' && !catName(ui.bdayCat)) ui.bdayCat = 'all';
   fsel.innerHTML = `<option value="all">Todas las categorías</option>` +
