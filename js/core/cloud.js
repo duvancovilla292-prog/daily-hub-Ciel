@@ -23,7 +23,7 @@ const firebaseConfig = {
   messagingSenderId: '369901038763',
   appId: '1:369901038763:web:f2d3d67e3ed877071edbee'
 };
-const REC_KEY = 'daily_hub_sync';            // { uid, pending: {id: ms}, known: {id: ms} }
+const REC_KEY = 'daily_hub_sync';            // { uid, pending: {id: ms}, known: {id: ms}, confirmed, mergeLocal }
 const OLD_LINK_KEY = 'daily_hub_cloud_uid';  // versión anterior (un solo documento por cuenta)
 const DOC_RE = /^(?:[tnbcs]_[\w-]{1,64}|x_scratch)$/;
 const LABEL = {
@@ -32,16 +32,16 @@ const LABEL = {
   error: 'Error de sincronización', unavailable: 'No se pudo cargar Firebase'
 };
 
-let A, F, auth, db, user = null, unsub = null, timer = null, status = 'loading', flushing = false;
+let A, F, auth, db, user = null, unsub = null, timer = null, status = 'loading', flushing = false, markLegacy = '';
 
 const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* nada */ } };
 const lsDel = k => { try { localStorage.removeItem(k); } catch (e) { /* nada */ } };
-const emptyRec = uid => ({ uid: uid || '', pending: {}, known: {} });
+const emptyRec = uid => ({ uid: uid || '', pending: {}, known: {}, confirmed: false, mergeLocal: false });
 function loadRec() {
   try {
     const r = JSON.parse(lsGet(REC_KEY) || 'null');
-    if (r && typeof r.uid === 'string') return { uid: r.uid, pending: r.pending || {}, known: r.known || {} };
+    if (r && typeof r.uid === 'string') return { uid: r.uid, pending: r.pending || {}, known: r.known || {}, confirmed: !!r.confirmed, mergeLocal: !!r.mergeLocal };
   } catch (e) { /* registro dañado */ }
   return emptyRec();
 }
@@ -106,23 +106,25 @@ function setStatus(s) {
 }
 function explain(e) {
   const c = (e && e.code) || '';
-  if (c.includes('permission-denied')) return 'Firebase rechazó el acceso: revisa (o actualiza) las reglas de Firestore.';
+  if (c.includes('permission-denied')) return 'Firebase rechazó el acceso: actualiza las reglas de Firestore (ver README). Tus datos siguen en este navegador.';
   if (c.includes('unauthorized-domain')) return 'Este dominio no está autorizado en Firebase (Authentication → Configuración → Dominios autorizados).';
   if (c.includes('operation-not-allowed') || c.includes('configuration-not-found')) return 'Activa el inicio de sesión con Google en Firebase (Authentication → Método de acceso).';
   if (c.includes('network') || c.includes('unavailable')) return 'Sin conexión con Firebase. Se intentará de nuevo.';
   return 'Error de Firebase: ' + (c || (e && e.message) || 'desconocido');
 }
+let lastErr = { msg: '', at: 0 };
 function fail(e, quiet) {
   console.warn('[nube]', e);
   const off = String((e && e.code) || '').match(/unavailable|network/);
   setStatus(off ? 'offline' : 'error');
-  if (!quiet && !off) toast(explain(e), 'error');
+  const msg = explain(e);
+  if (!quiet && !off && (msg !== lastErr.msg || Date.now() - lastErr.at > 30000)) { lastErr = { msg, at: Date.now() }; toast(msg, 'error'); }
 }
 
 /* ---------- Subir pendientes (en lotes) ---------- */
 async function flush() {
   clearTimeout(timer); timer = null;
-  if (!user || !rec.uid || user.uid !== rec.uid || flushing) return;
+  if (!user || !rec.uid || user.uid !== rec.uid || !rec.confirmed || flushing) return;
   const ids = Object.keys(rec.pending);
   if (!ids.length) { setStatus('ok'); return; }
   flushing = true;
@@ -142,6 +144,10 @@ async function flush() {
       saveRec();
     }
     setStatus(pendingN() ? 'syncing' : 'ok');
+    if (!pendingN() && markLegacy === rec.uid) {               // ya está todo arriba: el documento antiguo queda como migrado
+      markLegacy = '';
+      F.setDoc(F.doc(db, 'users', rec.uid), { migrated: true }, { merge: true }).catch(e => fail(e, true));
+    }
   } catch (e) { fail(e); }
   flushing = false;
   if (pendingN() && status === 'syncing') timer = setTimeout(flush, 1000);   // hubo cambios mientras se subía
@@ -185,6 +191,16 @@ function resetLocal() {
 }
 
 /* ---------- Iniciar y cerrar sesión ---------- */
+/** Datos de la versión anterior (todo en un solo documento users/{uid}), si aún no se migraron. */
+async function readLegacy(uid) {
+  try {
+    const old = await F.getDoc(F.doc(db, 'users', uid));
+    const d = old.exists() ? old.data() : null;
+    if (d && typeof d.data === 'string' && !d.migrated) return Store.normalize(JSON.parse(d.data), false);
+  } catch (e) { fail(e, true); }
+  return null;
+}
+
 async function onUser(u) {
   if (unsub) { unsub(); unsub = null; }
   clearTimeout(timer); timer = null;
@@ -195,14 +211,13 @@ async function onUser(u) {
   if (!u) { setStatus('off'); return; }
   setStatus('loading');
   const who = esc(ui.adminEmail || 'tu cuenta');
-  let guest = null, fromOldVersion = false;
 
   if (rec.uid && rec.uid !== u.uid) {
     // El navegador tiene datos de OTRA cuenta: no se mezclan
-    if (pendingN()) {
+    if (hasData(state) && (pendingN() || !rec.confirmed)) {
       const v = await modal({
-        title: 'Cambios de otra cuenta',
-        body: `Este navegador tiene ${plural(pendingN(), 'cambio', 'cambios')} de otra cuenta que no se alcanzaron a subir. Al entrar con ${who} se quitarán de este navegador. ¿Quieres descargar un respaldo antes?`,
+        title: 'Datos de otra cuenta',
+        body: `Este navegador tiene datos de otra cuenta que no se alcanzaron a confirmar en la nube. Al entrar con ${who} se quitarán de este navegador. ¿Quieres descargar un respaldo antes?`,
         actions: [{ label: 'No, continuar', value: false }, { label: 'Descargar respaldo', value: true, cls: 'btn-primary' }]
       });
       if (v) downloadBackup();
@@ -210,47 +225,53 @@ async function onUser(u) {
     resetLocal();
     rec = emptyRec(u.uid);
   } else if (!rec.uid) {
-    if (lsGet(OLD_LINK_KEY) === u.uid) {
-      fromOldVersion = true;                                   // datos de esta misma cuenta, de la versión anterior
-      rec = emptyRec(u.uid);
-      last = new Map();                                        // todo lo local se subirá
-    } else {
-      if (hasData(state)) {
+    let merge = false;
+    if (hasData(state)) {
+      if (lsGet(OLD_LINK_KEY) === u.uid) merge = true;          // misma cuenta, versión anterior: se conservan
+      else {
         flushScratch();
         const v = await modal({
           title: 'Datos de este navegador',
           body: `Este navegador tiene datos guardados sin cuenta. ¿Quieres agregarlos a ${who}?<br><br>Si eliges <b>No</b>, se quitan de este navegador y tu cuenta no se toca.`,
           actions: [{ label: 'No, quitarlos', value: 'drop' }, { label: 'Agregar a mi cuenta', value: 'add', cls: 'btn-primary' }]
         });
-        if (v !== 'drop') guest = clone(state);
+        if (v === 'drop') resetLocal(); else merge = true;
       }
-      resetLocal();
-      rec = emptyRec(u.uid);
     }
+    rec = emptyRec(u.uid);
+    rec.mergeLocal = merge;                                     // se juntan cuando la nube responda (los datos siguen a la vista)
   }
   lsDel(OLD_LINK_KEY);
   saveRec();
 
-  let first = true;
   const uid = u.uid;
-  unsub = F.onSnapshot(F.collection(db, 'users', uid, 'items'), async snap => {
+  const legacy = await readLegacy(uid);
+  if (!user || user.uid !== uid) return;
+  let first = true;
+  unsub = F.onSnapshot(F.collection(db, 'users', uid, 'items'), snap => {
     if (!user || user.uid !== uid) return;
-    applyRemote(snap.docChanges());
-    if (!first) return;
+    if (!first) { applyRemote(snap.docChanges()); return; }
     first = false;
-    if (snap.empty) {
-      // Nube vacía: ¿hay datos de la versión anterior (todo en un solo documento)?
-      try {
-        const old = await F.getDoc(F.doc(db, 'users', uid));
-        const d = old.exists() ? old.data() : null;
-        if (d && typeof d.data === 'string' && !d.migrated) {
-          mergeIn(Store.normalize(JSON.parse(d.data), false));
-          await F.setDoc(F.doc(db, 'users', uid), { migrated: true }, { merge: true });
-        }
-      } catch (e) { fail(e, true); }
+    // Primera respuesta de la nube: recién aquí se decide qué se junta con qué
+    if (rec.mergeLocal) {
+      flushScratch();
+      const local = clone(state);
+      const empty = defaultState();
+      empty.settings = state.settings;
+      replaceState(empty);
+      applyRemote(snap.docChanges());                           // lo que ya hay en la nube
+      last = elementsJson(state);
+      if (legacy) mergeIn(legacy);                              // + versión anterior
+      mergeIn(local);                                           // + lo del navegador (sin duplicar)
+      rec.mergeLocal = false;
+    } else {
+      applyRemote(snap.docChanges());
+      if (legacy) mergeIn(legacy);
     }
-    if (guest) { mergeIn(guest); guest = null; }
-    if (fromOldVersion || pendingN() || hasData(state)) track();
+    if (legacy) markLegacy = uid;
+    track();
+    rec.confirmed = true;
+    saveRec();
     flush();
     if (!pendingN()) setStatus('ok');
   }, e => fail(e));
@@ -274,20 +295,24 @@ async function signIn() {
 async function signOut() {
   flushScratch();
   await flush();
-  if (pendingN()) {
+  let keep = false;
+  if (hasData(state) && (!rec.confirmed || pendingN())) {
+    const why = rec.confirmed
+      ? `Hay ${plural(pendingN(), 'cambio que todavía no se ha', 'cambios que todavía no se han')} subido a la nube (¿sin conexión?).`
+      : 'Todavía no se pudo confirmar que tus datos estén guardados en la nube (revisa tu conexión o las reglas de Firestore).';
     const v = await modal({
-      title: 'Cambios sin subir',
-      body: `Hay ${plural(pendingN(), 'cambio que todavía no se ha', 'cambios que todavía no se han')} subido a la nube (¿sin conexión?). Al cerrar sesión, este navegador se vacía y ${pendingN() === 1 ? 'ese cambio se perdería' : 'esos cambios se perderían'}.`,
-      actions: [{ label: 'Cancelar', value: false }, { label: 'Cerrar igual', value: 'force', cls: 'btn-danger' }, { label: 'Descargar respaldo y cerrar', value: 'backup', cls: 'btn-primary' }]
+      title: 'Datos sin confirmar en la nube',
+      body: `${why}<br><br>Para no perderlos, déjalos en este navegador: al volver a entrar se te preguntará si quieres agregarlos a tu cuenta.`,
+      actions: [{ label: 'Cancelar', value: false }, { label: 'Quitarlos igual', value: 'drop', cls: 'btn-danger' }, { label: 'Dejarlos en este navegador', value: 'keep', cls: 'btn-primary' }]
     });
     if (!v) return;
-    if (v === 'backup') downloadBackup();
+    keep = v === 'keep';
   }
   if (unsub) { unsub(); unsub = null; }
   rec = emptyRec(); saveRec();
   await A.signOut(auth);
-  resetLocal();
-  toast('Sesión cerrada. Tus datos siguen en tu cuenta; este navegador quedó vacío.');
+  if (!keep) resetLocal();
+  toast(keep ? 'Sesión cerrada. Los datos quedaron en este navegador.' : 'Sesión cerrada. Tus datos siguen en tu cuenta; este navegador quedó vacío.');
 }
 
 /* ---------- Ventana de la nube (botón ☁) ---------- */
