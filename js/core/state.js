@@ -5,14 +5,16 @@
 let state = Store.load();
 const t0 = D.today();
 
-const newEditor = date => ({ id: null, date, title: '', type: 'text', content: '', items: [], link: '', dirty: false, reading: false });
+const newEditor = date => ({ id: null, date, title: '', type: 'text', content: '', items: [], link: '', dirty: false, reading: false, pinned: false });
 const linkValue = l => l ? l.sid + '|' + l.iid : '';
 const parseLink = v => { if (!v) return null; const [sid, iid] = String(v).split('|'); return sid && iid ? { sid, iid } : null; };
 // Una nota guardada se abre en modo lectura: solo se edita con el botón "Editar"
-const editorFrom = (n, date) => ({ id: n.id, date, title: n.title, type: n.type, content: n.content, items: clone(n.items), link: linkValue(n.link), dirty: false, reading: true });
+const editorFrom = (n, date) => ({ id: n.id, date, title: n.title, type: n.type, content: n.content, items: clone(n.items), link: linkValue(n.link), dirty: false, reading: true, pinned: !!n.pinned });
 
 const ui = {
-  tab: 'calendar',
+  tab: 'today',                                       // la app abre en "Hoy"
+  taskTag: '',                                        // filtro de etiqueta en Tareas
+  openSubs: new Set(),                                // tareas con las subtareas desplegadas
   today: D.key(t0),
   active: D.key(t0),
   cal: { y: t0.getFullYear(), m: t0.getMonth() },     // mes visible del calendario
@@ -24,6 +26,7 @@ const ui = {
   scratchStatus: 'saved',
   schedFilter: 'all', newSchedOpen: false,
   openForms: new Set(),
+  openOpts: new Set(),                                // horarios con "Festivos y días sin actividades" abierto
   anchors: {},                                        // fecha que muestra cada horario
   panelMode: {},                                      // apartados de Tareas/Notas de cada horario: 'all' | 'linked'
   bdayCat: 'all',                                     // filtro de categoría en Cumpleaños

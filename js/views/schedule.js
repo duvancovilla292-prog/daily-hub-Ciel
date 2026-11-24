@@ -33,10 +33,8 @@ const toMin = t => hourOf(t) * 60 + +t.slice(3, 5);
 const endMin = it => it.end && it.end > it.start ? toMin(it.end) : toMin(it.start) + 30;   // sin hora de fin: se dibuja de 30 min
 
 /** Bloques posicionados (top/alto según la hora). Las actividades que se cruzan se reparten en columnas. */
-function timelineBlocks(s, its, lo, hi, key) {   // lo/hi: minutos del borde superior e inferior
-  const list = its.filter(it => it.start).map(it => ({ it, s0: Math.max(toMin(it.start), lo), e0: Math.min(endMin(it), hi) }))
-    .filter(x => x.e0 > x.s0).sort((x, y) => x.s0 - y.s0 || y.e0 - x.e0);
-  // grupos de actividades que se solapan; dentro de cada grupo, cada una toma la primera columna libre
+/** Reparte en columnas lo que se solapa: cada elemento ({s0, e0} en minutos, ordenados) recibe su columna c y el total n. */
+function laneLayout(list) {
   let group = [], groupEnd = -1, cols = [];
   const flush = () => { const n = cols.length; group.forEach(x => { x.n = n; }); group = []; cols = []; };
   list.forEach(x => {
@@ -46,6 +44,13 @@ function timelineBlocks(s, its, lo, hi, key) {   // lo/hi: minutos del borde sup
     cols[c] = x.e0; x.c = c; group.push(x); groupEnd = Math.max(groupEnd, x.e0);
   });
   flush();
+  return list;
+}
+
+function timelineBlocks(s, its, lo, hi, key) {   // lo/hi: minutos del borde superior e inferior
+  const list = its.filter(it => it.start).map(it => ({ it, s0: Math.max(toMin(it.start), lo), e0: Math.min(endMin(it), hi) }))
+    .filter(x => x.e0 > x.s0).sort((x, y) => x.s0 - y.s0 || y.e0 - x.e0);
+  laneLayout(list);
   return list.map(x => {
     const top = (x.s0 - lo) * HOUR_PX / 60 + 1, h = Math.max((x.e0 - x.s0) * HOUR_PX / 60, 24);
     // El contenido se adapta al alto del bloque para que nada quede cortado:
@@ -113,6 +118,15 @@ function periodPanels(s, from, to, label) {
 const actHtml = (s, it, key) => `<div class="act" style="--c:${s.color}"><b>${esc(it.title)}</b><small>${timeLabel(it)}</small>${linkTags(s.id, it.id, key)}</div>`;
 
 /* --- Diario: franjas por hora + paneles laterales (plantilla "Daily plan") --- */
+/** Aviso del día en el horario diario: fuera de vigencia, festivo o día saltado (con botón para saltar o restaurar). */
+function dayNotice(s, key, inside) {
+  if (!inside) return '<p class="off-msg">Este día queda fuera de la vigencia o de los días en que aplica el horario.</p>';
+  const why = skipReason(s, key);
+  if (why === 'Día saltado') return `<p class="off-msg">🚫 Día saltado: hoy no hay actividades de este horario. <button class="btn btn-ghost btn-xs" data-action="unskip" data-id="${esc(s.id)}" data-key="${esc(key)}">Restaurar</button></p>`;
+  if (why) return `<p class="off-msg">🇨🇴 ${esc(why)}: este horario no aplica en festivos.</p>`;
+  return s.items.length ? `<p class="skip-line"><button class="btn btn-ghost btn-xs" data-action="skip-today" data-id="${esc(s.id)}" data-key="${esc(key)}">Saltar este día</button></p>` : '';
+}
+
 function dailyView(s, key) {
   const [a, b] = hourRange(s);
   const inside = inRange(s, key) && s.weekdays.includes(D.wd(D.parse(key)));
@@ -132,7 +146,7 @@ function dailyView(s, key) {
       ${panelToggle(s)}
       ${periodPanels(s, key, key, 'este día')}
     </aside>
-    <div class="d-grid">${inside ? '' : '<p class="off-msg">Este día queda fuera de la vigencia o de los días en que aplica el horario.</p>'}${rows}</div>
+    <div class="d-grid">${dayNotice(s, key, inside)}${rows}</div>
   </div>`;
 }
 
@@ -145,7 +159,7 @@ function weeklyView(s, key) {
   const [a, b] = hourRange(s);
   const cols = `grid-template-columns: 100px repeat(${n}, minmax(120px, 1fr))`;
   let h = `<div class="wk-wrap"><div class="wk" style="${cols}"><span></span>` +
-    days.map((k, i) => `<div class="wk-h ${k === ui.today ? 'today' : ''}">${WD_SHORT[i].toUpperCase()} <b>${+k.slice(8)}</b></div>`).join('');
+    days.map((k, i) => { const why = skipReason(s, k); return `<div class="wk-h ${k === ui.today ? 'today' : ''} ${why ? 'skipped' : ''}" ${why ? `title="${esc(why)}"` : ''}>${WD_SHORT[i].toUpperCase()} <b>${+k.slice(8)}</b>${why ? `<small>${why === 'Día saltado' ? 'saltado' : 'festivo'}</small>` : ''}</div>`; }).join('');
   const cell = (k, its) => `<div class="wk-c ${inRange(s, k) ? '' : 'off'}">${its.map(it => actHtml(s, it, k)).join('')}</div>`;
   const allDayAny = days.some(k => s.items.some(it => !it.start && occurs(s, it, k)));
   if (allDayAny) h += `<div class="wk-t">Todo el día</div>` + days.map(k => cell(k, s.items.filter(it => !it.start && occurs(s, it, k)))).join('');
@@ -175,7 +189,7 @@ function schedCard(s) {
   const a = anchorOf(s);
   const view = s.type === 'daily' ? dailyView(s, a) : s.type === 'weekly' ? weeklyView(s, a) : monthlyView(s, a);
   const items = s.items.length
-    ? `<div class="it-list">${s.items.slice().sort(byStart).map(it => `<span class="it-chip" style="--c:${s.color}"><b>${esc(it.title)}</b> · ${esc(itemWhen(s, it))}<button class="icon-btn mini edit" data-action="edit-item" data-sid="${esc(s.id)}" data-iid="${esc(it.id)}" aria-label="Editar actividad" title="Editar">${ICON_EDIT}</button><button class="icon-btn mini" data-action="del-item" data-sid="${esc(s.id)}" data-iid="${esc(it.id)}" aria-label="Eliminar actividad">${ICON_X}</button></span>`).join('')}</div>`
+    ? `<div class="it-list">${s.items.slice().sort(byStart).map(it => { const c = itemConflicts(s, it); return `<span class="it-chip ${c.length ? 'clashing' : ''}" style="--c:${s.color}" ${c.length ? `title="Se cruza con: ${esc(c.map(o => o.title).join(', '))}"` : ''}>${c.length ? '⚠ ' : ''}<b>${esc(it.title)}</b> · ${esc(itemWhen(s, it))}<button class="icon-btn mini edit" data-action="edit-item" data-sid="${esc(s.id)}" data-iid="${esc(it.id)}" aria-label="Editar actividad" title="Editar">${ICON_EDIT}</button><button class="icon-btn mini" data-action="del-item" data-sid="${esc(s.id)}" data-iid="${esc(it.id)}" aria-label="Eliminar actividad">${ICON_X}</button></span>`; }).join('')}</div>`
     : '<p class="empty-note">Aún no tiene actividades. Agrégalas con el botón de abajo.</p>';
 
   const extra = s.type === 'weekly'
@@ -190,6 +204,7 @@ function schedCard(s) {
 
   return `<section class="card sched-card" style="--c:${s.color}">
     <div class="sched-head"><span class="dot"></span><h2>${esc(s.name)}</h2><span class="tag">${SCHED_TYPES[s.type]}</span>
+      <button class="icon-btn" data-action="dup-sched" data-id="${esc(s.id)}" aria-label="Duplicar horario" title="Duplicar horario">⧉</button>
       <button class="icon-btn" data-action="del-sched" data-id="${esc(s.id)}" aria-label="Eliminar horario" title="Eliminar horario">${ICON_X}</button></div>
     <p class="muted small vig">${esc(vigencia(s))}${s.type === 'daily' && s.weekdays.length < 7 ? ' · ' + s.weekdays.map(d => WD_SHORT[d]).join(', ') : ''}</p>
     <div class="period">
@@ -202,6 +217,17 @@ function schedCard(s) {
     ${view}
     <h4 class="sub">Actividades</h4>
     ${items}
+    <details class="add-item sched-opts" data-opts="${esc(s.id)}" ${ui.openOpts.has(s.id) ? 'open' : ''}>
+      <summary>Festivos y días sin actividades${s.skipDates.length ? ` (${s.skipDates.length})` : ''}</summary>
+      <div class="stack">
+        <label class="inline-chk"><input type="checkbox" data-change="sched-holidays" data-id="${esc(s.id)}" ${s.skipHolidays ? 'checked' : ''}> No aplica en festivos de Colombia</label>
+        <form data-form="skip-day" data-sid="${esc(s.id)}" class="quick" autocomplete="off">
+          <input type="date" name="day" required aria-label="Día sin actividades">
+          <button class="btn btn-primary">Saltar ese día</button>
+        </form>
+        ${s.skipDates.length ? `<div class="it-list">${s.skipDates.map(k => `<span class="it-chip" style="--c:var(--muted)">🚫 ${esc(D.full(k))}<button class="icon-btn mini" data-action="unskip" data-id="${esc(s.id)}" data-key="${esc(k)}" aria-label="Restaurar ${esc(D.full(k))}" title="Restaurar">${ICON_X}</button></span>`).join('')}</div>` : '<p class="empty-note">No hay días saltados.</p>'}
+      </div>
+    </details>
     <details class="add-item" data-sid="${esc(s.id)}" ${ui.openForms.has(s.id) ? 'open' : ''}>
       <summary>+ Agregar actividad</summary>
       <form data-form="item" data-sid="${esc(s.id)}" class="stack" autocomplete="off">

@@ -53,13 +53,16 @@ const actions = {
         <label>Tipo <select name="mode" data-change="task-mode">${Object.entries(TASK_MODES).map(([k, l]) => `<option value="${k}" ${k === t.mode ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         <div class="row2">
           <label><span class="lbl-date">Fecha</span> <input type="date" name="date" required value="${t.date}"></label>
-          <label class="due-wrap"><span class="lbl-due">Fecha límite</span> <input type="date" name="due" value="${t.due}"></label>
+          <label>Hora <input type="time" name="time" value="${t.time || ''}"></label>
         </div>
+        <label class="due-wrap"><span class="lbl-due">Fecha límite</span> <input type="date" name="due" value="${t.due}"></label>
         <div class="row2">
           <label>Prioridad <select name="priority">${Object.entries(PRIO).map(([k, p]) => `<option value="${k}" ${k === t.priority ? 'selected' : ''}>${p.label}</option>`).join('')}</select></label>
           <label>Vincular al horario <select name="link"><option value="">Sin vincular</option>${linkOptions().map(o => `<option value="${o.value}" ${o.value === cur ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}</select></label>
         </div>
-        <p class="muted small mode-help" hidden></p>`,
+        <p class="muted small mode-help" hidden></p>
+        <label>Etiquetas <input name="tags" maxlength="160" placeholder="casa, campus (opcional)" value="${esc((t.tags || []).join(', '))}"></label>
+        <label>Subtareas <textarea name="subtasks" rows="3" placeholder="Una por línea (opcional)">${esc((t.subtasks || []).map(x => x.text).join('\n'))}</textarea></label>`,
       submit: 'Guardar cambios',
       check: form => { const r = readTaskForm(form); if (typeof r === 'string') return r; data = r; return true; }
     });
@@ -67,7 +70,8 @@ const actions = {
     const f = await pending;
     if (!f) return;
     if (data.mode !== 'repeat') t.doneDates = [];
-    Object.assign(t, data);
+    const { subTexts, ...rest } = data;
+    Object.assign(t, rest, { subtasks: mergeSubtasks(t.subtasks || [], subTexts) });
     commit(); render(); toast('Tarea actualizada', 'ok');
   },
   'del-task': async el => {
@@ -79,6 +83,14 @@ const actions = {
     setTimeout(() => { state.tasks = state.tasks.filter(x => x.id !== t.id); commit(); render(); offerUndo(snap, 'Tarea eliminada'); }, 220);
   },
 
+  'show-overdue': () => { ui.taskScope = 'overdue'; ui.taskStatus = 'all'; goTab('tasks'); },
+  'toggle-subs': el => { const id = el.dataset.id; if (ui.openSubs.has(id)) ui.openSubs.delete(id); else ui.openSubs.add(id); render(); },
+  'move-task': el => {
+    const t = state.tasks.find(x => x.id === el.dataset.id); if (!t) return;
+    const to = D.add(ui.today, +el.dataset.to);
+    if (t.mode === 'span') t.due = to < t.date ? t.date : to; else t.date = to;
+    commit(); render(); toast(`Tarea movida a ${el.dataset.to === '0' ? 'hoy' : 'mañana'}`, 'ok');
+  },
   'del-bday': async el => {
     const b = state.birthdays.find(x => x.id === el.dataset.id); if (!b) return;
     const ok = await modal({ title: 'Eliminar cumpleaños', body: `¿Seguro que quieres eliminar el cumpleaños de <b>${esc(b.name)}</b> (${b.day} de ${MONTHS[b.month - 1]})?`, actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
@@ -159,6 +171,12 @@ const actions = {
   'li-add': () => { ui.editor.items.push({ id: uid(), text: '', done: false }); markDirty(); renderListEditor(); const r = $$('.li-text'); r[r.length - 1]?.focus(); },
   'li-del': el => { ui.editor.items.splice(+el.dataset.i, 1); markDirty(); renderListEditor(); updateCount(); },
   'save-note': saveNote,
+  'pin-note': () => {
+    const e = ui.editor; if (!e.id) return;
+    const n = Object.values(state.notes).flat().find(x => x.id === e.id); if (!n) return;
+    n.pinned = !n.pinned; e.pinned = n.pinned;
+    commit(); renderNotes(); toast(n.pinned ? 'Nota fijada arriba' : 'Nota quitada de fijadas', 'ok');
+  },
   'edit-note': () => { ui.editor.reading = false; renderNotes(); $('#noteTitle').focus(); },
   'cancel-note': async () => {
     const e = ui.editor; if (!e.id) return;
@@ -187,6 +205,21 @@ const actions = {
   },
   'sched-nav': el => { const s = state.schedules.find(x => x.id === el.dataset.id); if (s) { shiftAnchor(s, +el.dataset.d); renderSchedule(); } },
   'sched-follow': el => { delete ui.anchors[el.dataset.id]; renderSchedule(); },
+  'dup-sched': el => {
+    const s = state.schedules.find(x => x.id === el.dataset.id); if (!s) return;
+    const copy = { ...clone(s), id: uid(), name: (s.name + ' (copia)').slice(0, 60), items: s.items.map(it => ({ ...clone(it), id: uid() })) };
+    state.schedules.splice(state.schedules.indexOf(s) + 1, 0, copy);
+    commit(); renderSchedule(); toast('Horario duplicado (sin tareas ni notas vinculadas)', 'ok');
+  },
+  'skip-today': el => {
+    const s = state.schedules.find(x => x.id === el.dataset.id); if (!s || !D.isValidKey(el.dataset.key)) return;
+    if (!s.skipDates.includes(el.dataset.key)) s.skipDates = [...s.skipDates, el.dataset.key].sort();
+    commit(); render(); toast(`Sin actividades el ${D.full(el.dataset.key)}`, 'ok');
+  },
+  'unskip': el => {
+    const s = state.schedules.find(x => x.id === el.dataset.id); if (!s) return;
+    s.skipDates = s.skipDates.filter(k => k !== el.dataset.key); commit(); render();
+  },
   'del-sched': async el => {
     const s = state.schedules.find(x => x.id === el.dataset.id); if (!s) return;
     const ok = await modal({ title: 'Eliminar horario', body: `Se eliminará “${esc(s.name)}” con sus ${plural(s.items.length, 'actividad', 'actividades')}. Las tareas y notas vinculadas se conservan, sin vínculo.`, actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
@@ -220,7 +253,7 @@ const actions = {
       }
     });
     if (!f) return;
-    Object.assign(it, data); commit(); render(); toast('Actividad actualizada', 'ok');
+    Object.assign(it, data); commit(); render(); warnConflicts(s, it, 'Actividad actualizada');
   },
   'del-item': async el => {
     const s = state.schedules.find(x => x.id === el.dataset.sid); if (!s) return;

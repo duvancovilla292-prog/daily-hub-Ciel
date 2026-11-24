@@ -4,7 +4,7 @@
 
 function render() {
   renderHeader();
-  ({ calendar: renderCalendar, tasks: renderTasks, notes: renderNotes, birthdays: renderBirthdays, schedule: renderSchedule })[ui.tab]();
+  ({ today: renderToday, calendar: renderCalendar, tasks: renderTasks, notes: renderNotes, birthdays: renderBirthdays, schedule: renderSchedule })[ui.tab]();
   renderSheet();
 }
 

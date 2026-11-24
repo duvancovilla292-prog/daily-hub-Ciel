@@ -63,7 +63,7 @@ daily-hub/
 │   │   ├── router.js           render() y navegación entre apartados
 │   │   ├── actions.js          Clicks (data-action)
 │   │   └── events.js           Cambios, escritura y formularios
-│   ├── views/                  Una vista por apartado: calendar, birthdays, tasks, notes, schedule
+│   ├── views/                  Una vista por apartado: today, calendar, birthdays, tasks, notes, schedule
 │   └── main.js                 Arranque
 ├── fonts/
 │   └── Prueva-Regular.ttf/.otf Tipografía Aetheri (la misma de MI-PORTAFOLIO)
@@ -72,14 +72,15 @@ daily-hub/
 ```
 
 ## Apartados
+- **Hoy** (se abre por defecto): la agenda del día activo en una sola pantalla. Una línea de tiempo con las actividades de todos los horarios y las tareas con hora (⚠ marca choques), y al lado las tareas del día (con agregar rápido, también con hora), las atrasadas (con **→ Hoy / → Mañana**), las notas y los cumpleaños. Indica si el día es festivo y qué horarios no aplican.
 - **Calendario:** mes actual por defecto, con flechas para cambiar de mes. Filtros (todo / tareas / notas / cumpleaños / horarios), búsqueda y ventana de detalle al tocar un día.
-- **Tareas:** con prioridad, filtros y vínculo opcional a una actividad de un horario. Se editan solo con el botón ✏️. Hay tres tipos:
+- **Tareas:** con prioridad, **hora opcional**, **etiquetas** (filtro por etiqueta), **subtareas** (lista con avance que se marca sin abrir la edición), filtros y vínculo opcional a una actividad de un horario. Las atrasadas se mueven a hoy o mañana con un toque. Se editan solo con el botón ✏️. Hay tres tipos:
   - **Un solo día.**
   - **Con fecha límite:** abarca del día de inicio a la fecha límite y se marca hecha una sola vez (en el calendario se marca en su inicio y en su vencimiento).
   - **Se repite con la actividad vinculada:** aparece cada día que ocurre esa actividad (desde su fecha hasta la fecha "hasta" o el final del horario) y se marca hecha **cada día por separado**. Al terminar su periodo queda *hecha* si se hizo al menos un día, o *no cumplida* si no. En la pestaña Tareas sale en la fecha activa, y todas se gestionan en el grupo **Se repiten**.
-- **Notas:** se abren en modo lectura y solo se modifican con **Editar** (con **Cancelar** para descartar). Varias por día, de texto o lista, con botón *Guardar nota* y vínculo opcional al horario. Incluye el bloc rápido (autoguardado).
+- **Notas:** se pueden **fijar arriba** (📌) y en modo lectura se ve el **Markdown** (# títulos, **negrita**, *cursiva*, listas, - [ ] pendientes, > citas, `código` y enlaces). Se abren en modo lectura y solo se modifican con **Editar** (con **Cancelar** para descartar). Varias por día, de texto o lista, con botón *Guardar nota* y vínculo opcional al horario. Incluye el bloc rápido (autoguardado).
 - **Cumpleaños:** alertas del día y de los próximos 7 días. Cada cumpleaños se puede editar (✏️), pide confirmación antes de eliminarse y puede tener una **categoría** (creada por el administrador, ej. Familia, Amigos) y una **etiqueta** libre opcional. Se filtran por categoría.
-- **Horario:** cada horario tiene apartados de **Tareas** y **Notas** de su día, semana o mes, con el selector **Todas / Solo vinculadas**. Diario, semanal o mensual, con fecha de inicio y fin. Las horas visibles van por defecto de 6:00 AM a 9:00 PM y se pueden cambiar al crear el horario o después (la tabla se amplía sola si una actividad queda fuera).
+- **Horario:** se puede **duplicar** (⧉), marcar que **no aplica en festivos de Colombia** (fijos, Ley Emiliani y Semana Santa, calculados sin servicios externos) y **saltar días concretos**. Al agregar o editar una actividad que se cruza con otra del mismo horario, avisa y la marca con ⚠. Cada horario tiene apartados de **Tareas** y **Notas** de su día, semana o mes, con el selector **Todas / Solo vinculadas**. Diario, semanal o mensual, con fecha de inicio y fin. Las horas visibles van por defecto de 6:00 AM a 9:00 PM y se pueden cambiar al crear el horario o después (la tabla se amplía sola si una actividad queda fuera).
 
 ## Administrador
 El botón **Admin** abre una ventana emergente que se desbloquea al **iniciar sesión con Google** (no hay contraseña). Cada cuenta administra solo sus propios datos: lo garantizan las reglas de Firestore, no el código del navegador. Con sesión:

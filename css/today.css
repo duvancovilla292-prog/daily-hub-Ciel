@@ -1,0 +1,65 @@
+/* ===== today.css — vista "Hoy", etiquetas, subtareas, notas fijadas, Markdown y festivos ===== */
+.today-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 14px; }
+.today-head h2 { margin: 0; font-size: 1.35rem; }
+.hol-badge { display: inline-block; font-size: .8rem; font-weight: 600; padding: 4px 10px; border-radius: 99px; background: color-mix(in srgb, var(--task) 18%, transparent); color: var(--task); margin: 0; }
+.today-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.today-agenda .sub { margin-top: 0; }
+.today-agenda .tl { margin-top: 18px; }
+.today-allday { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.today-side { display: flex; flex-direction: column; gap: 26px; padding-top: 12px; }
+.today-side .panel { min-height: 0; align-items: stretch; }
+.today-side .tasks { width: 100%; }
+.today-side .note-chip { align-self: flex-start; }
+.quick .quick-time { width: 110px; flex: none; }
+.task-act { border-left-style: dashed; }
+.tl-act.done b { text-decoration: line-through; opacity: .7; }
+.tl-act .act-head { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.tl-act .act-head b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.mini-check .box { width: 16px; height: 16px; border-radius: 5px; }
+.clash { margin-left: auto; color: var(--task); font-size: .8rem; flex: none; }
+.it-chip.clashing { border-color: var(--task); }
+
+/* Tareas: hora, etiquetas, subtareas y mover atrasadas */
+.t-info { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 3px; }
+.t-time { font-size: .72rem; font-weight: 600; color: var(--accent); }
+.t-tag { font-size: .7rem; padding: 1px 7px; border-radius: 99px; background: color-mix(in srgb, var(--accent2) 18%, transparent); color: var(--accent2); }
+.t-subs { border: 1px solid var(--line); background: transparent; color: var(--muted); font-size: .7rem; padding: 1px 7px; border-radius: 99px; cursor: pointer; }
+.t-subs.all { color: var(--sched); border-color: color-mix(in srgb, var(--sched) 50%, transparent); }
+.t-subs[aria-expanded="true"] { border-color: var(--accent); color: var(--text); }
+.t-sublist { list-style: none; margin: 6px 0 2px; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.t-sublist li { display: flex; align-items: center; gap: 8px; font-size: .82rem; }
+.t-sublist li .box { width: 18px; height: 18px; }
+.t-sublist li.done span:last-child { text-decoration: line-through; color: var(--muted); }
+.task.done .t-sublist, .task.done .t-info { opacity: .8; }
+.t-move { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 5px; }
+.late-lbl { font-size: .7rem; font-weight: 700; color: var(--danger); }
+.btn-xs { padding: 3px 9px; font-size: .74rem; border-radius: 8px; }
+.more-opts summary { cursor: pointer; color: var(--accent); font-size: .85rem; font-weight: 600; }
+.more-opts .stack { margin-top: 10px; }
+.inline-chk { flex-direction: row; align-items: center; gap: 8px; font-size: .85rem; }
+.inline-chk input { width: auto; }
+
+/* Notas fijadas y Markdown */
+.read-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.read-top .read-title { margin: 0; }
+.md-hint { margin-top: -4px; }
+.read-text.md { white-space: normal; }
+.md p { margin: 0 0 .7em; }
+.md h3, .md h4, .md h5 { margin: .6em 0 .35em; }
+.md ul, .md ol { margin: 0 0 .7em; padding-left: 1.3em; }
+.md li.md-check { list-style: none; margin-left: -1.1em; }
+.md blockquote { margin: 0 0 .7em; padding: 4px 12px; border-left: 3px solid var(--accent2); color: var(--muted); }
+.md code { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 0 5px; font-size: .88em; }
+.md a { color: var(--accent); }
+.note-item small { font-size: .7rem; }
+
+/* Festivos y días saltados */
+.hol-dot { position: absolute; top: 3px; right: 4px; font-size: .62rem; line-height: 1; }
+.wk-h.skipped { opacity: .6; }
+.wk-h small { display: block; font-size: .6rem; letter-spacing: .04em; color: var(--task); }
+.skip-line { margin: 0 0 8px; text-align: right; }
+.sched-opts summary { color: var(--muted); }
+
+@media (max-width: 1000px) {
+  .today-grid { grid-template-columns: 1fr; }
+}

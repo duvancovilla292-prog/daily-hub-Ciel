@@ -42,7 +42,7 @@ function renderCalendar() {
     const cls = ['cal-cell', key === ui.today ? 'today' : '', key === ui.active ? 'sel' : '', q && !match ? 'dim' : '', q && match ? 'hit' : ''].join(' ');
     const shown = chips.slice(0, 3).map(c => `<span class="cc ${c.c}" ${c.style ? `style="${c.style}"` : ''}>${esc(c.txt)}</span>`).join('');
     const more = chips.length > 3 ? `<span class="cc more">+${chips.length - 3} más</span>` : '';
-    html += `<button class="${cls}" data-action="select-day" data-key="${esc(key)}" aria-label="${esc(D.long(key))}"><span class="num">${+key.slice(8)}</span><span class="dots">${dots.join('')}</span><span class="cell-chips">${shown}${more}</span></button>`;
+    html += `<button class="${cls}" data-action="select-day" data-key="${esc(key)}" aria-label="${esc(D.long(key))}"><span class="num">${+key.slice(8)}</span>${holidayName(key) ? `<span class="hol-dot" title="${esc('Festivo: ' + holidayName(key))}">🇨🇴</span>` : ''}<span class="dots">${dots.join('')}</span><span class="cell-chips">${shown}${more}</span></button>`;
   });
   $('#calMonth').innerHTML = html;
 
@@ -78,12 +78,13 @@ function renderAlerts() {
   }
   $('#bdayAlerts').innerHTML = html;
   $('#bdayAlerts2').innerHTML = html;
+  $('#bdayAlerts0').innerHTML = html;
 }
 
 /* Ventana con el detalle del día (se abre al tocar un día del calendario) */
 function detailHtml(k) {
   const info = Cal.dayInfo(k, ''), rel = D.rel(k);
-  let h = `<h2>${esc(cap(D.long(k)))}${rel ? `<span class="pill">${rel}</span>` : ''}</h2>`;
+  let h = `<h2>${esc(cap(D.long(k)))}${rel ? `<span class="pill">${rel}</span>` : ''}</h2>${holidayName(k) ? `<p class="hol-badge">🇨🇴 Festivo: ${esc(holidayName(k))}</p>` : ''}`;
 
   h += '<section><h3>Cumpleaños</h3>' + (info.bdays.length
     ? `<ul class="mini-list">${info.bdays.map(x => `<li>🎂 <b>${esc(x.b.name)}</b>${x.age ? ` — cumple ${x.age} años` : ''}${x.b.category || x.b.tag ? ` <span class="bday-tags" style="display:inline-flex">${bdayTags(x.b)}</span>` : ''}</li>`).join('')}</ul>`

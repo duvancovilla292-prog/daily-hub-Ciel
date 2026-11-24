@@ -18,6 +18,17 @@ const changes = {
   },
   'bday-cat-filter': el => { ui.bdayCat = el.value; renderBirthdays(); },
   'task-mode': el => syncTaskForm(el.closest('form')),
+  'task-tag': el => { ui.taskTag = el.value; renderTasks(); },
+  'toggle-sub': el => {
+    const t = state.tasks.find(x => x.id === el.dataset.id); if (!t) return;
+    const s = t.subtasks.find(x => x.id === el.dataset.sub); if (!s) return;
+    s.done = el.checked; commit(); render();
+  },
+  'sched-holidays': el => {
+    const s = state.schedules.find(x => x.id === el.dataset.id); if (!s) return;
+    s.skipHolidays = el.checked; commit(); render();
+    toast(el.checked ? 'Este horario ya no aparece en festivos' : 'Este horario vuelve a aparecer en festivos', 'ok');
+  },
   'task-scope': el => { ui.taskScope = el.value; renderTasks(); },
   'date-pick': el => setActive(el.value),
   'note-scope': el => { ui.noteScope = el.value; renderNotesList(); },
@@ -93,20 +104,38 @@ async function importData(raw, title) {
   toast(`Se agregaron ${added} elementos nuevos`, 'ok');
 }
 
+/** Avisa si una actividad se cruza con otra del mismo horario (no lo impide). */
+function warnConflicts(s, it, okMsg) {
+  const c = itemConflicts(s, it);
+  if (c.length) toast(`⚠ ${okMsg}, pero se cruza con: ${c.map(o => `${o.title} (${timeLabel(o)})`).join(', ')}`, 'error');
+  else toast(okMsg, 'ok');
+}
+
 const forms = {
+  'skip-day'(f) {
+    const s = state.schedules.find(x => x.id === f.dataset.sid); if (!s) return;
+    const k = String(new FormData(f).get('day') || '');
+    if (!D.isValidKey(k)) return toast('Elige el día que quieres saltar', 'error');
+    if (s.skipDates.includes(k)) return toast('Ese día ya está saltado', 'error');
+    s.skipDates = [...s.skipDates, k].sort(); commit(); render();
+    toast(`“${s.name}” no tendrá actividades el ${D.full(k)}`, 'ok');
+  },
   task(f) {
     const r = readTaskForm(f);
     if (typeof r === 'string') return toast(r, 'error');
-    state.tasks.push({ id: uid(), ...r, completed: false, doneDates: [] });
-    commit(); f.elements.title.value = ''; f.elements.link.value = ''; f.elements.due.value = ''; f.elements.mode.value = 'once'; syncTaskForm(f); f.elements.title.focus();
+    const { subTexts, ...data } = r;
+    state.tasks.push({ id: uid(), ...data, subtasks: mergeSubtasks([], subTexts), completed: false, doneDates: [] });
+    commit();
+    ['title', 'link', 'due', 'time', 'tags', 'subtasks'].forEach(n => { f.elements[n].value = ''; });
+    f.elements.mode.value = 'once'; syncTaskForm(f); f.elements.title.focus();
     renderTasks(); renderHeader(); toast('Tarea agregada', 'ok');
   },
   'quick-task'(f) {
-    const fd = new FormData(f), title = String(fd.get('title')).trim();
+    const fd = new FormData(f), title = String(fd.get('title')).trim(), time = String(fd.get('time') || '');
     if (!title) return;
-    state.tasks.push({ id: uid(), title, date: ui.active, completed: false, priority: String(fd.get('priority')), link: null, mode: 'once', due: '', doneDates: [] });
+    state.tasks.push({ id: uid(), title, date: ui.active, time: TIME_RE.test(time) ? time : '', completed: false, priority: PRIO[fd.get('priority')] ? String(fd.get('priority')) : 'medium', link: null, mode: 'once', due: '', doneDates: [], tags: [], subtasks: [] });
     commit(); render(); toast('Tarea agregada', 'ok');
-    $('#dayDetail input[name=title]')?.focus();
+    (ui.sheet ? $('#dayDetail input[name=title]') : $('#todaySide input[name=title]'))?.focus();
   },
   birthday(f) {
     const b = readBdayForm(f);
@@ -140,7 +169,7 @@ const forms = {
     if (!weekdays.length) return toast('Elige al menos un día de la semana', 'error');
     let hs = type === 'monthly' ? 6 : +fd.get('hstart'), he = type === 'monthly' ? 21 : +fd.get('hend');
     if (he < hs) return toast('La hora inicial no puede ser mayor que la final', 'error');
-    const s = { id: uid(), name, type, color: String(fd.get('color') || SCHED_COLORS[0]), startDate: start, endDate: end, weekdays, hourStart: hs, hourEnd: he, items: [] };
+    const s = { id: uid(), name, type, color: String(fd.get('color') || SCHED_COLORS[0]), startDate: start, endDate: end, weekdays, hourStart: hs, hourEnd: he, skipHolidays: fd.get('skipHolidays') === 'on', skipDates: [], items: [] };
     state.schedules.push(s);
     commit(); f.reset(); $('#schedColors input').checked = true; syncSchedForm();
     ui.newSchedOpen = false; ui.schedFilter = 'all'; ui.openForms.add(s.id);
@@ -166,7 +195,7 @@ const forms = {
     ui.openForms.add(s.id);
     commit(); renderSchedule();
     $(`details[data-sid="${s.id}"] input[name=title]`)?.focus();
-    toast('Actividad agregada', 'ok');
+    warnConflicts(s, item, 'Actividad agregada');
   }
 };
 document.addEventListener('submit', e => {
@@ -179,7 +208,9 @@ document.addEventListener('submit', e => {
 /* <details> no propaga "toggle": se escucha en captura para recordar formularios abiertos */
 document.addEventListener('toggle', e => {
   const d = e.target;
-  if (d.matches && d.matches('details.add-item')) d.open ? ui.openForms.add(d.dataset.sid) : ui.openForms.delete(d.dataset.sid);
+  if (!d.matches) return;
+  if (d.matches('details.sched-opts')) d.open ? ui.openOpts.add(d.dataset.opts) : ui.openOpts.delete(d.dataset.opts);
+  else if (d.matches('details.add-item')) d.open ? ui.openForms.add(d.dataset.sid) : ui.openForms.delete(d.dataset.sid);
 }, true);
 
 window.addEventListener('beforeunload', e => {

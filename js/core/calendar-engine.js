@@ -5,13 +5,30 @@
 const inRange = (s, key) => (!s.startDate || key >= s.startDate) && (!s.endDate || key <= s.endDate);
 
 /** ¿La actividad `it` del horario `s` ocurre en la fecha `key`? */
-function occurs(s, it, key) {
+function occurs(s, it, key) { return !skipReason(s, key) && occursBase(s, it, key); }
+/** Igual que occurs pero sin tener en cuenta festivos ni días saltados. */
+function occursBase(s, it, key) {
   if (!inRange(s, key)) return false;
   const d = D.parse(key), wd = D.wd(d);
   if (s.type === 'daily') return s.weekdays.includes(wd);
   if (s.type === 'weekly') return it.days.includes(wd);
   const dim = D.daysIn(d.getFullYear(), d.getMonth() + 1);
   return it.day === d.getDate() || (it.day > dim && d.getDate() === dim);
+}
+/** ¿Por qué un horario no aplica ese día? ('' = sí aplica) */
+function skipReason(s, key) {
+  if (s.skipDates && s.skipDates.includes(key)) return 'Día saltado';
+  if (s.skipHolidays) { const h = holidayName(key); if (h) return 'Festivo: ' + h; }
+  return '';
+}
+/** Actividades del mismo horario que se cruzan en hora y día con `it`. */
+function itemConflicts(s, it) {
+  if (!it.start) return [];
+  const toM = t => +t.slice(0, 2) * 60 + +t.slice(3, 5);
+  const span = x => [toM(x.start), x.end && x.end > x.start ? toM(x.end) : toM(x.start) + 30];
+  const [a0, a1] = span(it);
+  const sameDay = o => s.type === 'weekly' ? o.days.some(d => it.days.includes(d)) : s.type === 'monthly' ? o.day === it.day : true;
+  return s.items.filter(o => o.id !== it.id && o.start && sameDay(o) && (() => { const [b0, b1] = span(o); return a0 < b1 && b0 < a1; })());
 }
 const byStart = (a, b) => (a.start || '').localeCompare(b.start || '');
 const noteText = n => [n.title, n.content, ...n.items.map(i => i.text)].join(' ');

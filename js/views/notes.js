@@ -45,9 +45,10 @@ function renderNoteRead() {
   const label = e.title || noteLabel({ title: '', type: e.type, content: e.content, items: e.items });
   const body = e.type === 'list'
     ? (e.items.length ? `<ul class="read-list">${e.items.map(i => `<li class="${i.done ? 'done' : ''}"><span class="mk">${i.done ? '✓' : '○'}</span><span>${esc(i.text)}</span></li>`).join('')}</ul>` : '<p class="empty-note">Lista vacía.</p>')
-    : (e.content.trim() ? `<div class="read-text">${esc(e.content)}</div>` : '<p class="empty-note">Sin contenido.</p>');
+    : (e.content.trim() ? `<div class="read-text md">${md(e.content)}</div>` : '<p class="empty-note">Sin contenido.</p>');
   $('#noteRead').innerHTML = `
-    <h3 class="read-title">${e.type === 'list' ? '☑' : '📝'} ${esc(label)}</h3>
+    <div class="read-top"><h3 class="read-title">${e.pinned ? '📌 ' : ''}${e.type === 'list' ? '☑' : '📝'} ${esc(label)}</h3>
+      <button class="btn btn-ghost btn-xs" data-action="pin-note" aria-pressed="${e.pinned}">${e.pinned ? 'Quitar de fijadas' : '📌 Fijar arriba'}</button></div>
     <p class="muted small">${esc(cap(D.long(e.date)))}${lk ? ` · <span class="lk-mini">🔗 ${esc(lk)}</span>` : ''}</p>
     ${body}
     <div class="editor-foot">
@@ -71,15 +72,18 @@ function renderNotesList() {
   entries = entries.filter(([k, n]) => hit(noteText(n), q) || hit(D.long(k), q) || hit(linkLabel(n.link), q))
     .sort((a, b) => b[0].localeCompare(a[0]) || b[1].updatedAt.localeCompare(a[1].updatedAt));
 
+  // Las fijadas van arriba, en su propio grupo
+  entries = entries.filter(([, n]) => n.pinned).concat(entries.filter(([, n]) => !n.pinned));
   let html = '', last = '';
   entries.forEach(([k, n]) => {
-    if (k !== last) { html += `<h4 class="ngroup">${esc(D.short(k))}${D.rel(k) ? ' · ' + D.rel(k) : ''}</h4>`; last = k; }
+    const g = n.pinned ? 'pinned' : k;
+    if (g !== last) { html += n.pinned ? '<h4 class="ngroup">📌 Fijadas</h4>' : `<h4 class="ngroup">${esc(D.short(k))}${D.rel(k) ? ' · ' + D.rel(k) : ''}</h4>`; last = g; }
     const lk = linkLabel(n.link);
     const prev = n.type === 'list'
       ? `${n.items.filter(i => i.done).length}/${n.items.length} · ${n.items.slice(0, 3).map(i => i.text).join(', ')}`
       : n.content.trim().slice(0, 120);
     html += `<button class="note-item ${ui.notesMode === 'day' && ui.editor.id === n.id ? 'on' : ''}" data-action="open-note" data-key="${esc(k)}" data-id="${esc(n.id)}">
-      <b>${n.type === 'list' ? '☑' : '📝'} ${esc(noteLabel(n))}</b>${prev ? `<span>${esc(prev)}</span>` : ''}${lk ? `<em class="lk-mini">🔗 ${esc(lk)}</em>` : ''}</button>`;
+      <b>${n.pinned ? '📌 ' : ''}${n.type === 'list' ? '☑' : '📝'} ${esc(noteLabel(n))}</b>${n.pinned ? `<small class="muted">${esc(D.short(k))}</small>` : ''}${prev ? `<span>${esc(prev)}</span>` : ''}${lk ? `<em class="lk-mini">🔗 ${esc(lk)}</em>` : ''}</button>`;
   });
   $('#notesList').innerHTML = html || `<p class="empty-note">${q ? 'Sin coincidencias.' : (ui.noteScope === 'active' ? 'No hay notas en la fecha activa.' : 'Aún no hay notas guardadas.')}</p>`;
 }
@@ -112,7 +116,7 @@ function saveNote() {
   else items = e.items.filter(i => i.text.trim()).map(i => ({ id: i.id, text: i.text.trim(), done: i.done }));
   if (!title && !content.trim() && !items.length) return toast('La nota está vacía: escribe algo para guardarla', 'error');
   if (!D.isValidKey(e.date)) return toast('Elige una fecha válida', 'error');
-  const note = { id: e.id || uid(), title, type: e.type, content, items, link: parseLink(e.link), updatedAt: new Date().toISOString() };
+  const note = { id: e.id || uid(), title, type: e.type, content, items, link: parseLink(e.link), updatedAt: new Date().toISOString(), pinned: !!e.pinned };
   Object.keys(state.notes).forEach(k => {                       // si cambió de fecha, la saca de la anterior
     state.notes[k] = state.notes[k].filter(n => n.id !== note.id);
     if (!state.notes[k].length) delete state.notes[k];

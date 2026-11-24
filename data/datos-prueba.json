@@ -1,6 +1,6 @@
 {
   "meta": {
-    "version": "1.4",
+    "version": "1.5",
     "lastUpdated": "2026-11-21T20:00:00.000Z"
   },
   "tasks": [
@@ -16,7 +16,10 @@
       },
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t02",
@@ -30,7 +33,10 @@
       },
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t03",
@@ -44,7 +50,10 @@
       },
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t04",
@@ -58,7 +67,10 @@
       },
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t05",
@@ -72,7 +84,10 @@
       },
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t06",
@@ -86,7 +101,10 @@
       },
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t07",
@@ -100,7 +118,10 @@
       },
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t08",
@@ -114,7 +135,10 @@
       },
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t09",
@@ -125,7 +149,10 @@
       "link": null,
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t10",
@@ -136,7 +163,10 @@
       "link": null,
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t11",
@@ -150,7 +180,10 @@
       },
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t12",
@@ -164,7 +197,10 @@
       },
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t13",
@@ -178,7 +214,10 @@
       },
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t14",
@@ -189,7 +228,10 @@
       "link": null,
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t15",
@@ -200,7 +242,10 @@
       "link": null,
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t16",
@@ -214,7 +259,10 @@
       },
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t17",
@@ -225,7 +273,10 @@
       "link": null,
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t18",
@@ -236,7 +287,10 @@
       "link": null,
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t19",
@@ -247,7 +301,10 @@
       "link": null,
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t20",
@@ -258,7 +315,10 @@
       "link": null,
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t21",
@@ -269,7 +329,10 @@
       "link": null,
       "mode": "once",
       "due": "",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t-rep1",
@@ -286,7 +349,10 @@
       "doneDates": [
         "2026-11-16",
         "2026-11-18"
-      ]
+      ],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t-rep2",
@@ -303,7 +369,10 @@
       "doneDates": [
         "2026-11-20",
         "2026-11-21"
-      ]
+      ],
+      "time": "",
+      "tags": [],
+      "subtasks": []
     },
     {
       "id": "t-span1",
@@ -317,7 +386,75 @@
       },
       "mode": "span",
       "due": "2026-12-05",
-      "doneDates": []
+      "doneDates": [],
+      "time": "",
+      "tags": [],
+      "subtasks": []
+    },
+    {
+      "id": "t-hora1",
+      "title": "Llamar al banco",
+      "date": "2026-11-24",
+      "time": "10:30",
+      "completed": false,
+      "priority": "medium",
+      "link": null,
+      "mode": "once",
+      "due": "",
+      "doneDates": [],
+      "tags": [
+        "casa"
+      ],
+      "subtasks": []
+    },
+    {
+      "id": "t-sub1",
+      "title": "Preparar la exposición",
+      "date": "2026-11-26",
+      "time": "16:00",
+      "completed": false,
+      "priority": "high",
+      "link": null,
+      "mode": "once",
+      "due": "",
+      "doneDates": [],
+      "tags": [
+        "campus",
+        "proyecto"
+      ],
+      "subtasks": [
+        {
+          "id": "st1",
+          "text": "Hacer las diapositivas",
+          "done": true
+        },
+        {
+          "id": "st2",
+          "text": "Ensayar en voz alta",
+          "done": false
+        },
+        {
+          "id": "st3",
+          "text": "Imprimir el guion",
+          "done": false
+        }
+      ]
+    },
+    {
+      "id": "t-late1",
+      "title": "Devolver el libro a la biblioteca",
+      "date": "2026-11-18",
+      "time": "",
+      "completed": false,
+      "priority": "low",
+      "link": null,
+      "mode": "once",
+      "due": "",
+      "doneDates": [],
+      "tags": [
+        "casa"
+      ],
+      "subtasks": []
     }
   ],
   "notes": {
@@ -455,6 +592,16 @@
           "iid": "i-sql"
         },
         "updatedAt": "2026-11-21T10:00:00.000Z"
+      },
+      {
+        "id": "n-md1",
+        "title": "Cómo usar Daily Hub",
+        "type": "text",
+        "pinned": true,
+        "link": null,
+        "updatedAt": "2026-11-24T08:00:00.000Z",
+        "items": [],
+        "content": "# Ideas para la semana\n**Prioridad:** terminar el informe.\n\n- Repasar *POO*\n- [x] Pagar internet\n- [ ] Comprar proteína\n\n> Las notas admiten Markdown.\n\nMás info en [MDN](https://developer.mozilla.org)."
       }
     ],
     "2026-11-28": [
@@ -695,7 +842,9 @@
           ],
           "day": 1
         }
-      ]
+      ],
+      "skipDates": [],
+      "skipHolidays": true
     },
     {
       "id": "s-gym",
@@ -729,7 +878,9 @@
           "days": [],
           "day": 1
         }
-      ]
+      ],
+      "skipDates": [],
+      "skipHolidays": false
     },
     {
       "id": "s-estudio",
@@ -774,7 +925,9 @@
           "days": [],
           "day": 1
         }
-      ]
+      ],
+      "skipDates": [],
+      "skipHolidays": true
     },
     {
       "id": "s-pagos",
@@ -827,7 +980,9 @@
           "days": [],
           "day": 31
         }
-      ]
+      ],
+      "skipDates": [],
+      "skipHolidays": false
     },
     {
       "id": "s-limpieza",
@@ -868,7 +1023,9 @@
           ],
           "day": 1
         }
-      ]
+      ],
+      "skipDates": [],
+      "skipHolidays": false
     },
     {
       "id": "s-sprint",
@@ -909,7 +1066,9 @@
           ],
           "day": 1
         }
-      ]
+      ],
+      "skipDates": [],
+      "skipHolidays": false
     }
   ],
   "scratchpad": "Bloc de prueba:\n- Probar cargar este archivo dos veces (no debe duplicar)\n- Probar la fuente Aetheri\n- Cambiar las horas de un horario",

@@ -3,12 +3,12 @@
 'use strict';
 
 const defaultState = () => ({
-  meta: { version: '1.4', lastUpdated: new Date().toISOString() },
-  tasks: [],            // { id, title, date, completed, priority, link:{sid,iid}|null, mode:'once'|'span'|'repeat', due:''|fecha límite, doneDates:[días hechos si se repite] }
+  meta: { version: '1.5', lastUpdated: new Date().toISOString() },
+  tasks: [],            // { id, title, date, time:''|HH:MM, completed, priority, link:{sid,iid}|null, mode:'once'|'span'|'repeat', due:''|fecha límite, doneDates:[días hechos si se repite], tags:[], subtasks:[{id,text,done}] }
   notes: {},            // { "YYYY-MM-DD": [ { id, title, type:'text'|'list', content, items:[{id,text,done}], link, updatedAt } ] }
   birthdays: [],         // { id, name, month, day, year|null, category: id|null, tag: '' }
   birthdayCategories: [],   // { id, name } — las crea el administrador
-  schedules: [],        // { id, name, type, color, startDate, endDate, weekdays:[0-6], hourStart, hourEnd, items:[{id,title,start,end,days,day}] }
+  schedules: [],        // { id, name, type, color, startDate, endDate, weekdays:[0-6], hourStart, hourEnd, skipHolidays, skipDates:[], items:[{id,title,start,end,days,day}] }
   scratchpad: '',
   settings: { theme: 'dark', filters: [...TYPES], font: 'normal' }
 });
@@ -68,7 +68,10 @@ const Store = {
       const due = D.isValidKey(t.due) && t.due >= t.date ? t.due : '';
       if (mode === 'span' && !due) mode = 'once';
       const doneDates = mode === 'repeat' && Array.isArray(t.doneDates) ? [...new Set(t.doneDates.filter(D.isValidKey))].sort() : [];
-      out.tasks.push({ id: cid(t.id), title: t.title.trim(), date: t.date, completed: !!t.completed, priority: PRIO[t.priority] ? t.priority : 'medium', link: normLink(t.link), mode, due: mode === 'once' ? '' : due, doneDates });
+      const subtasks = (Array.isArray(t.subtasks) ? t.subtasks : []).filter(x => x && typeof x.text === 'string' && x.text.trim()).slice(0, 30)
+        .map(x => ({ id: cid(x.id), text: x.text.trim().slice(0, 100), done: !!x.done }));
+      out.tasks.push({ id: cid(t.id), title: t.title.trim(), date: t.date, completed: !!t.completed, priority: PRIO[t.priority] ? t.priority : 'medium', link: normLink(t.link), mode, due: mode === 'once' ? '' : due, doneDates,
+        time: TIME_RE.test(t.time || '') ? t.time : '', tags: parseTags(t.tags), subtasks });
     });
 
     const readNote = (n, key) => {
@@ -78,7 +81,7 @@ const Store = {
       const items = Array.isArray(n.items) ? n.items.filter(i => i && typeof i.text === 'string' && i.text.trim()).map(i => ({ id: cid(i.id), text: i.text.trim(), done: !!i.done })) : [];
       const title = typeof n.title === 'string' ? n.title.trim().slice(0, 80) : '';
       if (!title && !content.trim() && !items.length) return null;
-      return { id: cid(n.id), title, type: n.type === 'list' ? 'list' : 'text', content, items, link: normLink(n.link), updatedAt: typeof n.updatedAt === 'string' ? n.updatedAt : nowIso };
+      return { id: cid(n.id), title, type: n.type === 'list' ? 'list' : 'text', content, items, link: normLink(n.link), updatedAt: typeof n.updatedAt === 'string' ? n.updatedAt : nowIso, pinned: !!n.pinned };
     };
     Object.entries(raw.notes || {}).forEach(([k, v]) => {
       if (!D.isValidKey(k)) return bad(`hay una nota con fecha inválida ("${k}")`);
@@ -136,6 +139,8 @@ const Store = {
         endDate: D.isValidKey(s.endDate) ? s.endDate : '',
         weekdays: wdays.length ? wdays : [0, 1, 2, 3, 4, 5, 6],
         hourStart: hs, hourEnd: he,
+        skipHolidays: !!s.skipHolidays,                       // no aplica en festivos de Colombia
+        skipDates: Array.isArray(s.skipDates) ? [...new Set(s.skipDates.filter(D.isValidKey))].sort() : [],   // días saltados
         items
       });
     });

@@ -61,3 +61,69 @@ const D = {
     return diff === 0 ? 'Hoy' : diff === -1 ? 'Ayer' : diff === 1 ? 'Mañana' : '';
   }
 };
+
+/* ===== Festivos de Colombia =====
+   Fijos, los de la Ley Emiliani (se pasan al lunes siguiente) y los que dependen de la Semana Santa. */
+function easterOf(y) {                                       // algoritmo gregoriano anónimo (Meeus/Jones/Butcher)
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  return new Date(y, Math.floor((h + l - 7 * m + 114) / 31) - 1, ((h + l - 7 * m + 114) % 31) + 1);
+}
+const _holidays = {};
+function holidaysOf(y) {
+  if (_holidays[y]) return _holidays[y];
+  const out = {}, put = (d, name) => { out[D.key(d)] = name; };
+  const nextMonday = d => { d.setDate(d.getDate() + (8 - d.getDay()) % 7); return d; };
+  [[1, 1, 'Año Nuevo'], [5, 1, 'Día del Trabajo'], [7, 20, 'Día de la Independencia'], [8, 7, 'Batalla de Boyacá'], [12, 8, 'Inmaculada Concepción'], [12, 25, 'Navidad']]
+    .forEach(([m, d, n]) => put(new Date(y, m - 1, d), n));
+  [[1, 6, 'Reyes Magos'], [3, 19, 'San José'], [6, 29, 'San Pedro y San Pablo'], [8, 15, 'Asunción de la Virgen'], [10, 12, 'Día de la Raza'], [11, 1, 'Todos los Santos'], [11, 11, 'Independencia de Cartagena']]
+    .forEach(([m, d, n]) => put(nextMonday(new Date(y, m - 1, d)), n));
+  const easter = easterOf(y), plus = n => { const d = new Date(easter); d.setDate(d.getDate() + n); return d; };
+  put(plus(-3), 'Jueves Santo'); put(plus(-2), 'Viernes Santo');
+  put(plus(43), 'Ascensión del Señor'); put(plus(64), 'Corpus Christi'); put(plus(71), 'Sagrado Corazón');
+  return (_holidays[y] = out);
+}
+const holidayName = key => holidaysOf(+key.slice(0, 4))[key] || '';
+
+/* ===== Markdown sencillo (para leer notas) =====
+   Primero se escapa todo el texto; luego se aplican solo estas marcas:
+   # títulos · **negrita** · *cursiva* · ~~tachado~~ · `código` · - listas · 1. listas · - [ ] / - [x] · > cita · [texto](https://enlace) */
+function md(src) {
+  const inline = t => esc(t)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+    .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<i>$2</i>')
+    .replace(/~~([^~]+)~~/g, '<s>$1</s>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  let html = '', list = null, para = [];
+  const endPara = () => { if (para.length) { html += `<p>${para.map(inline).join('<br>')}</p>`; para = []; } };
+  const endList = () => { if (list) { html += `</${list}>`; list = null; } };
+  const openList = tag => { endPara(); if (list !== tag) { endList(); html += `<${tag}>`; list = tag; } };
+  String(src).replace(/\r/g, '').split('\n').forEach(ln => {
+    let m;
+    if ((m = ln.match(/^(#{1,3})\s+(.*)$/))) { endPara(); endList(); const h = m[1].length + 2; html += `<h${h}>${inline(m[2])}</h${h}>`; }
+    else if ((m = ln.match(/^\s*[-*]\s+(.*)$/))) {
+      openList('ul');
+      const c = m[1].match(/^\[( |x|X)\]\s*(.*)$/);
+      html += c ? `<li class="md-check">${c[1] === ' ' ? '☐' : '☑'} ${inline(c[2])}</li>` : `<li>${inline(m[1])}</li>`;
+    }
+    else if ((m = ln.match(/^\s*\d+[.)]\s+(.*)$/))) { openList('ol'); html += `<li>${inline(m[1])}</li>`; }
+    else if ((m = ln.match(/^>\s?(.*)$/))) { endPara(); endList(); html += `<blockquote>${inline(m[1])}</blockquote>`; }
+    else if (!ln.trim()) { endPara(); endList(); }
+    else { endList(); para.push(ln); }
+  });
+  endPara(); endList();
+  return html;
+}
+
+/** Etiquetas escritas a mano ("casa, #campus") → lista limpia sin repetidas. */
+function parseTags(v) {
+  const out = [], seen = new Set();
+  (Array.isArray(v) ? v : String(v || '').split(/[,#\n]/)).forEach(x => {
+    const t = String(x).replace(/^#+/, '').trim().slice(0, 20);
+    if (t && !seen.has(norm(t)) && out.length < 8) { seen.add(norm(t)); out.push(t); }
+  });
+  return out;
+}
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
