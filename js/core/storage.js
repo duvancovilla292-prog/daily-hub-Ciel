@@ -72,7 +72,7 @@ const Store = {
       if (mode === 'span' && !due) mode = 'once';
       const doneDates = mode === 'repeat' && Array.isArray(t.doneDates) ? [...new Set(t.doneDates.filter(D.isValidKey))].sort() : [];
       const subtasks = (Array.isArray(t.subtasks) ? t.subtasks : []).filter(x => x && typeof x.text === 'string' && x.text.trim()).slice(0, 30)
-        .map(x => ({ id: cid(x.id), text: x.text.trim().slice(0, 100), done: !!x.done }));
+        .map(x => ({ id: cid(x.id), text: x.text.trim().slice(0, 100), done: !!x.done, person: validId(x.person) ? x.person : '' }));
       out.tasks.push({ id: cid(t.id), title: t.title.trim(), date: t.date, completed: !!t.completed, priority: PRIO[t.priority] ? t.priority : 'medium', link: normLink(t.link), mode, due: mode === 'once' ? '' : due, doneDates,
         time: TIME_RE.test(t.time || '') ? t.time : '', tags: parseTags(t.tags), subtasks,
         persons: idList(t.persons, t.person),          // personas o fechas vinculadas (varias)
@@ -84,7 +84,7 @@ const Store = {
       if (typeof n === 'string') n = { content: n };                       // formato antiguo
       if (!n || typeof n !== 'object') return bad(`una nota del ${key} no es válida`);
       const content = typeof n.content === 'string' ? n.content : '';
-      const items = Array.isArray(n.items) ? n.items.filter(i => i && typeof i.text === 'string' && i.text.trim()).map(i => ({ id: cid(i.id), text: i.text.trim(), done: !!i.done })) : [];
+      const items = Array.isArray(n.items) ? n.items.filter(i => i && typeof i.text === 'string' && i.text.trim()).map(i => ({ id: cid(i.id), text: i.text.trim(), done: !!i.done, person: validId(i.person) ? i.person : '' })) : [];
       const title = typeof n.title === 'string' ? n.title.trim().slice(0, 80) : '';
       if (!title && !content.trim() && !items.length) return null;
       return { id: cid(n.id), title, type: n.type === 'list' ? 'list' : 'text', content, items, link: normLink(n.link), updatedAt: typeof n.updatedAt === 'string' ? n.updatedAt : nowIso, pinned: !!n.pinned, persons: idList(n.persons, n.person) };
@@ -182,8 +182,9 @@ const Store = {
     // Vínculos a personas (cumpleaños)
     const pIds = new Set(out.birthdays.map(b => b.id)), nIds = new Set(Object.values(out.notes).flat().map(n => n.id));
     const okP = list => opts.keepLinks ? list : list.filter(p => pIds.has(p));
-    out.tasks.forEach(t => { t.persons = okP(t.persons); t.notes = opts.keepLinks ? t.notes : t.notes.filter(id => nIds.has(id)); });
-    Object.values(out.notes).forEach(arr => arr.forEach(n => { n.persons = okP(n.persons); }));
+    const okOne = p => p && (opts.keepLinks || pIds.has(p)) ? p : '';
+    out.tasks.forEach(t => { t.persons = okP(t.persons); t.notes = opts.keepLinks ? t.notes : t.notes.filter(id => nIds.has(id)); t.subtasks.forEach(x => { x.person = okOne(x.person); }); });
+    Object.values(out.notes).forEach(arr => arr.forEach(n => { n.persons = okP(n.persons); n.items.forEach(i => { i.person = okOne(i.person); }); }));
     out.birthdays.forEach(b => { b.persons = okP(b.persons).filter(p => p !== b.id); });
     return out;
   },
@@ -272,6 +273,7 @@ const Store = {
       arr.forEach(n => {
         if (have.has(nSig(n))) { rep.notes.skip++; nMap[n.id] = list.find(x => nSig(x) === nSig(n)).id; return; }
         const nn = { ...clone(n), id: freeId(n.id), link: relink(n.link), persons: relinkP(n.persons) };
+        nn.items.forEach(i => { i.person = relinkP(i.person ? [i.person] : [])[0] || ''; });
         list.push(nn); nMap[n.id] = nn.id; have.add(nSig(n)); rep.notes.add++;
       });
       if (!list.length) delete out.notes[k];
@@ -282,6 +284,7 @@ const Store = {
     const haveT = new Set(out.tasks.map(tSig));
     inc.tasks.forEach(t => {
       if (haveT.has(tSig(t))) { rep.tasks.skip++; return; }
+      (t.subtasks || []).forEach(x => { x.person = relinkP(x.person ? [x.person] : [])[0] || ''; });
       out.tasks.push({ ...t, id: freeId(t.id), link: relink(t.link), persons: relinkP(t.persons), notes: (t.notes || []).map(id => nMap[id] || id).filter(id => Object.values(out.notes).flat().some(n => n.id === id)) }); haveT.add(tSig(t)); rep.tasks.add++;
     });
 

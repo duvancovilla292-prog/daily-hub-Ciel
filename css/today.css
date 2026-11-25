@@ -129,3 +129,10 @@
 .t-note { border: 1px solid color-mix(in srgb, var(--mint) 45%, transparent); background: transparent; color: var(--mint); font-size: .7rem; padding: 1px 7px; border-radius: 99px; cursor: pointer; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .t-note:hover { background: color-mix(in srgb, var(--mint) 14%, transparent); }
 .person-links { margin-top: -4px; }
+
+/* Personas en listas y subtareas */
+.li-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.li-tools select { flex: 1 1 200px; min-width: 0; color: var(--muted); }
+.li-person { flex: none; font-size: .9rem; }
+.sub-person { color: var(--muted); }
+.read-list .t-person, .t-sublist .t-person { font-size: .85rem; padding: 1px 9px; }

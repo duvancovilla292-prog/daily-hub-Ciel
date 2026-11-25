@@ -78,7 +78,8 @@ const actions = {
         <div class="field"><span class="lbl">Notas vinculadas</span>${pickerHtml('notes', 'notes', t.notes || [])}</div>
         <p class="muted small mode-help" hidden></p>
         <label>Etiquetas <input name="tags" maxlength="160" placeholder="casa, campus (opcional)" value="${esc((t.tags || []).join(', '))}"></label>
-        <label>Subtareas <textarea name="subtasks" rows="3" placeholder="Una por línea (opcional)">${esc((t.subtasks || []).map(x => x.text).join('\n'))}</textarea></label>`,
+        <label>Subtareas <textarea name="subtasks" rows="3" placeholder="Una por línea (opcional)">${esc((t.subtasks || []).map(x => x.text).join('\n'))}</textarea></label>
+        <select class="sub-person" data-change="sub-add-person" aria-label="Agregar una persona como subtarea">${addPersonOptions('+ Agregar persona como subtarea…')}</select>`,
       submit: 'Guardar cambios',
       check: form => { const r = readTaskForm(form); if (typeof r === 'string') return r; data = r; return true; }
     });
@@ -124,6 +125,8 @@ const actions = {
     state.birthdays = state.birthdays.filter(x => x.id !== b.id);
     const drop = x => { if (x.persons) x.persons = x.persons.filter(p => p !== b.id); };
     state.tasks.forEach(drop); Object.values(state.notes).flat().forEach(drop); state.birthdays.forEach(drop);
+    state.tasks.forEach(t => (t.subtasks || []).forEach(x => { if (x.person === b.id) x.person = ''; }));
+    Object.values(state.notes).flat().forEach(n => n.items.forEach(i => { if (i.person === b.id) i.person = ''; }));
     commit(); render(); offerUndo(snap, 'Fecha eliminada');
   },
   'edit-bday': async el => {
@@ -260,6 +263,7 @@ const actions = {
     fillLinkSelect($('#taskLink'), '');
     fillPicker($('#taskPersons'), el.dataset.person ? [el.dataset.person] : []);
     fillPicker($('#taskNotes'), el.dataset.note ? [el.dataset.note] : []);
+    $('form[data-form=task] .sub-person').innerHTML = addPersonOptions('+ Agregar persona como subtarea…');
     syncTaskForm(f);
     const back = el.dataset.back === 'person' ? el.dataset.person : '';
     openSheet({ title: 'Nueva tarea', node: f, onClose: back ? () => setTimeout(() => openPersonSheet(back), 0) : null });

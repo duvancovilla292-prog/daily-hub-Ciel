@@ -28,7 +28,7 @@ function taskInfo(t) {
   return parts.length ? `<span class="t-info">${parts.join('')}</span>` : '';
 }
 const subList = t => (t.subtasks || []).length && ui.openSubs.has(t.id)
-  ? `<ul class="t-sublist">${t.subtasks.map(x => `<li class="${x.done ? 'done' : ''}"><label class="check"><input type="checkbox" data-change="toggle-sub" data-id="${esc(t.id)}" data-sub="${esc(x.id)}" ${x.done ? 'checked' : ''} aria-label="Subtarea hecha"><span class="box"></span></label><span>${esc(x.text)}</span></li>`).join('')}</ul>`
+  ? `<ul class="t-sublist">${t.subtasks.map(x => `<li class="${x.done ? 'done' : ''}"><label class="check"><input type="checkbox" data-change="toggle-sub" data-id="${esc(t.id)}" data-sub="${esc(x.id)}" ${x.done ? 'checked' : ''} aria-label="Subtarea hecha"><span class="box"></span></label><span>${itemText(x)}</span></li>`).join('')}</ul>`
   : '';
 /** Atrasadas: mover a hoy o a mañana (en las de periodo se mueve la fecha límite). */
 const moveBtns = t => t.mode !== 'repeat' && isOverdue(t)
@@ -75,8 +75,8 @@ function mergeSubtasks(old, texts) {
   const pool = old.slice();
   return texts.map(text => {
     const i = pool.findIndex(x => x.text === text);
-    if (i >= 0) return pool.splice(i, 1)[0];
-    return { id: uid(), text, done: false };
+    if (i >= 0) { const x = pool.splice(i, 1)[0]; return { ...x, person: x.person || personByName(text) }; }
+    return { id: uid(), text, done: false, person: personByName(text) };
   });
 }
 /** Muestra u oculta la fecha límite y la ayuda según el tipo elegido. */

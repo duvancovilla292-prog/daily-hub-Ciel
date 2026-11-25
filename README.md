@@ -97,6 +97,8 @@ Los vínculos se ven desde los dos lados (si una tarea se vincula a una nota, la
 | **Nota** | 1 | varias | — | varias (se guardan en la tarea) |
 | **Otra fecha** | — | varias personas (ej. aniversario ↔ la pareja) | — | — |
 
+Además, **los ítems de una lista y las subtareas pueden ser personas**: con "+ Agregar persona…" o escribiendo exactamente su nombre (o apodo). Se ven como 👤 y abren su ficha, y la ficha muestra las listas y tareas donde aparece.
+
 Al borrar una persona, fecha o nota, se quita de los vínculos que la tenían. Al cargar un respaldo, los vínculos se reajustan si la persona o la nota ya existían.
 
 ## Administrador

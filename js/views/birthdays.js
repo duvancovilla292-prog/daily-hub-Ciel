@@ -92,6 +92,18 @@ function whenText(b) {
 /** Nombre para mostrar: a las personas se les pone mayúscula en cada palabra; a las demás fechas, solo al inicio. */
 const dateName = b => kindOf(b) === 'birthday' ? displayName(b.name) : cap(String(b.name));
 const personName = id => { const b = id && state.birthdays.find(x => x.id === id); return b ? dateName(b) : ''; };
+/** Persona cuyo nombre (o apodo) es exactamente ese texto: así, escribir un nombre en una lista o subtarea la vincula. */
+function personByName(text) {
+  const q = norm(String(text || '').trim()); if (!q) return '';
+  const b = state.birthdays.find(x => kindOf(x) === 'birthday' && (norm(dateName(x)) === q || norm(x.name) === q || (x.nick && norm(x.nick) === q)));
+  return b ? b.id : '';
+}
+/** Texto de un ítem o subtarea: si es una persona, como 👤 que abre su ficha. */
+const itemText = x => x.person && personName(x.person)
+  ? `<button class="t-person" data-action="open-person" data-id="${esc(x.person)}" title="Ver la ficha">👤 ${esc(x.text)}</button>` : esc(x.text);
+/** Opciones "+ Agregar persona…" para listas y subtareas (solo personas). */
+const addPersonOptions = label => `<option value="">${label}</option>` + state.birthdays.filter(b => kindOf(b) === 'birthday')
+  .sort((a, b) => norm(a.name).localeCompare(norm(b.name))).map(b => `<option value="${esc(b.id)}">${esc(dateName(b))}</option>`).join('');
 const isPet = b => !!state.birthdayCategories.find(c => c.id === b.category && c.pets);
 const nickOf = b => (b.nick || '').trim() || dateName(b).split(/\s+/)[0];
 /** Opciones para elegir persona o fecha (ordenadas por nombre). */
@@ -213,10 +225,10 @@ function personHtml(b) {
   const when = nb.left === 0 ? '¡Hoy!' : nb.left === 1 ? 'Mañana' : `En ${nb.left} d`;
   const fact = (t, v) => `<div class="fact"><span>${t}</span><b>${v}</b></div>`;
   const unit = REPEATS[r];
-  const notes = Object.entries(state.notes).flatMap(([d, a]) => a.map(n => [d, n])).filter(([, n]) => (n.persons || []).includes(b.id))
+  const notes = Object.entries(state.notes).flatMap(([d, a]) => a.map(n => [d, n])).filter(([, n]) => (n.persons || []).includes(b.id) || n.items.some(i => i.person === b.id))
     .sort((x, y) => (y[1].updatedAt || '').localeCompare(x[1].updatedAt || ''));
   const gift = notes.find(([, n]) => /^ideas de regalo/i.test(n.title) && n.type === 'list');
-  const tasks = state.tasks.filter(t => (t.persons || []).includes(b.id)).sort((x, y) => (taskStatus(x) === 'done') - (taskStatus(y) === 'done') || x.date.localeCompare(y.date));
+  const tasks = state.tasks.filter(t => (t.persons || []).includes(b.id) || (t.subtasks || []).some(x => x.person === b.id)).sort((x, y) => (taskStatus(x) === 'done') - (taskStatus(y) === 'done') || x.date.localeCompare(y.date));
   const pend = tasks.filter(t => taskStatus(t) !== 'done').length;
   const tab = ui.personTab === 'notes' ? 'notes' : 'todo';
   const ideas = gift ? gift[1].items : [];

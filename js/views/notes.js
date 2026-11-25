@@ -41,7 +41,7 @@ function renderNoteRead(e) {
   const lk = linkLabel(parseLink(e.link));
   const label = e.title || noteLabel({ title: '', type: e.type, content: e.content, items: e.items });
   const body = e.type === 'list'
-    ? (e.items.length ? `<ul class="read-list">${e.items.map(i => `<li class="${i.done ? 'done' : ''}"><span class="mk">${i.done ? '✓' : '○'}</span><span>${esc(i.text)}</span></li>`).join('')}</ul>` : '<p class="empty-note">Lista vacía.</p>')
+    ? (e.items.length ? `<ul class="read-list">${e.items.map(i => `<li class="${i.done ? 'done' : ''}"><span class="mk">${i.done ? '✓' : '○'}</span><span>${itemText(i)}</span></li>`).join('')}</ul>` : '<p class="empty-note">Lista vacía.</p>')
     : (e.content.trim() ? `<div class="read-text md">${md(e.content)}</div>` : '<p class="empty-note">Sin contenido.</p>');
   $('#noteRead').innerHTML = `
     <div class="read-top"><h3 class="read-title">${e.pinned ? '📌 ' : ''}${e.type === 'list' ? '☑' : '📝'} ${esc(label)}</h3>
@@ -57,9 +57,10 @@ function renderNoteRead(e) {
 }
 
 function renderListEditor() {
+  $('#liPerson').innerHTML = addPersonOptions('+ Agregar persona a la lista…');
   $('#liRows').innerHTML = ui.editor.items.map((it, i) => `
     <div class="li"><label class="check"><input type="checkbox" data-change="li-done" data-i="${i}" ${it.done ? 'checked' : ''} aria-label="Hecho"><span class="box"></span></label>
-    <input class="li-text" data-i="${i}" value="${esc(it.text)}" maxlength="120" placeholder="Ítem…">
+    ${it.person && personName(it.person) ? '<span class="li-person" title="Vinculado a su ficha">👤</span>' : ''}<input class="li-text" data-i="${i}" value="${esc(it.text)}" maxlength="120" placeholder="Ítem…">
     <button class="icon-btn mini" data-action="li-del" data-i="${i}" aria-label="Quitar ítem">${ICON_X}</button></div>`).join('');
 }
 
@@ -112,7 +113,7 @@ function saveNote() {
   const e = ui.editor, title = e.title.trim();
   let content = '', items = [];
   if (e.type === 'text') content = e.content;
-  else items = e.items.filter(i => i.text.trim()).map(i => ({ id: i.id, text: i.text.trim(), done: i.done }));
+  else items = e.items.filter(i => i.text.trim()).map(i => ({ id: i.id, text: i.text.trim(), done: i.done, person: (i.person && state.birthdays.some(b => b.id === i.person)) ? i.person : personByName(i.text) }));
   if (!title && !content.trim() && !items.length) return toast('La nota está vacía: escribe algo para guardarla', 'error');
   if (!D.isValidKey(e.date)) return toast('Elige una fecha válida', 'error');
   const note = { id: e.id || uid(), title, type: e.type, content, items, link: parseLink(e.link), updatedAt: new Date().toISOString(), pinned: !!e.pinned, persons: (e.persons || []).filter(id => state.birthdays.some(b => b.id === id)) };
