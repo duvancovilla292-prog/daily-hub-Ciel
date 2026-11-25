@@ -1,3 +1,5 @@
+/** Pantalla táctil (celular o tableta): ahí no se pone el cursor solo en un campo, para que no salga el teclado sin pedirlo. */
+const isTouch = () => matchMedia('(pointer: coarse)').matches || matchMedia('(hover: none)').matches;
 /* ===== js/ui/feedback.js — Toasts y modales =====
    Script clásico: comparte el ámbito global con los demás archivos de /js (ver el orden en index.html). */
 'use strict';
@@ -80,7 +82,7 @@ function comboPick(box, value) {
     fillPicker(p, [...pickerValues(p), value]);
     pickerChanged(p);
     const again = p.querySelector('.combo-input');
-    if (again) { again.dataset.quiet = '1'; again.focus(); delete again.dataset.quiet; }   // listo para seguir escribiendo, sin tapar el resto
+    if (again && !isTouch()) { again.dataset.quiet = '1'; again.focus(); delete again.dataset.quiet; }   // listo para seguir escribiendo, sin tapar el resto
     return;
   }
   const b = state.birthdays.find(x => x.id === value); if (!b) return;
@@ -94,7 +96,7 @@ function comboPick(box, value) {
     e.items.push({ id: uid(), text: dateName(b), done: false, person: b.id });
     markDirty(); renderListEditor(); updateCount();
   }
-  const inp = box.querySelector('.combo-input'); inp.value = ''; closeCombos(); inp.dataset.quiet = '1'; inp.focus(); delete inp.dataset.quiet;
+  const inp = box.querySelector('.combo-input'); inp.value = ''; closeCombos(); if (!isTouch()) { inp.dataset.quiet = '1'; inp.focus(); delete inp.dataset.quiet; }   // en celular se cierra el teclado tras elegir
 }
 document.addEventListener('input', e => { const box = e.target.closest && e.target.closest('.combo'); if (box && e.target.classList.contains('combo-input')) renderCombo(box); });
 document.addEventListener('focusin', e => { const box = e.target.closest && e.target.closest('.combo'); if (box && e.target.classList.contains('combo-input') && !e.target.dataset.quiet) { closeCombos(box); renderCombo(box); } });
@@ -150,7 +152,7 @@ window.addEventListener('scroll', () => { if (menuBtn && Date.now() - menuAt > 3
    o mostrar uno armado al momento. Si se escribió algo y se intenta cerrar, pregunta antes de descartarlo.
    Los formularios que se guardan bien (sus funciones devuelven true) cierran la ventana solos. */
 let sheet = null;
-function openSheet({ title, node, html, wide, isDirty, onCancel, onClose }) {
+function openSheet({ title, node, html, wide, isDirty, onCancel, onClose, focus = true }) {
   closeSheetNow();
   const root = $('#sheetRoot');
   root.innerHTML = `<div class="overlay sheet-overlay"><div class="modal form-sheet ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" aria-label="${esc(title)}">
@@ -161,7 +163,7 @@ function openSheet({ title, node, html, wide, isDirty, onCancel, onClose }) {
   else body.innerHTML = html;
   sheet = { node, home, dirty: false, isDirty, onCancel, onClose };
   $('.overlay', root).addEventListener('mousedown', e => { if (e.target.classList.contains('overlay')) requestCloseSheet(); });
-  setTimeout(() => body.querySelector('input:not([type=checkbox]):not([type=radio]):not([type=hidden]), textarea')?.focus(), 30);
+  if (focus && !isTouch()) setTimeout(() => body.querySelector('input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not(.combo-input), textarea')?.focus(), 30);
   return body;
 }
 const sheetOpen = () => !!sheet;
@@ -248,6 +250,6 @@ function formModal({ title, desc, fields, submit, check }) {
     });
     $('[data-c]', root).addEventListener('click', () => close(null));
     $('.overlay', root).addEventListener('mousedown', e => { if (e.target.classList.contains('overlay')) close(null); });
-    const first = f.querySelector('input,select'); if (first) first.focus();
+    if (!isTouch()) { const first = f.querySelector('input:not([type=checkbox]):not([type=radio]):not(.combo-input),textarea'); if (first) first.focus(); }
   });
 }

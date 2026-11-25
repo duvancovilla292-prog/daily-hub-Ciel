@@ -291,7 +291,7 @@ function openPersonSheet(id) {
   const b = state.birthdays.find(x => x.id === id); if (!b) return;
   if (ui.personOpen !== id) ui.personTab = 'todo';
   ui.personOpen = id;
-  openSheet({ title: dateName(b), html: personHtml(b), wide: true, isDirty: () => false, onClose: () => { ui.personOpen = null; } });
+  openSheet({ title: dateName(b), html: personHtml(b), wide: true, focus: false, isDirty: () => false, onClose: () => { ui.personOpen = null; } });   // la ficha es para leer: sin cursor ni teclado
 }
 /** Mantiene la ficha al día si cambia algo con ella abierta (marcar una tarea, agregar una idea, editar los datos…). */
 function refreshPersonSheet() {
