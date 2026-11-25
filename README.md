@@ -88,9 +88,20 @@ Para agregar o editar cualquier cosa (tarea, nota, cumpleaños, horario, activid
   - **Recordatorio** (desactivado por defecto, en la ficha): "Recordarme comprar regalo / preparar algo N días antes" (7 por defecto). Se crea una tarea ("🎁 Regalo para …" o "📅 Preparar: …") vinculada a la fecha, una sola vez por cada vez que ocurre (en las anuales, cuando faltan 30 días o menos). Su id es fijo por ocurrencia (`r<año>-<id>` o `r<AAAAMMDD>-<id>`), así que si dos dispositivos la crean a la vez queda una sola en la nube.
 - **Horario:** se puede **duplicar** (⧉), marcar que **no aplica en festivos de Colombia** (fijos, Ley Emiliani y Semana Santa, calculados sin servicios externos) y **saltar días concretos**. Al agregar o editar una actividad que se cruza con otra del mismo horario, avisa y la marca con ⚠. Cada horario tiene apartados de **Tareas** y **Notas** de su día, semana o mes, con el selector **Todas / Solo vinculadas**. Diario, semanal o mensual, con fecha de inicio y fin. Las horas visibles van por defecto de 6:00 AM a 9:00 PM y se pueden cambiar al crear el horario o después (la tabla se amplía sola si una actividad queda fuera).
 
+## Vínculos
+Los vínculos se ven desde los dos lados (si una tarea se vincula a una nota, la nota muestra la tarea) y se eligen con un selector de chips ("+ Agregar…").
+
+| Desde | Actividad del horario | Personas o fechas | Notas | Tareas |
+|---|---|---|---|---|
+| **Tarea** | 1 (las que se repiten siguen a esa actividad) | varias | varias | — |
+| **Nota** | 1 | varias | — | varias (se guardan en la tarea) |
+| **Otra fecha** | — | varias personas (ej. aniversario ↔ la pareja) | — | — |
+
+Al borrar una persona, fecha o nota, se quita de los vínculos que la tenían. Al cargar un respaldo, los vínculos se reajustan si la persona o la nota ya existían.
+
 ## Administrador
 El botón **Admin** abre una ventana emergente que se desbloquea al **iniciar sesión con Google** (no hay contraseña). Cada cuenta administra solo sus propios datos: lo garantizan las reglas de Firestore, no el código del navegador. Con sesión:
-- **Mini dashboard** con el conteo de tareas, notas, cumpleaños, horarios, actividades y vínculos.
+- **Panel con pestañas** — *Resumen*, *Tareas* (estados, por vencer, completadas los últimos 7 días, por prioridad, por tipo, etiquetas más usadas, vínculos), *Notas* (fijadas, palabras, ítems de listas, notas por mes, vínculos), *Fechas* (próximas, con recordatorio, por mes del año, por categoría, generaciones y signos), *Horarios* (horas programadas por día y por horario esta semana, choques, festivos, días saltados) y *Nube* (estado, cambios por subir, tamaño). Gráficas de barras de un solo color con su valor escrito; los colores de categoría usan una paleta validada para daltonismo y contraste en tema claro y oscuro.
 - **Descargar respaldo** (`backup_YYYY-MM-DD.json`).
 - **Cargar datos de prueba** y **Cargar respaldo:** comparan con lo que ya existe y solo agregan lo nuevo, sin duplicar.
 - **Vaciar todo** (pide escribir VACIAR para confirmar). Conserva las categorías de cumpleaños.

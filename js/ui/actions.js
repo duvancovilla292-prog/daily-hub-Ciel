@@ -43,7 +43,7 @@ const actions = {
   'close-sheet': () => { ui.sheet = false; renderSheet(); },
   'clear-search': () => { $('#searchInput').value = ''; ui.query = ''; ui.queryRaw = ''; render(); },
   'cloud': () => window.Cloud ? window.Cloud.open() : toast('La sincronización no está disponible aquí. Abre la app desde su página web (no desde el archivo en la carpeta).', 'error'),
-  'theme': () => { state.settings.theme = state.settings.theme === 'dark' ? 'light' : 'dark'; applyTheme(); commit(); renderHeader(); },
+  'theme': () => { state.settings.theme = state.settings.theme === 'dark' ? 'light' : 'dark'; applyTheme(); commit(); render(); },
 
   'cal-nav': el => { const d = new Date(ui.cal.y, ui.cal.m + +el.dataset.d, 1); ui.cal = { y: d.getFullYear(), m: d.getMonth() }; renderCalendar(); },
   'cal-today': () => { const n = D.today(); ui.cal = { y: n.getFullYear(), m: n.getMonth() }; renderCalendar(); },
@@ -74,7 +74,8 @@ const actions = {
           <label>Prioridad <select name="priority">${Object.entries(PRIO).map(([k, p]) => `<option value="${k}" ${k === t.priority ? 'selected' : ''}>${p.label}</option>`).join('')}</select></label>
           <label>Vincular al horario <select name="link"><option value="">Sin vincular</option>${linkOptions().map(o => `<option value="${o.value}" ${o.value === cur ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}</select></label>
         </div>
-        <label>Persona o fecha <select name="person">${personOptions(t.person || '')}</select></label>
+        <div class="field"><span class="lbl">Personas o fechas</span>${pickerHtml('persons', 'persons', t.persons || [])}</div>
+        <div class="field"><span class="lbl">Notas vinculadas</span>${pickerHtml('notes', 'notes', t.notes || [])}</div>
         <p class="muted small mode-help" hidden></p>
         <label>Etiquetas <input name="tags" maxlength="160" placeholder="casa, campus (opcional)" value="${esc((t.tags || []).join(', '))}"></label>
         <label>Subtareas <textarea name="subtasks" rows="3" placeholder="Una por línea (opcional)">${esc((t.subtasks || []).map(x => x.text).join('\n'))}</textarea></label>`,
@@ -120,7 +121,10 @@ const actions = {
     const ok = await modal({ title: 'Eliminar fecha', body: `¿Seguro que quieres eliminar ${kindOf(b) === 'birthday' ? 'el cumpleaños de ' : ''}<b>${esc(dateName(b))}</b> (${b.day} de ${MONTHS[b.month - 1]})?`, actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
     if (!ok) return;
     const snap = snapshot();
-    state.birthdays = state.birthdays.filter(x => x.id !== b.id); commit(); render(); offerUndo(snap, 'Fecha eliminada');
+    state.birthdays = state.birthdays.filter(x => x.id !== b.id);
+    const drop = x => { if (x.persons) x.persons = x.persons.filter(p => p !== b.id); };
+    state.tasks.forEach(drop); Object.values(state.notes).flat().forEach(drop); state.birthdays.forEach(drop);
+    commit(); render(); offerUndo(snap, 'Fecha eliminada');
   },
   'edit-bday': async el => {
     const b = state.birthdays.find(x => x.id === el.dataset.id); if (!b) return;
@@ -165,17 +169,17 @@ const actions = {
   'open-person': el => openPersonSheet(el.dataset.id),
   'gift-note': el => {
     const b = state.birthdays.find(x => x.id === el.dataset.id); if (!b) return;
-    const ex = Object.entries(state.notes).flatMap(([k, a]) => a.map(n => [k, n])).find(([, n]) => n.person === b.id && /^ideas de regalo/i.test(n.title));
+    const ex = Object.entries(state.notes).flatMap(([k, a]) => a.map(n => [k, n])).find(([, n]) => (n.persons || []).includes(b.id) && /^ideas de regalo/i.test(n.title));
     closeSheetNow();
     if (ex) ui.editor = editorFrom(ex[1], ex[0]);
-    else { ui.editor = newEditor(ui.today); Object.assign(ui.editor, { type: 'list', title: 'Ideas de regalo', person: b.id, items: [{ id: uid(), text: '', done: false }] }); }
+    else { ui.editor = newEditor(ui.today); Object.assign(ui.editor, { type: 'list', title: 'Ideas de regalo', persons: [b.id], items: [{ id: uid(), text: '', done: false }] }); }
     ui.notesMode = 'day';
     openNoteSheet(() => openPersonSheet(b.id));
   },
   'person-note': el => {
     const b = state.birthdays.find(x => x.id === el.dataset.id); if (!b) return;
     closeSheetNow();
-    ui.editor = newEditor(ui.today); ui.editor.person = b.id; ui.notesMode = 'day';
+    ui.editor = newEditor(ui.today); ui.editor.persons = [b.id]; ui.notesMode = 'day';
     openNoteSheet(() => openPersonSheet(b.id));
   },
   'open-note': async el => {
@@ -225,6 +229,7 @@ const actions = {
     if (!ok) return;
     const snap = snapshot();
     Object.keys(state.notes).forEach(k => { state.notes[k] = state.notes[k].filter(n => n.id !== e.id); if (!state.notes[k].length) delete state.notes[k]; });
+    state.tasks.forEach(t => { if (t.notes) t.notes = t.notes.filter(id => id !== e.id); });
     commit(); ui.editor = newEditor(ui.active); closeSheetNow(); renderNotes(); offerUndo(snap, 'Nota eliminada');
   },
 
@@ -253,7 +258,8 @@ const actions = {
     f.reset();
     f.elements.date.value = el.dataset.key && D.isValidKey(el.dataset.key) ? el.dataset.key : ui.active;
     fillLinkSelect($('#taskLink'), '');
-    $('#taskPerson').innerHTML = personOptions(el.dataset.person || '');
+    fillPicker($('#taskPersons'), el.dataset.person ? [el.dataset.person] : []);
+    fillPicker($('#taskNotes'), el.dataset.note ? [el.dataset.note] : []);
     syncTaskForm(f);
     const back = el.dataset.back === 'person' ? el.dataset.person : '';
     openSheet({ title: 'Nueva tarea', node: f, onClose: back ? () => setTimeout(() => openPersonSheet(back), 0) : null });
@@ -289,6 +295,7 @@ const actions = {
       <div class="sheet-foot"><button type="button" class="btn btn-ghost" data-action="sheet-close">Cancelar</button><button class="btn btn-primary">Crear categoría</button></div></form>` });
   },
   'sheet-close': () => requestCloseSheet(),
+  'picker-del': el => { const p = el.closest('.picker'); fillPicker(p, pickerValues(p).filter(v => v !== el.dataset.v)); pickerChanged(p); },
   'sched-nav': el => { const s = state.schedules.find(x => x.id === el.dataset.id); if (s) { shiftAnchor(s, +el.dataset.d); renderSchedule(); } },
   'sched-follow': el => { delete ui.anchors[el.dataset.id]; renderSchedule(); },
   'dup-sched': el => {
@@ -353,6 +360,7 @@ const actions = {
   },
 
   /* administrador */
+  'dash-tab': el => { ui.dashTab = el.dataset.v; renderDash(); },
   'admin-toggle': () => { ui.adminOpen = !ui.adminOpen; renderAdmin(); },
   'cloud-signin': () => window.Cloud ? window.Cloud.signIn() : toast('La sesión con Google no está disponible aquí. Abre la app desde su página web.', 'error'),
   'admin-close': () => { ui.adminOpen = false; renderAdmin(); $('#adminBtn').focus(); },

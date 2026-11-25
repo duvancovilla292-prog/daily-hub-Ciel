@@ -11,14 +11,15 @@ function taskRow(t, key) {
     ${taskActs(t, lk)}
   </li>`;
 }
-/** Hora, etiquetas y avance de subtareas (el botón despliega la lista). */
+const noteById = id => { for (const [k, a] of Object.entries(state.notes)) { const n = a.find(x => x.id === id); if (n) return [k, n]; } return null; };
+/** Hora, etiquetas, vínculos y avance de subtareas (el botón despliega la lista). */
 function taskInfo(t) {
   const parts = [];
   const tags = t.tags || [], subs = t.subtasks || [];
   if (t.time) parts.push(`<span class="t-time">⏰ ${fmtT(t.time)}</span>`);
   if (dueSoon(t)) parts.push(`<span class="t-due">⏳ ${dueLabel(t)}</span>`);
-  const pn = personName(t.person);
-  if (pn) parts.push(`<button class="t-person" data-action="open-person" data-id="${esc(t.person)}" title="Ver la ficha de ${esc(pn)}">👤 ${esc(pn)}</button>`);
+  (t.persons || []).forEach(id => { const pn = personName(id); if (pn) parts.push(`<button class="t-person" data-action="open-person" data-id="${esc(id)}" title="Ver la ficha">👤 ${esc(pn)}</button>`); });
+  (t.notes || []).forEach(id => { const f = noteById(id); if (f) parts.push(`<button class="t-note" data-action="open-note" data-key="${esc(f[0])}" data-id="${esc(id)}" title="Abrir la nota">📝 ${esc(noteLabel(f[1]))}</button>`); });
   tags.forEach(g => parts.push(`<span class="t-tag">#${esc(g)}</span>`));
   if (subs.length) {
     const d = subs.filter(x => x.done).length;
@@ -52,7 +53,9 @@ function readTaskForm(f) {
   const fd = new FormData(f);
   const title = String(fd.get('title') || '').trim(), date = String(fd.get('date') || ''), mode = String(fd.get('mode') || 'once');
   const due = String(fd.get('due') || ''), link = parseLink(fd.get('link')), time = String(fd.get('time') || '');
-  const person = String(fd.get('person') || ''), personOk = state.birthdays.some(b => b.id === person) ? person : '';
+  const ids = n => String(fd.get(n) || '').split(',').filter(Boolean);
+  const persons = ids('persons').filter(id => state.birthdays.some(b => b.id === id));
+  const noteIds = ids('notes').filter(id => Object.values(state.notes).flat().some(n => n.id === id));
   if (time && !TIME_RE.test(time)) return 'Hora inválida';
   if (!title) return 'Escribe el título';
   if (!D.isValidKey(date)) return 'Elige una fecha válida';
@@ -65,7 +68,7 @@ function readTaskForm(f) {
     if (due && (!D.isValidKey(due) || due < date)) return 'La fecha límite es anterior a la fecha de inicio';
   }
   const subTexts = String(fd.get('subtasks') || '').split('\n').map(x => x.trim().slice(0, 100)).filter(Boolean).slice(0, 30);
-  return { title, date, time, mode: TASK_MODES[mode] ? mode : 'once', due: mode === 'once' ? '' : due, priority: PRIO[fd.get('priority')] ? String(fd.get('priority')) : 'medium', link, tags: parseTags(fd.get('tags')), subTexts, person: personOk };
+  return { title, date, time, mode: TASK_MODES[mode] ? mode : 'once', due: mode === 'once' ? '' : due, priority: PRIO[fd.get('priority')] ? String(fd.get('priority')) : 'medium', link, tags: parseTags(fd.get('tags')), subTexts, persons, notes: noteIds };
 }
 /** Subtareas a partir del texto (una por línea): las que no cambiaron conservan si estaban hechas. */
 function mergeSubtasks(old, texts) {
@@ -112,7 +115,7 @@ function renderTasks() {
   tagSel.hidden = !tags.length;
   tagSel.innerHTML = `<option value="">Todas las etiquetas</option>` + tags.map(g => `<option value="${esc(g)}">#${esc(g)}</option>`).join('');
   tagSel.value = ui.taskTag;
-  const match = t => (hit(t.title, q) || hit(linkLabel(t.link), q) || hit(personName(t.person), q) || hit((t.tags || []).join(' '), q) || hit((t.subtasks || []).map(x => x.text).join(' '), q))
+  const match = t => (hit(t.title, q) || hit(linkLabel(t.link), q) || hit((t.persons || []).map(personName).join(' '), q) || hit((t.notes || []).map(id => { const f = noteById(id); return f ? noteLabel(f[1]) : ''; }).join(' '), q) || hit((t.tags || []).join(' '), q) || hit((t.subtasks || []).map(x => x.text).join(' '), q))
     && (!ui.taskTag || (t.tags || []).some(g => norm(g) === norm(ui.taskTag)));
   // Cada tarea se muestra en un día: las normales en su fecha, las de periodo en su inicio
   // (o en la fecha activa si se filtra por ella) y las que se repiten solo en la fecha activa.

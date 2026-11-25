@@ -30,7 +30,8 @@ function renderEditor() {
   $('#noteArea').value = e.content;
   renderListEditor();
   fillLinkSelect($('#noteLink'), e.link);
-  $('#notePerson').innerHTML = personOptions(e.person);
+  fillPicker($('#notePersons'), e.persons || []);
+  fillPicker($('#noteTasks'), e.tasks || []);
   $('#btnDelNote').hidden = !e.id;
   updateCount();
 }
@@ -45,8 +46,10 @@ function renderNoteRead(e) {
   $('#noteRead').innerHTML = `
     <div class="read-top"><h3 class="read-title">${e.pinned ? '📌 ' : ''}${e.type === 'list' ? '☑' : '📝'} ${esc(label)}</h3>
       <button class="btn btn-ghost btn-xs" data-action="pin-note" aria-pressed="${e.pinned}">${e.pinned ? 'Quitar de fijadas' : '📌 Fijar arriba'}</button></div>
-    <p class="muted small">${esc(cap(D.long(e.date)))}${lk ? ` · <span class="lk-mini">🔗 ${esc(lk)}</span>` : ''}${personName(e.person) ? ` · <button class="t-person" data-action="open-person" data-id="${esc(e.person)}">👤 ${esc(personName(e.person))}</button>` : ''}</p>
+    <p class="muted small">${esc(cap(D.long(e.date)))}${lk ? ` · <span class="lk-mini">🔗 ${esc(lk)}</span>` : ''}</p>
+    ${(e.persons || []).some(personName) ? `<div class="t-info">${e.persons.filter(personName).map(id => `<button class="t-person" data-action="open-person" data-id="${esc(id)}">👤 ${esc(personName(id))}</button>`).join('')}</div>` : ''}
     ${body}
+    ${(e.tasks || []).length ? `<h4 class="sub">Tareas vinculadas</h4><ul class="tasks">${state.tasks.filter(t => e.tasks.includes(t.id)).map(t => taskRow(t)).join('')}</ul>` : ''}
     <div class="editor-foot">
       <button class="btn btn-danger" data-action="del-note">Eliminar</button>
       <button class="btn btn-primary" data-action="edit-note">${ICON_EDIT} Editar</button>
@@ -65,7 +68,7 @@ function renderNotesList() {
   let entries = [];
   Object.entries(state.notes).forEach(([k, arr]) => arr.forEach(n => entries.push([k, n])));
   if (ui.noteScope === 'active') entries = entries.filter(([k]) => k === ui.active);
-  entries = entries.filter(([k, n]) => hit(noteText(n), q) || hit(D.long(k), q) || hit(linkLabel(n.link), q) || hit(personName(n.person), q))
+  entries = entries.filter(([k, n]) => hit(noteText(n), q) || hit(D.long(k), q) || hit(linkLabel(n.link), q) || hit((n.persons || []).map(personName).join(' '), q))
     .sort((a, b) => b[0].localeCompare(a[0]) || b[1].updatedAt.localeCompare(a[1].updatedAt));
 
   // Las fijadas van arriba, en su propio grupo
@@ -79,7 +82,7 @@ function renderNotesList() {
       ? `${n.items.filter(i => i.done).length}/${n.items.length} · ${n.items.slice(0, 3).map(i => i.text).join(', ')}`
       : n.content.trim().slice(0, 120);
     html += `<button class="note-item ${ui.notesMode === 'day' && ui.editor.id === n.id ? 'on' : ''}" data-action="open-note" data-key="${esc(k)}" data-id="${esc(n.id)}">
-      <b>${n.pinned ? '📌 ' : ''}${n.type === 'list' ? '☑' : '📝'} ${esc(noteLabel(n))}</b>${n.pinned ? `<small class="muted">${esc(D.short(k))}</small>` : ''}${prev ? `<span>${esc(prev)}</span>` : ''}${lk ? `<em class="lk-mini">🔗 ${esc(lk)}</em>` : ''}${personName(n.person) ? `<em class="lk-mini">👤 ${esc(personName(n.person))}</em>` : ''}</button>`;
+      <b>${n.pinned ? '📌 ' : ''}${n.type === 'list' ? '☑' : '📝'} ${esc(noteLabel(n))}</b>${n.pinned ? `<small class="muted">${esc(D.short(k))}</small>` : ''}${prev ? `<span>${esc(prev)}</span>` : ''}${lk ? `<em class="lk-mini">🔗 ${esc(lk)}</em>` : ''}${(n.persons || []).some(personName) ? `<em class="lk-mini">👤 ${esc(n.persons.map(personName).filter(Boolean).join(', '))}</em>` : ''}${state.tasks.some(t => (t.notes || []).includes(n.id)) ? `<em class="lk-mini">☑ ${plural(state.tasks.filter(t => (t.notes || []).includes(n.id)).length, 'tarea', 'tareas')}</em>` : ''}</button>`;
   });
   $('#notesList').innerHTML = html || `<p class="empty-note">${q ? 'Sin coincidencias.' : (ui.noteScope === 'active' ? 'No hay notas en la fecha activa.' : 'Aún no hay notas guardadas.')}</p>`;
 }
@@ -112,7 +115,14 @@ function saveNote() {
   else items = e.items.filter(i => i.text.trim()).map(i => ({ id: i.id, text: i.text.trim(), done: i.done }));
   if (!title && !content.trim() && !items.length) return toast('La nota está vacía: escribe algo para guardarla', 'error');
   if (!D.isValidKey(e.date)) return toast('Elige una fecha válida', 'error');
-  const note = { id: e.id || uid(), title, type: e.type, content, items, link: parseLink(e.link), updatedAt: new Date().toISOString(), pinned: !!e.pinned, person: state.birthdays.some(b => b.id === e.person) ? e.person : '' };
+  const note = { id: e.id || uid(), title, type: e.type, content, items, link: parseLink(e.link), updatedAt: new Date().toISOString(), pinned: !!e.pinned, persons: (e.persons || []).filter(id => state.birthdays.some(b => b.id === id)) };
+  // Tareas vinculadas: el vínculo se guarda en la tarea (tarea.notes); aquí se agrega o se quita según lo elegido
+  const want = new Set(e.tasks || []);
+  state.tasks.forEach(t => {
+    const has = (t.notes || []).includes(note.id);
+    if (want.has(t.id) && !has) t.notes = [...(t.notes || []), note.id];
+    if (!want.has(t.id) && has) t.notes = t.notes.filter(id => id !== note.id);
+  });
   Object.keys(state.notes).forEach(k => {                       // si cambió de fecha, la saca de la anterior
     state.notes[k] = state.notes[k].filter(n => n.id !== note.id);
     if (!state.notes[k].length) delete state.notes[k];

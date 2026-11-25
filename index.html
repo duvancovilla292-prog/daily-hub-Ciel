@@ -9,17 +9,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap" rel="stylesheet">
   <!-- ?v=… : al publicar cambios, sube este número en TODOS los archivos para que el navegador no use copias viejas -->
-  <link rel="stylesheet" href="css/fonts.css?v=20261124j">
-  <link rel="stylesheet" href="css/base.css?v=20261124j">
-  <link rel="stylesheet" href="css/layout.css?v=20261124j">
-  <link rel="stylesheet" href="css/calendar.css?v=20261124j">
-  <link rel="stylesheet" href="css/tasks.css?v=20261124j">
-  <link rel="stylesheet" href="css/notes.css?v=20261124j">
-  <link rel="stylesheet" href="css/schedule.css?v=20261124j">
-  <link rel="stylesheet" href="css/components.css?v=20261124j">
-  <link rel="stylesheet" href="css/admin.css?v=20261124j">
-  <link rel="stylesheet" href="css/today.css?v=20261124j">
-  <link rel="stylesheet" href="css/responsive.css?v=20261124j">
+  <link rel="stylesheet" href="css/fonts.css?v=20261125b">
+  <link rel="stylesheet" href="css/base.css?v=20261125b">
+  <link rel="stylesheet" href="css/layout.css?v=20261125b">
+  <link rel="stylesheet" href="css/calendar.css?v=20261125b">
+  <link rel="stylesheet" href="css/tasks.css?v=20261125b">
+  <link rel="stylesheet" href="css/notes.css?v=20261125b">
+  <link rel="stylesheet" href="css/schedule.css?v=20261125b">
+  <link rel="stylesheet" href="css/components.css?v=20261125b">
+  <link rel="stylesheet" href="css/admin.css?v=20261125b">
+  <link rel="stylesheet" href="css/today.css?v=20261125b">
+  <link rel="stylesheet" href="css/responsive.css?v=20261125b">
 </head>
 <body>
 <div class="app">
@@ -94,7 +94,15 @@
           </div>
           <div class="admin-tools locked" id="adminTools">
             <div class="lock-banner">🔒 Bloqueado · inicia sesión con Google para usar el panel</div>
-            <div class="dash" id="adminDash"></div>
+            <div class="seg dash-tabs" id="dashTabs" role="tablist" aria-label="Secciones del panel">
+              <button role="tab" data-action="dash-tab" data-v="summary" class="on">Resumen</button>
+              <button role="tab" data-action="dash-tab" data-v="tasks">Tareas</button>
+              <button role="tab" data-action="dash-tab" data-v="notes">Notas</button>
+              <button role="tab" data-action="dash-tab" data-v="dates">Fechas</button>
+              <button role="tab" data-action="dash-tab" data-v="sched">Horarios</button>
+              <button role="tab" data-action="dash-tab" data-v="cloud">Nube</button>
+            </div>
+            <div id="adminDash" class="dash-wrap"></div>
             <div class="admin-actions">
               <button class="btn" data-action="export" disabled>⬇ Descargar respaldo</button>
               <button class="btn" data-action="import" disabled>⬆ Cargar respaldo</button>
@@ -320,7 +328,8 @@
       </label>
       <label>Vincular al horario <select name="link" id="taskLink"></select></label>
     </div>
-    <label>Persona o fecha <select name="person" id="taskPerson"></select></label>
+    <div class="field"><span class="lbl">Personas o fechas</span><div class="picker" id="taskPersons" data-picker="persons" data-name="persons"></div></div>
+    <div class="field"><span class="lbl">Notas vinculadas</span><div class="picker" id="taskNotes" data-picker="notes" data-name="notes"></div></div>
     <p class="muted small mode-help" hidden></p>
     <details class="more-opts">
       <summary>Etiquetas y subtareas</summary>
@@ -401,8 +410,9 @@
     </div>
     <div class="row2">
       <label>Vincular al horario <select id="noteLink" data-change="note-link"></select></label>
-      <label>Persona o fecha <select id="notePerson" data-change="note-person"></select></label>
+      <div class="field"><span class="lbl">Personas o fechas</span><div class="picker" id="notePersons" data-picker="persons" data-name="persons"></div></div>
     </div>
+    <div class="field"><span class="lbl">Tareas vinculadas</span><div class="picker" id="noteTasks" data-picker="tasks" data-name="tasks"></div></div>
     <p id="noteCount" class="muted small"></p>
     <div class="editor-foot">
       <button class="btn btn-danger" id="btnDelNote" data-action="del-note" hidden>Eliminar</button>
@@ -416,22 +426,22 @@
 <div id="toasts" aria-live="polite"></div>
 <input type="file" id="importFile" accept=".json,application/json" hidden>
 
-<script src="js/core/utils.js?v=20261124j"></script>
-<script src="js/core/storage.js?v=20261124j"></script>
-<script src="js/core/state.js?v=20261124j"></script>
-<script src="js/core/calendar-engine.js?v=20261124j"></script>
-<script src="js/ui/feedback.js?v=20261124j"></script>
-<script src="js/ui/header.js?v=20261124j"></script>
-<script src="js/views/today.js?v=20261124j"></script>
-<script src="js/views/calendar.js?v=20261124j"></script>
-<script src="js/views/birthdays.js?v=20261124j"></script>
-<script src="js/views/tasks.js?v=20261124j"></script>
-<script src="js/views/notes.js?v=20261124j"></script>
-<script src="js/views/schedule.js?v=20261124j"></script>
-<script src="js/ui/router.js?v=20261124j"></script>
-<script src="js/ui/actions.js?v=20261124j"></script>
-<script src="js/ui/events.js?v=20261124j"></script>
-<script src="js/main.js?v=20261124j"></script>
-<script type="module" src="js/core/cloud.js?v=20261124j"></script>
+<script src="js/core/utils.js?v=20261125b"></script>
+<script src="js/core/storage.js?v=20261125b"></script>
+<script src="js/core/state.js?v=20261125b"></script>
+<script src="js/core/calendar-engine.js?v=20261125b"></script>
+<script src="js/ui/feedback.js?v=20261125b"></script>
+<script src="js/ui/header.js?v=20261125b"></script>
+<script src="js/views/today.js?v=20261125b"></script>
+<script src="js/views/calendar.js?v=20261125b"></script>
+<script src="js/views/birthdays.js?v=20261125b"></script>
+<script src="js/views/tasks.js?v=20261125b"></script>
+<script src="js/views/notes.js?v=20261125b"></script>
+<script src="js/views/schedule.js?v=20261125b"></script>
+<script src="js/ui/router.js?v=20261125b"></script>
+<script src="js/ui/actions.js?v=20261125b"></script>
+<script src="js/ui/events.js?v=20261125b"></script>
+<script src="js/main.js?v=20261125b"></script>
+<script type="module" src="js/core/cloud.js?v=20261125b"></script>
 </body>
 </html>

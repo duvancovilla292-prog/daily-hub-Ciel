@@ -5,11 +5,11 @@
 let state = Store.load();
 const t0 = D.today();
 
-const newEditor = date => ({ id: null, date, title: '', type: 'text', content: '', items: [], link: '', person: '', dirty: false, reading: false, pinned: false });
+const newEditor = date => ({ id: null, date, title: '', type: 'text', content: '', items: [], link: '', persons: [], tasks: [], dirty: false, reading: false, pinned: false });
 const linkValue = l => l ? l.sid + '|' + l.iid : '';
 const parseLink = v => { if (!v) return null; const [sid, iid] = String(v).split('|'); return sid && iid ? { sid, iid } : null; };
 // Una nota guardada se abre en modo lectura: solo se edita con el botón "Editar"
-const editorFrom = (n, date) => ({ id: n.id, date, title: n.title, type: n.type, content: n.content, items: clone(n.items), link: linkValue(n.link), person: n.person || '', dirty: false, reading: true, pinned: !!n.pinned });
+const editorFrom = (n, date) => ({ id: n.id, date, title: n.title, type: n.type, content: n.content, items: clone(n.items), link: linkValue(n.link), persons: (n.persons || []).slice(), tasks: state.tasks.filter(t => (t.notes || []).includes(n.id)).map(t => t.id), dirty: false, reading: true, pinned: !!n.pinned });
 
 const ui = {
   tab: 'today',                                       // la app abre en "Hoy"
@@ -34,6 +34,7 @@ const ui = {
   personOpen: null,
   personTab: 'todo',                                  // pestaña de la ficha: 'todo' (pendientes y regalos) | 'notes' (historial)                                   // ficha de persona abierta (id del cumpleaños)                                     // filtro de categoría en Cumpleaños
   adminOpen: false,
+  dashTab: 'summary',                                 // pestaña del panel de administración
   admin: false,                                       // true con sesión de Google iniciada
   adminEmail: ''
 };

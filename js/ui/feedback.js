@@ -10,6 +10,36 @@ function toast(msg, type = 'info') {
   setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 320); }, type === 'error' ? 5000 : 2600);
 }
 
+/* ===== Selector de varios (chips + "Agregar…") =====
+   kind: 'persons' (personas y fechas) | 'people' (solo personas) | 'notes' | 'tasks'. El valor vive en un input oculto (ids separados por coma). */
+function pickerOptions(kind, exclude) {
+  if (kind === 'notes') return Object.entries(state.notes).flatMap(([k, a]) => a.map(n => [k, n])).sort((x, y) => y[0].localeCompare(x[0]))
+    .filter(([, n]) => n.id !== exclude).map(([k, n]) => ({ value: n.id, label: `${n.type === 'list' ? '☑' : '📝'} ${noteLabel(n)} · ${D.short(k)}` }));
+  if (kind === 'tasks') return state.tasks.slice().sort((x, y) => (taskStatus(x) === 'done') - (taskStatus(y) === 'done') || x.date.localeCompare(y.date))
+    .map(t => ({ value: t.id, label: `${taskStatus(t) === 'done' ? '✓ ' : ''}${t.title} · ${D.short(t.date)}` }));
+  return state.birthdays.filter(b => b.id !== exclude && (kind !== 'people' || kindOf(b) === 'birthday'))
+    .sort((a, b) => norm(a.name).localeCompare(norm(b.name))).map(b => ({ value: b.id, label: `${kindIcon(b)} ${dateName(b)}` }));
+}
+function pickerInner(kind, name, selected, exclude) {
+  const opts = pickerOptions(kind, exclude), byId = new Map(opts.map(o => [o.value, o.label]));
+  const sel = (selected || []).filter(v => byId.has(v));
+  const ph = { persons: '+ Agregar persona o fecha…', people: '+ Agregar persona…', notes: '+ Vincular nota…', tasks: '+ Vincular tarea…' }[kind];
+  return `<input type="hidden" name="${name}" value="${esc(sel.join(','))}">
+    ${sel.length ? `<div class="picker-chips">${sel.map(v => `<span class="pchip">${esc(byId.get(v))}<button type="button" data-action="picker-del" data-v="${esc(v)}" aria-label="Quitar ${esc(byId.get(v))}">✕</button></span>`).join('')}</div>` : ''}
+    <select class="picker-add" data-change="picker-add" aria-label="${esc(ph)}"><option value="">${esc(ph)}</option>${opts.filter(o => !sel.includes(o.value)).map(o => `<option value="${esc(o.value)}">${esc(o.label)}</option>`).join('')}</select>`;
+}
+function pickerHtml(kind, name, selected, exclude) {
+  return `<div class="picker" data-picker="${kind}" data-name="${name}" ${exclude ? `data-exclude="${esc(exclude)}"` : ''}>${pickerInner(kind, name, selected, exclude)}</div>`;
+}
+/** Dibuja (o vuelve a dibujar) un selector que ya está en la página. */
+function fillPicker(el, selected) { el.innerHTML = pickerInner(el.dataset.picker, el.dataset.name, selected, el.dataset.exclude); }
+const pickerValues = el => (el.querySelector('input[type=hidden]').value || '').split(',').filter(Boolean);
+/** Cambió un selector: si es del editor de notas, actualiza el editor. */
+function pickerChanged(el) {
+  if (el.closest('#noteForm')) { ui.editor[el.dataset.name] = pickerValues(el); markDirty(); }
+  if (sheet && el.closest('#sheetRoot')) sheet.dirty = true;
+}
+
 /* ===== Menú ⋮ de una fila (Editar / Eliminar…) =====
    items: [{ label, action, id, icon, cls }] → botones con data-action, que se atienden como cualquier otro clic. */
 let menuBtn = null, menuAt = 0;

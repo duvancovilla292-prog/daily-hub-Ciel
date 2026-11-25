@@ -6,8 +6,12 @@
 
 const catName = id => state.birthdayCategories.find(c => c.id === id)?.name || '';
 /* Cada categoría tiene su color (según su posición; si hay más categorías que colores, se repiten). Sin categoría: gris. */
-const CAT_COLORS = ['#38bdf8', '#34d399', '#f59e0b', '#f472b6', '#a78bfa', '#2dd4bf', '#fb923c', '#60a5fa'];
-const catColor = id => { const i = state.birthdayCategories.findIndex(c => c.id === id); return i < 0 ? 'var(--muted)' : CAT_COLORS[i % CAT_COLORS.length]; };
+/* Paleta categórica validada (daltonismo, contraste y brillo) para el fondo oscuro y el claro; mismo orden en los dos. */
+const CAT_COLORS = {
+  dark: ['#338ced', '#e76624', '#00a888', '#d28e05', '#e24d8b', '#0aac23', '#9887ef', '#eb6263'],
+  light: ['#257de0', '#f47230', '#00b894', '#f2a600', '#ee7fac', '#008a17', '#6a4ce2', '#ec4647']
+};
+const catColor = id => { const i = state.birthdayCategories.findIndex(c => c.id === id); const pal = CAT_COLORS[state.settings.theme === 'light' ? 'light' : 'dark']; return i < 0 ? 'var(--muted)' : pal[i % pal.length]; };
 /** Opciones de categoría para un <select> (la primera es "Sin categoría"). */
 const catOptions = current => `<option value="">Sin categoría</option>` +
   state.birthdayCategories.map(c => `<option value="${esc(c.id)}" ${c.id === current ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
@@ -114,7 +118,7 @@ function ensureGiftTasks() {
       const due = new Date(nb.date); due.setDate(due.getDate() - days);
       const isB = kindOf(b) === 'birthday', name = dateName(b);
       state.tasks.push({ id: tid, title: isB ? `🎁 Regalo para ${name}` : `📅 Preparar: ${name}`, date: D.key(due < today ? today : due), time: '', completed: false,
-        priority: 'medium', link: null, mode: 'once', due: '', doneDates: [], tags: [isB ? 'regalo' : 'fecha'], subtasks: [], person: b.id });
+        priority: 'medium', link: null, mode: 'once', due: '', doneDates: [], tags: [isB ? 'regalo' : 'fecha'], subtasks: [], persons: [b.id], notes: [], doneAt: '' });
     }
     if (r === 'yearly') b.giftYears = [...(b.giftYears || []), y].sort();
     else b.giftDates = [...(b.giftDates || []), nb.key].sort().slice(-24);
@@ -136,6 +140,7 @@ function bdayFieldsHtml(b) {
       <label><span class="lbl-year">${DATE_KINDS[k].year}</span> <input name="year" type="number" min="1900" max="2100" placeholder="Opcional" value="${b && b.year ? b.year : ''}"></label>
     </div>
     <p class="muted small repeat-help" hidden></p>
+    <div class="field event-only" ${k === 'event' ? '' : 'hidden'}><span class="lbl">Personas vinculadas (opcional)</span>${pickerHtml('people', 'persons', b ? b.persons || [] : [], b ? b.id : '')}</div>
     <div class="row2 person-only" ${k === 'birthday' ? '' : 'hidden'}>
       <label>Apodo <input name="nick" maxlength="30" placeholder="Opcional (ej. Javi)" value="${esc(b ? b.nick || '' : '')}"></label>
       <label>Parentesco <input name="relation" maxlength="30" list="relList" placeholder="Opcional (ej. Primo)" value="${esc(b ? b.relation || '' : '')}"></label>
@@ -151,7 +156,7 @@ function syncBdayForm(f) {
   const kind = f.elements.kind.value, k = DATE_KINDS[kind] || DATE_KINDS.birthday, ev = kind === 'event', rep = f.elements.repeat.value;
   f.querySelector('.lbl-name').textContent = k.name;
   f.querySelector('.lbl-year').textContent = ev && rep !== 'yearly' ? 'Año en que empezó (necesario)' : k.year;
-  f.querySelector('.event-only').hidden = !ev;
+  f.querySelectorAll('.event-only').forEach(x => { x.hidden = !ev; });
   f.querySelector('.person-only').hidden = ev;
   f.elements.year.required = ev && rep !== 'yearly';
   const help = f.querySelector('.repeat-help');
@@ -175,7 +180,8 @@ function readBdayForm(f) {
   const cat = String(fd.get('category') || '');
   return { kind, repeat, name, day, month, year: yr, category: catName(cat) ? cat : null, tag: String(fd.get('tag') || '').trim().slice(0, 30),
     nick: kind === 'birthday' ? String(fd.get('nick') || '').trim().slice(0, 30) : '',
-    relation: kind === 'birthday' ? String(fd.get('relation') || '').trim().slice(0, 30) : '' };
+    relation: kind === 'birthday' ? String(fd.get('relation') || '').trim().slice(0, 30) : '',
+    persons: kind === 'event' ? String(fd.get('persons') || '').split(',').filter(id => state.birthdays.some(x => x.id === id && kindOf(x) === 'birthday')) : [] };
 }
 
 function bdayTags(b) {
@@ -207,10 +213,10 @@ function personHtml(b) {
   const when = nb.left === 0 ? '¡Hoy!' : nb.left === 1 ? 'Mañana' : `En ${nb.left} d`;
   const fact = (t, v) => `<div class="fact"><span>${t}</span><b>${v}</b></div>`;
   const unit = REPEATS[r];
-  const notes = Object.entries(state.notes).flatMap(([d, a]) => a.map(n => [d, n])).filter(([, n]) => n.person === b.id)
+  const notes = Object.entries(state.notes).flatMap(([d, a]) => a.map(n => [d, n])).filter(([, n]) => (n.persons || []).includes(b.id))
     .sort((x, y) => (y[1].updatedAt || '').localeCompare(x[1].updatedAt || ''));
   const gift = notes.find(([, n]) => /^ideas de regalo/i.test(n.title) && n.type === 'list');
-  const tasks = state.tasks.filter(t => t.person === b.id).sort((x, y) => (taskStatus(x) === 'done') - (taskStatus(y) === 'done') || x.date.localeCompare(y.date));
+  const tasks = state.tasks.filter(t => (t.persons || []).includes(b.id)).sort((x, y) => (taskStatus(x) === 'done') - (taskStatus(y) === 'done') || x.date.localeCompare(y.date));
   const pend = tasks.filter(t => taskStatus(t) !== 'done').length;
   const tab = ui.personTab === 'notes' ? 'notes' : 'todo';
   const ideas = gift ? gift[1].items : [];
@@ -241,6 +247,10 @@ function personHtml(b) {
         ${b.category || b.tag || pet ? `<div class="bday-tags">${bdayTags(b)}${pet ? '<span class="bt tag">🐾 Mascota</span>' : ''}</div>` : ''}</div>
       <span class="countdown">${when}</span>
     </div>
+    ${(() => {
+      const links = isB ? state.birthdays.filter(x => (x.persons || []).includes(b.id)) : state.birthdays.filter(x => (b.persons || []).includes(x.id));
+      return links.length ? `<div class="t-info person-links"><span class="muted small">${isB ? 'Fechas:' : 'Personas:'}</span>${links.map(x => `<button class="t-person" data-action="open-person" data-id="${esc(x.id)}">${kindIcon(x)} ${esc(dateName(x))}</button>`).join('')}</div>` : '';
+    })()}
     <div class="person-facts">
       ${nb.turns ? fact(isB ? (nb.left === 0 ? 'Cumple hoy' : 'Cumplirá') : (nb.left === 0 ? 'Hoy cumplen' : 'Cumplirán'), plural(nb.turns, isB ? 'año' : unit.one, isB ? 'años' : unit.many)) : ''}
       ${isB && b.year && nb.turns && nb.left !== 0 ? fact('Edad', plural(nb.turns - 1, 'año', 'años')) : ''}

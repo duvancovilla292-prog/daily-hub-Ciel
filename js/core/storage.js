@@ -4,7 +4,7 @@
 
 const defaultState = () => ({
   meta: { version: '1.5', lastUpdated: new Date().toISOString() },
-  tasks: [],            // { id, title, date, time:''|HH:MM, completed, priority, link:{sid,iid}|null, mode:'once'|'span'|'repeat', due:''|fecha límite, doneDates:[días hechos si se repite], tags:[], subtasks:[{id,text,done}] }
+  tasks: [],            // { id, title, date, time, completed, doneAt, priority, link:{sid,iid}|null, mode:'once'|'span'|'repeat', due, doneDates, tags, subtasks, persons:[ids], notes:[ids] }
   notes: {},            // { "YYYY-MM-DD": [ { id, title, type:'text'|'list', content, items:[{id,text,done}], link, updatedAt } ] }
   birthdays: [],         // fechas importantes: { id, kind:'birthday'|'event', repeat:'yearly'|'monthly'|'weekly', name, month, day, year|null, category, tag, nick, relation, remind, giftYears, giftDates }
   birthdayCategories: [],   // { id, name } — las crea el administrador
@@ -17,6 +17,8 @@ const defaultState = () => ({
 /* Los ids solo pueden tener letras, números, "_" y "-": se usan en atributos HTML y como nombre de documento en la nube */
 const ID_RE = /^[\w-]{1,64}$/;
 const validId = v => typeof v === 'string' && ID_RE.test(v);
+/** Lista de ids (sin repetir ni inválidos). Acepta también el formato anterior de un solo id. */
+const idList = (arr, one) => [...new Set([...(Array.isArray(arr) ? arr : []), one].filter(validId))].slice(0, 50);
 const normLink = l => (l && validId(l.sid) && validId(l.iid)) ? { sid: l.sid, iid: l.iid } : null;
 
 const Store = {
@@ -72,7 +74,10 @@ const Store = {
       const subtasks = (Array.isArray(t.subtasks) ? t.subtasks : []).filter(x => x && typeof x.text === 'string' && x.text.trim()).slice(0, 30)
         .map(x => ({ id: cid(x.id), text: x.text.trim().slice(0, 100), done: !!x.done }));
       out.tasks.push({ id: cid(t.id), title: t.title.trim(), date: t.date, completed: !!t.completed, priority: PRIO[t.priority] ? t.priority : 'medium', link: normLink(t.link), mode, due: mode === 'once' ? '' : due, doneDates,
-        time: TIME_RE.test(t.time || '') ? t.time : '', tags: parseTags(t.tags), subtasks, person: validId(t.person) ? t.person : '' });
+        time: TIME_RE.test(t.time || '') ? t.time : '', tags: parseTags(t.tags), subtasks,
+        persons: idList(t.persons, t.person),          // personas o fechas vinculadas (varias)
+        notes: idList(t.notes),                         // notas vinculadas (varias)
+        doneAt: typeof t.doneAt === 'string' && !isNaN(Date.parse(t.doneAt)) ? t.doneAt : '' });
     });
 
     const readNote = (n, key) => {
@@ -82,7 +87,7 @@ const Store = {
       const items = Array.isArray(n.items) ? n.items.filter(i => i && typeof i.text === 'string' && i.text.trim()).map(i => ({ id: cid(i.id), text: i.text.trim(), done: !!i.done })) : [];
       const title = typeof n.title === 'string' ? n.title.trim().slice(0, 80) : '';
       if (!title && !content.trim() && !items.length) return null;
-      return { id: cid(n.id), title, type: n.type === 'list' ? 'list' : 'text', content, items, link: normLink(n.link), updatedAt: typeof n.updatedAt === 'string' ? n.updatedAt : nowIso, pinned: !!n.pinned, person: validId(n.person) ? n.person : '' };
+      return { id: cid(n.id), title, type: n.type === 'list' ? 'list' : 'text', content, items, link: normLink(n.link), updatedAt: typeof n.updatedAt === 'string' ? n.updatedAt : nowIso, pinned: !!n.pinned, persons: idList(n.persons, n.person) };
     };
     Object.entries(raw.notes || {}).forEach(([k, v]) => {
       if (!D.isValidKey(k)) return bad(`hay una nota con fecha inválida ("${k}")`);
@@ -119,7 +124,8 @@ const Store = {
         relation: typeof b.relation === 'string' ? b.relation.trim().slice(0, 30) : '',
         remind: Number.isInteger(+b.remind) && +b.remind >= 1 && +b.remind <= 60 ? +b.remind : 0,          // días antes para la tarea (0 = no)
         giftYears: Array.isArray(b.giftYears) ? [...new Set(b.giftYears.map(Number).filter(n => Number.isInteger(n) && n > 1900 && n < 2200))].sort() : [],
-        giftDates: Array.isArray(b.giftDates) ? [...new Set(b.giftDates.filter(D.isValidKey))].sort().slice(-24) : [] });
+        giftDates: Array.isArray(b.giftDates) ? [...new Set(b.giftDates.filter(D.isValidKey))].sort().slice(-24) : [],
+        persons: kind === 'event' ? idList(b.persons) : [] });          // otras fechas: personas vinculadas (ej. aniversario ↔ la pareja)
     });
 
     (raw.schedules || []).forEach((s, i) => {
@@ -174,10 +180,11 @@ const Store = {
     out.tasks.forEach(t => { t.link = ok(t.link); if (t.mode === 'repeat' && !t.link) { t.mode = 'once'; t.due = ''; t.doneDates = []; } });
     Object.values(out.notes).forEach(arr => arr.forEach(n => { n.link = ok(n.link); }));
     // Vínculos a personas (cumpleaños)
-    const pIds = new Set(out.birthdays.map(b => b.id));
-    const okP = p => p && (opts.keepLinks || pIds.has(p)) ? p : '';
-    out.tasks.forEach(t => { t.person = okP(t.person); });
-    Object.values(out.notes).forEach(arr => arr.forEach(n => { n.person = okP(n.person); }));
+    const pIds = new Set(out.birthdays.map(b => b.id)), nIds = new Set(Object.values(out.notes).flat().map(n => n.id));
+    const okP = list => opts.keepLinks ? list : list.filter(p => pIds.has(p));
+    out.tasks.forEach(t => { t.persons = okP(t.persons); t.notes = opts.keepLinks ? t.notes : t.notes.filter(id => nIds.has(id)); });
+    Object.values(out.notes).forEach(arr => arr.forEach(n => { n.persons = okP(n.persons); }));
+    out.birthdays.forEach(b => { b.persons = okP(b.persons).filter(p => p !== b.id); });
     return out;
   },
 
@@ -193,7 +200,7 @@ const Store = {
       birthdays: s.birthdays.length, cats: s.birthdayCategories.length,
       schedules: s.schedules.length, daily: count('daily'), weekly: count('weekly'), monthly: count('monthly'),
       items: s.schedules.reduce((a, x) => a + x.items.length, 0),
-      links: s.tasks.filter(t => t.link).length + notes.filter(n => n.link).length,
+      links: s.tasks.reduce((a, t) => a + (t.link ? 1 : 0) + (t.persons || []).length + (t.notes || []).length, 0) + notes.reduce((a, n) => a + (n.link ? 1 : 0) + (n.persons || []).length, 0) + s.birthdays.reduce((a, b) => a + (b.persons || []).length, 0),
       bytes: new Blob([JSON.stringify(s)]).size,
       updated: s.meta.lastUpdated
     };
@@ -253,26 +260,29 @@ const Store = {
       const nb = { ...b, id: freeId(b.id), category: b.category ? catMap[b.category] || null : null };
       out.birthdays.push(nb); bMap[b.id] = nb.id; rep.birthdays.add++;
     });
-    const relinkP = p => p ? (bMap[p] || (out.birthdays.some(x => x.id === p) ? p : '')) : '';
+    const relinkP = list => [...new Set((list || []).map(p => bMap[p] || p).filter(p => out.birthdays.some(x => x.id === p)))];
+    out.birthdays.forEach(b => { if (b.persons && b.persons.length) b.persons = relinkP(b.persons).filter(p => p !== b.id); });
 
-    /* 3) Tareas */
-    const tSig = t => norm(t.title) + '|' + t.date;
-    const haveT = new Set(out.tasks.map(tSig));
-    inc.tasks.forEach(t => {
-      if (haveT.has(tSig(t))) { rep.tasks.skip++; return; }
-      out.tasks.push({ ...t, id: freeId(t.id), link: relink(t.link), person: relinkP(t.person) }); haveT.add(tSig(t)); rep.tasks.add++;
-    });
-
-    /* 4) Notas (por fecha) */
+    /* 3) Notas (por fecha) */
+    const nMap = {};                                            // idViejo -> id de la nota en el resultado
     const nSig = n => JSON.stringify([n.title.trim(), n.type, n.content.trim(), n.items.map(i => i.text)]);
     Object.entries(inc.notes).forEach(([k, arr]) => {
       const list = out.notes[k] = out.notes[k] || [];
       const have = new Set(list.map(nSig));
       arr.forEach(n => {
-        if (have.has(nSig(n))) { rep.notes.skip++; return; }
-        list.push({ ...clone(n), id: freeId(n.id), link: relink(n.link), person: relinkP(n.person) }); have.add(nSig(n)); rep.notes.add++;
+        if (have.has(nSig(n))) { rep.notes.skip++; nMap[n.id] = list.find(x => nSig(x) === nSig(n)).id; return; }
+        const nn = { ...clone(n), id: freeId(n.id), link: relink(n.link), persons: relinkP(n.persons) };
+        list.push(nn); nMap[n.id] = nn.id; have.add(nSig(n)); rep.notes.add++;
       });
       if (!list.length) delete out.notes[k];
+    });
+
+    /* 4) Tareas */
+    const tSig = t => norm(t.title) + '|' + t.date;
+    const haveT = new Set(out.tasks.map(tSig));
+    inc.tasks.forEach(t => {
+      if (haveT.has(tSig(t))) { rep.tasks.skip++; return; }
+      out.tasks.push({ ...t, id: freeId(t.id), link: relink(t.link), persons: relinkP(t.persons), notes: (t.notes || []).map(id => nMap[id] || id).filter(id => Object.values(out.notes).flat().some(n => n.id === id)) }); haveT.add(tSig(t)); rep.tasks.add++;
     });
 
     /* 5) Bloc rápido */

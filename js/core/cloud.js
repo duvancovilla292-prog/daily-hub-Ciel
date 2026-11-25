@@ -340,7 +340,7 @@ async function openPanel() {
   if (v === 'out') signOut();
 }
 
-window.Cloud = { open: openPanel, signIn };
+window.Cloud = { open: openPanel, signIn, info: () => ({ status, label: LABEL[status], pending: pendingN(), email: user ? user.email || '' : '', confirmed: rec.confirmed }) };
 window.addEventListener('online', () => { if (user) { setStatus('syncing'); flush(); } });
 window.addEventListener('offline', () => { if (user && pendingN()) setStatus('offline'); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && timer) flush(); });

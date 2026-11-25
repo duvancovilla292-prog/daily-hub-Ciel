@@ -28,6 +28,29 @@ body.no-scroll { overflow: hidden; }
 .tile.wide { grid-column: 1 / -1; gap: 8px; }
 .admin-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
+/* Pestañas del panel y gráficas */
+.dash-tabs { flex-wrap: wrap; max-width: 100%; }
+.dash-tabs button { font-size: .8rem; padding: 6px 10px; }
+.dash-tabs button:disabled { opacity: .5; }
+.dash-wrap { display: flex; flex-direction: column; gap: 14px; }
+.tile.warn b { background: none; -webkit-background-clip: initial; background-clip: initial; color: var(--task); }
+:root { --bar: #338ced; }
+[data-theme="light"] { --bar: #257de0; }
+.chart { background: var(--card2); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+.chart h4 { margin: 0 0 10px; font-size: .82rem; font-weight: 600; color: var(--text); }
+.bars { display: flex; flex-direction: column; gap: 6px; }
+.bar-row { display: grid; grid-template-columns: minmax(90px, 38%) 1fr auto; align-items: center; gap: 10px; font-size: .8rem; }
+.bar-row .bl { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-row .track { height: 10px; border-radius: 4px; background: color-mix(in srgb, var(--text) 7%, transparent); overflow: hidden; }
+.bar-row .track i { display: block; height: 100%; border-radius: 0 4px 4px 0; background: var(--bar); }
+.bar-row b { min-width: 2ch; text-align: right; font-variant-numeric: tabular-nums; color: var(--text); }
+.cols { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; align-items: end; height: 130px; }
+.col { display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; min-width: 0; }
+.col b { font-size: .72rem; min-height: 1em; color: var(--text); font-variant-numeric: tabular-nums; }
+.col .ctrack { flex: 1; width: 100%; max-width: 34px; display: flex; align-items: flex-end; }
+.col .ctrack i { display: block; width: 100%; border-radius: 4px 4px 0 0; background: var(--bar); }
+.col small { font-size: .68rem; color: var(--muted); white-space: nowrap; }
+
 /* Categorías de cumpleaños */
 .cat-admin { border-top: 1px solid var(--line); padding-top: 14px; }
 .cat-admin h3 { font-size: .95rem; margin-bottom: 8px; }
