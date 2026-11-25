@@ -323,10 +323,12 @@ function renderBirthdays() {
     .filter(b => ui.bdayKind === 'all' || kindOf(b) === ui.bdayKind)
     .filter(b => ui.bdayCat === 'all' || (ui.bdayCat === 'none' ? !b.category : b.category === ui.bdayCat))
     .filter(b => hit(b.name, q) || hit(catName(b.category), q) || hit(b.tag, q) || hit(b.relation || '', q) || hit(b.nick || '', q))
+    .filter(b => { const w = norm(ui.bdayQ || '').split(/\s+/).filter(Boolean); if (!w.length) return true; const t = norm([b.name, dateName(b), b.nick, b.relation, catName(b.category), b.tag].filter(Boolean).join(' ')); return w.every(x => t.includes(x)); })
     .map(b => ({ b, ...nextBday(b) })).sort((a, b) => a.left - b.left);
 
   $('#bdayCount').textContent = list.length ? `(${list.length})` : '';
   $('#bdayList').innerHTML = list.length ? list.map(bdayRow).join('') : `<p class="empty-note">${q || ui.bdayCat !== 'all' || ui.bdayKind !== 'all' ? 'Sin coincidencias.' : 'Aún no hay fechas guardadas.'}</p>`;
+  if (ui.bdayQ && !list.length) $('#bdayList').innerHTML = `<p class="empty-note">Nadie coincide con “${esc(ui.bdayQ)}”.</p>`;
 }
 
 /** Fila: avatar (iniciales con el color de su categoría, o el ícono de la fecha), nombre, parentesco, cuándo, etiquetas, cuenta regresiva y menú ⋮.

@@ -57,7 +57,6 @@ function renderNoteRead(e) {
 }
 
 function renderListEditor() {
-  $('#liPerson').innerHTML = addPersonOptions('+ Agregar persona a la lista…');
   $('#liRows').innerHTML = ui.editor.items.map((it, i) => `
     <div class="li"><label class="check"><input type="checkbox" data-change="li-done" data-i="${i}" ${it.done ? 'checked' : ''} aria-label="Hecho"><span class="box"></span></label>
     ${it.person && personName(it.person) ? '<span class="li-person" title="Vinculado a su ficha">👤</span>' : ''}<input class="li-text" data-i="${i}" value="${esc(it.text)}" maxlength="120" placeholder="Ítem…">

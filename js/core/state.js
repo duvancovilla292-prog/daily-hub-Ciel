@@ -30,7 +30,8 @@ const ui = {
   anchors: {},                                        // fecha que muestra cada horario
   panelMode: {},                                      // apartados de Tareas/Notas de cada horario: 'all' | 'linked'
   bdayCat: 'all',
-  bdayKind: 'all',                                    // filtro por tipo de fecha
+  bdayKind: 'all',
+  bdayQ: '',                                          // búsqueda dentro de Fechas                                    // filtro por tipo de fecha
   personOpen: null,
   personTab: 'todo',                                  // pestaña de la ficha: 'todo' (pendientes y regalos) | 'notes' (historial)                                   // ficha de persona abierta (id del cumpleaños)                                     // filtro de categoría en Cumpleaños
   adminOpen: false,

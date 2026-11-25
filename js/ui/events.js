@@ -34,22 +34,7 @@ const changes = {
   'note-scope': el => { ui.noteScope = el.value; renderNotesList(); },
   'note-date': el => { if (D.isValidKey(el.value)) { ui.editor.date = el.value; markDirty(); } },
   'note-link': el => { ui.editor.link = el.value; markDirty(); },
-  /* Personas como subtarea o como ítem de lista */
-  'sub-add-person': el => {
-    const b = state.birthdays.find(x => x.id === el.value); el.value = ''; if (!b) return;
-    const ta = el.closest('form').elements.subtasks;
-    ta.value = (ta.value.trim() ? ta.value.replace(/\s*$/, '') + '\n' : '') + dateName(b);
-    if (sheet && el.closest('#sheetRoot')) sheet.dirty = true;
-  },
-  'li-add-person': el => {
-    const b = state.birthdays.find(x => x.id === el.value); el.value = ''; if (!b) return;
-    const e = ui.editor;
-    e.items = e.items.filter(i => i.text.trim());                         // quita el renglón vacío si lo hay
-    e.items.push({ id: uid(), text: dateName(b), done: false, person: b.id });
-    markDirty(); renderListEditor(); updateCount();
-  },
   'bday-kind': el => syncBdayForm(el.closest('form')),
-  'picker-add': el => { const p = el.closest('.picker'); if (!el.value) return; fillPicker(p, [...pickerValues(p), el.value]); pickerChanged(p); },
   'gift-item': el => {
     const n = Object.values(state.notes).flat().find(x => x.id === el.dataset.note); if (!n) return;
     const it = n.items.find(i => i.id === el.dataset.item); if (!it) return;
@@ -91,6 +76,7 @@ document.addEventListener('input', e => {
   else if (t.classList && t.classList.contains('li-text')) { ui.editor.items[+t.dataset.i].text = t.value; markDirty(); updateCount(); }
 });
 
+$('#bdayQ').addEventListener('input', e => { ui.bdayQ = e.target.value.trim(); renderBirthdays(); });
 $('#searchInput').addEventListener('input', e => {
   ui.queryRaw = e.target.value.trim();
   ui.query = norm(ui.queryRaw);

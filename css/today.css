@@ -125,7 +125,6 @@
   background: color-mix(in srgb, var(--accent) 14%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); overflow-wrap: anywhere; }
 .pchip button { border: 0; background: transparent; color: var(--muted); width: 22px; height: 22px; border-radius: 50%; flex: none; }
 .pchip button:hover { color: var(--danger); background: var(--card2); }
-.picker-add { color: var(--muted); }
 .t-note { border: 1px solid color-mix(in srgb, var(--mint) 45%, transparent); background: transparent; color: var(--mint); font-size: .7rem; padding: 1px 7px; border-radius: 99px; cursor: pointer; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .t-note:hover { background: color-mix(in srgb, var(--mint) 14%, transparent); }
 .person-links { margin-top: -4px; }
@@ -134,5 +133,17 @@
 .li-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .li-tools select { flex: 1 1 200px; min-width: 0; color: var(--muted); }
 .li-person { flex: none; font-size: .9rem; }
-.sub-person { color: var(--muted); }
 .read-list .t-person, .t-sublist .t-person { font-size: .85rem; padding: 1px 9px; }
+
+/* Buscador con sugerencias */
+.combo { position: relative; }
+.combo-input { width: 100%; }
+.combo-list { position: absolute; z-index: 5; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px; list-style: none; max-height: 280px; overflow-y: auto;
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+.combo-list button { width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; text-align: left; border: 0; background: transparent; color: var(--text);
+  padding: 8px 10px; border-radius: 8px; font-size: .88rem; }
+.combo-list button small { color: var(--muted); font-size: .72rem; }
+.combo-list button:hover, .combo-list button.on { background: color-mix(in srgb, var(--accent) 16%, var(--card2)); }
+.combo-more { padding: 8px 10px; font-size: .78rem; color: var(--muted); }
+.li-tools .combo { flex: 1 1 220px; min-width: 0; }
+.bday-search { margin: 0 0 10px; width: 100%; }

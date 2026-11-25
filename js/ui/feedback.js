@@ -14,11 +14,13 @@ function toast(msg, type = 'info') {
    kind: 'persons' (personas y fechas) | 'people' (solo personas) | 'notes' | 'tasks'. El valor vive en un input oculto (ids separados por coma). */
 function pickerOptions(kind, exclude) {
   if (kind === 'notes') return Object.entries(state.notes).flatMap(([k, a]) => a.map(n => [k, n])).sort((x, y) => y[0].localeCompare(x[0]))
-    .filter(([, n]) => n.id !== exclude).map(([k, n]) => ({ value: n.id, label: `${n.type === 'list' ? '☑' : '📝'} ${noteLabel(n)} · ${D.short(k)}` }));
+    .filter(([, n]) => n.id !== exclude).map(([k, n]) => ({ value: n.id, label: `${n.type === 'list' ? '☑' : '📝'} ${noteLabel(n)} · ${D.short(k)}`, find: noteText(n) + ' ' + D.long(k) }));
   if (kind === 'tasks') return state.tasks.slice().sort((x, y) => (taskStatus(x) === 'done') - (taskStatus(y) === 'done') || x.date.localeCompare(y.date))
-    .map(t => ({ value: t.id, label: `${taskStatus(t) === 'done' ? '✓ ' : ''}${t.title} · ${D.short(t.date)}` }));
+    .map(t => ({ value: t.id, label: `${taskStatus(t) === 'done' ? '✓ ' : ''}${t.title} · ${D.short(t.date)}`, find: t.title + ' ' + (t.tags || []).join(' ') }));
   return state.birthdays.filter(b => b.id !== exclude && (kind !== 'people' || kindOf(b) === 'birthday'))
-    .sort((a, b) => norm(a.name).localeCompare(norm(b.name))).map(b => ({ value: b.id, label: `${kindIcon(b)} ${dateName(b)}` }));
+    .sort((a, b) => norm(a.name).localeCompare(norm(b.name)))
+    .map(b => ({ value: b.id, label: `${kindIcon(b)} ${dateName(b)}`, sub: [b.relation, b.nick ? `“${b.nick}”` : '', catName(b.category)].filter(Boolean).join(' · '),
+      find: [b.name, dateName(b), b.nick, b.relation, catName(b.category), b.tag].filter(Boolean).join(' ') }));
 }
 function pickerInner(kind, name, selected, exclude) {
   const opts = pickerOptions(kind, exclude), byId = new Map(opts.map(o => [o.value, o.label]));
@@ -26,7 +28,7 @@ function pickerInner(kind, name, selected, exclude) {
   const ph = { persons: '+ Agregar persona o fecha…', people: '+ Agregar persona…', notes: '+ Vincular nota…', tasks: '+ Vincular tarea…' }[kind];
   return `<input type="hidden" name="${name}" value="${esc(sel.join(','))}">
     ${sel.length ? `<div class="picker-chips">${sel.map(v => `<span class="pchip">${esc(byId.get(v))}<button type="button" data-action="picker-del" data-v="${esc(v)}" aria-label="Quitar ${esc(byId.get(v))}">✕</button></span>`).join('')}</div>` : ''}
-    <select class="picker-add" data-change="picker-add" aria-label="${esc(ph)}"><option value="">${esc(ph)}</option>${opts.filter(o => !sel.includes(o.value)).map(o => `<option value="${esc(o.value)}">${esc(o.label)}</option>`).join('')}</select>`;
+    ${comboHtml(kind, 'picker', ph)}`;
 }
 function pickerHtml(kind, name, selected, exclude) {
   return `<div class="picker" data-picker="${kind}" data-name="${name}" ${exclude ? `data-exclude="${esc(exclude)}"` : ''}>${pickerInner(kind, name, selected, exclude)}</div>`;
@@ -39,6 +41,79 @@ function pickerChanged(el) {
   if (el.closest('#noteForm')) { ui.editor[el.dataset.name] = pickerValues(el); markDirty(); }
   if (sheet && el.closest('#sheetRoot')) sheet.dirty = true;
 }
+
+/* ===== Buscador con sugerencias =====
+   Un campo donde se escribe y aparecen las coincidencias (sin importar tildes ni mayúsculas; busca en nombre, apodo,
+   parentesco, categoría y etiqueta). Se elige tocando, o con ↑ ↓ y Enter. `target` dice qué hacer al elegir:
+   'picker' (agrega un chip), 'li' (agrega la persona como ítem de la lista), 'sub' (la agrega como subtarea). */
+const comboHtml = (kind, target, ph) => `<div class="combo" data-kind="${kind}" data-target="${target}">
+  <input type="search" class="combo-input" placeholder="${esc(ph)}" aria-label="${esc(ph)}" autocomplete="off" enterkeyhint="done" aria-expanded="false">
+  <ul class="combo-list" role="listbox" hidden></ul></div>`;
+function comboOptions(box) {
+  const p = box.closest('.picker'), taken = p ? pickerValues(p) : [];
+  const q = norm(box.querySelector('.combo-input').value.trim());
+  const all = pickerOptions(box.dataset.kind, p ? p.dataset.exclude : '').filter(o => !taken.includes(o.value));
+  const words = q.split(/\s+/).filter(Boolean);
+  const found = words.length ? all.filter(o => { const t = norm(o.find || o.label); return words.every(w => t.includes(w)); }) : all;
+  // primero los que empiezan por lo escrito
+  if (q) found.sort((a, b) => (norm(b.label).replace(/^\W+/, '').startsWith(q) ? 1 : 0) - (norm(a.label).replace(/^\W+/, '').startsWith(q) ? 1 : 0));
+  return { list: found.slice(0, 8), total: found.length, q };
+}
+function renderCombo(box) {
+  const ul = box.querySelector('.combo-list'), inp = box.querySelector('.combo-input');
+  const { list, total, q } = comboOptions(box);
+  box.dataset.active = '0';
+  ul.innerHTML = list.length
+    ? list.map((o, i) => `<li><button type="button" role="option" class="${i === 0 ? 'on' : ''}" data-action="combo-pick" data-v="${esc(o.value)}"><span>${esc(o.label)}</span>${o.sub ? `<small>${esc(o.sub)}</small>` : ''}</button></li>`).join('') +
+      (total > list.length ? `<li class="combo-more">${total - list.length} más… sigue escribiendo para afinar</li>` : '')
+    : `<li class="combo-more">${q ? 'Sin coincidencias' : 'No hay nada para elegir'}</li>`;
+  ul.hidden = false; inp.setAttribute('aria-expanded', 'true');
+}
+function closeCombos(except) {
+  $$('.combo').forEach(b => { if (b !== except) { const ul = b.querySelector('.combo-list'); if (ul) ul.hidden = true; b.querySelector('.combo-input')?.setAttribute('aria-expanded', 'false'); } });
+}
+/** Se eligió una opción del buscador. */
+function comboPick(box, value) {
+  const target = box.dataset.target;
+  if (target === 'picker') {
+    const p = box.closest('.picker');
+    fillPicker(p, [...pickerValues(p), value]);
+    pickerChanged(p);
+    const again = p.querySelector('.combo-input');
+    if (again) { again.dataset.quiet = '1'; again.focus(); delete again.dataset.quiet; }   // listo para seguir escribiendo, sin tapar el resto
+    return;
+  }
+  const b = state.birthdays.find(x => x.id === value); if (!b) return;
+  if (target === 'sub') {
+    const ta = box.closest('form').elements.subtasks;
+    ta.value = (ta.value.trim() ? ta.value.replace(/\s*$/, '') + '\n' : '') + dateName(b);
+    if (sheet && box.closest('#sheetRoot')) sheet.dirty = true;
+  } else if (target === 'li') {
+    const e = ui.editor;
+    e.items = e.items.filter(i => i.text.trim());                         // quita el renglón vacío si lo hay
+    e.items.push({ id: uid(), text: dateName(b), done: false, person: b.id });
+    markDirty(); renderListEditor(); updateCount();
+  }
+  const inp = box.querySelector('.combo-input'); inp.value = ''; closeCombos(); inp.dataset.quiet = '1'; inp.focus(); delete inp.dataset.quiet;
+}
+document.addEventListener('input', e => { const box = e.target.closest && e.target.closest('.combo'); if (box && e.target.classList.contains('combo-input')) renderCombo(box); });
+document.addEventListener('focusin', e => { const box = e.target.closest && e.target.closest('.combo'); if (box && e.target.classList.contains('combo-input') && !e.target.dataset.quiet) { closeCombos(box); renderCombo(box); } });
+document.addEventListener('pointerdown', e => { if (!(e.target.closest && e.target.closest('.combo'))) closeCombos(); }, true);
+document.addEventListener('keydown', e => {
+  const inp = e.target; if (!inp.classList || !inp.classList.contains('combo-input')) return;
+  const box = inp.closest('.combo'), btns = $$('.combo-list button', box);
+  let i = +box.dataset.active || 0;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault(); if (box.querySelector('.combo-list').hidden) renderCombo(box);
+    i = Math.max(0, Math.min(btns.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)));
+    btns.forEach((b, j) => b.classList.toggle('on', j === i)); box.dataset.active = String(i); btns[i]?.scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter') {
+    e.preventDefault(); e.stopPropagation();                  // no enviar el formulario
+    if (btns[i]) comboPick(box, btns[i].dataset.v);
+  } else if (e.key === 'Escape' && !box.querySelector('.combo-list').hidden) {
+    e.preventDefault(); e.stopPropagation(); closeCombos();
+  }
+}, true);
 
 /* ===== Menú ⋮ de una fila (Editar / Eliminar…) =====
    items: [{ label, action, id, icon, cls }] → botones con data-action, que se atienden como cualquier otro clic. */

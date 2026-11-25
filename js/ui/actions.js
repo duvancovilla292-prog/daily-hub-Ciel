@@ -79,7 +79,7 @@ const actions = {
         <p class="muted small mode-help" hidden></p>
         <label>Etiquetas <input name="tags" maxlength="160" placeholder="casa, campus (opcional)" value="${esc((t.tags || []).join(', '))}"></label>
         <label>Subtareas <textarea name="subtasks" rows="3" placeholder="Una por línea (opcional)">${esc((t.subtasks || []).map(x => x.text).join('\n'))}</textarea></label>
-        <select class="sub-person" data-change="sub-add-person" aria-label="Agregar una persona como subtarea">${addPersonOptions('+ Agregar persona como subtarea…')}</select>`,
+        ${comboHtml('people', 'sub', '+ Agregar persona como subtarea…')}`,
       submit: 'Guardar cambios',
       check: form => { const r = readTaskForm(form); if (typeof r === 'string') return r; data = r; return true; }
     });
@@ -263,7 +263,6 @@ const actions = {
     fillLinkSelect($('#taskLink'), '');
     fillPicker($('#taskPersons'), el.dataset.person ? [el.dataset.person] : []);
     fillPicker($('#taskNotes'), el.dataset.note ? [el.dataset.note] : []);
-    $('form[data-form=task] .sub-person').innerHTML = addPersonOptions('+ Agregar persona como subtarea…');
     syncTaskForm(f);
     const back = el.dataset.back === 'person' ? el.dataset.person : '';
     openSheet({ title: 'Nueva tarea', node: f, onClose: back ? () => setTimeout(() => openPersonSheet(back), 0) : null });
@@ -299,6 +298,7 @@ const actions = {
       <div class="sheet-foot"><button type="button" class="btn btn-ghost" data-action="sheet-close">Cancelar</button><button class="btn btn-primary">Crear categoría</button></div></form>` });
   },
   'sheet-close': () => requestCloseSheet(),
+  'combo-pick': el => comboPick(el.closest('.combo'), el.dataset.v),
   'picker-del': el => { const p = el.closest('.picker'); fillPicker(p, pickerValues(p).filter(v => v !== el.dataset.v)); pickerChanged(p); },
   'sched-nav': el => { const s = state.schedules.find(x => x.id === el.dataset.id); if (s) { shiftAnchor(s, +el.dataset.d); renderSchedule(); } },
   'sched-follow': el => { delete ui.anchors[el.dataset.id]; renderSchedule(); },

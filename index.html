@@ -9,17 +9,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap" rel="stylesheet">
   <!-- ?v=… : al publicar cambios, sube este número en TODOS los archivos para que el navegador no use copias viejas -->
-  <link rel="stylesheet" href="css/fonts.css?v=20261125c">
-  <link rel="stylesheet" href="css/base.css?v=20261125c">
-  <link rel="stylesheet" href="css/layout.css?v=20261125c">
-  <link rel="stylesheet" href="css/calendar.css?v=20261125c">
-  <link rel="stylesheet" href="css/tasks.css?v=20261125c">
-  <link rel="stylesheet" href="css/notes.css?v=20261125c">
-  <link rel="stylesheet" href="css/schedule.css?v=20261125c">
-  <link rel="stylesheet" href="css/components.css?v=20261125c">
-  <link rel="stylesheet" href="css/admin.css?v=20261125c">
-  <link rel="stylesheet" href="css/today.css?v=20261125c">
-  <link rel="stylesheet" href="css/responsive.css?v=20261125c">
+  <link rel="stylesheet" href="css/fonts.css?v=20261125d">
+  <link rel="stylesheet" href="css/base.css?v=20261125d">
+  <link rel="stylesheet" href="css/layout.css?v=20261125d">
+  <link rel="stylesheet" href="css/calendar.css?v=20261125d">
+  <link rel="stylesheet" href="css/tasks.css?v=20261125d">
+  <link rel="stylesheet" href="css/notes.css?v=20261125d">
+  <link rel="stylesheet" href="css/schedule.css?v=20261125d">
+  <link rel="stylesheet" href="css/components.css?v=20261125d">
+  <link rel="stylesheet" href="css/admin.css?v=20261125d">
+  <link rel="stylesheet" href="css/today.css?v=20261125d">
+  <link rel="stylesheet" href="css/responsive.css?v=20261125d">
 </head>
 <body>
 <div class="app">
@@ -262,6 +262,10 @@
         <section class="card">
           <div class="bday-head">
             <h2>Fechas importantes <small id="bdayCount" class="muted"></small></h2>
+            <label class="search bday-search">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input id="bdayQ" type="search" placeholder="Buscar nombre, apodo o parentesco…" autocomplete="off" aria-label="Buscar persona o fecha">
+            </label>
             <div class="bday-controls">
               <select id="bdayCatFilter" data-change="bday-cat-filter" aria-label="Filtrar por categoría"></select>
               <button class="btn btn-primary btn-compact" data-action="new-bday" aria-label="Nueva fecha importante">+ Nueva</button>
@@ -336,7 +340,7 @@
       <div class="stack">
         <label>Etiquetas <input name="tags" maxlength="160" placeholder="casa, campus (opcional)"></label>
         <label>Subtareas <textarea name="subtasks" rows="3" placeholder="Una por línea (opcional)"></textarea></label>
-        <select class="sub-person" data-change="sub-add-person" aria-label="Agregar una persona como subtarea"></select>
+        <div class="combo" data-kind="people" data-target="sub"><input type="search" class="combo-input" placeholder="+ Agregar persona como subtarea…" aria-label="Agregar persona como subtarea" autocomplete="off" enterkeyhint="done" aria-expanded="false"><ul class="combo-list" role="listbox" hidden></ul></div>
       </div>
     </details>
     <div class="sheet-foot"><button type="button" class="btn btn-ghost" data-action="sheet-close">Cancelar</button><button class="btn btn-primary">Agregar tarea</button></div>
@@ -408,7 +412,7 @@
     <div id="listEditor" hidden>
       <div id="liRows"></div>
       <div class="li-tools"><button class="btn btn-ghost" data-action="li-add">+ Agregar ítem</button>
-      <select id="liPerson" data-change="li-add-person" aria-label="Agregar una persona a la lista"></select></div>
+      <div class="combo" id="liPerson" data-kind="people" data-target="li"><input type="search" class="combo-input" placeholder="+ Agregar persona a la lista…" aria-label="Agregar persona a la lista" autocomplete="off" enterkeyhint="done" aria-expanded="false"><ul class="combo-list" role="listbox" hidden></ul></div></div>
     </div>
     <div class="row2">
       <label>Vincular al horario <select id="noteLink" data-change="note-link"></select></label>
@@ -428,22 +432,22 @@
 <div id="toasts" aria-live="polite"></div>
 <input type="file" id="importFile" accept=".json,application/json" hidden>
 
-<script src="js/core/utils.js?v=20261125c"></script>
-<script src="js/core/storage.js?v=20261125c"></script>
-<script src="js/core/state.js?v=20261125c"></script>
-<script src="js/core/calendar-engine.js?v=20261125c"></script>
-<script src="js/ui/feedback.js?v=20261125c"></script>
-<script src="js/ui/header.js?v=20261125c"></script>
-<script src="js/views/today.js?v=20261125c"></script>
-<script src="js/views/calendar.js?v=20261125c"></script>
-<script src="js/views/birthdays.js?v=20261125c"></script>
-<script src="js/views/tasks.js?v=20261125c"></script>
-<script src="js/views/notes.js?v=20261125c"></script>
-<script src="js/views/schedule.js?v=20261125c"></script>
-<script src="js/ui/router.js?v=20261125c"></script>
-<script src="js/ui/actions.js?v=20261125c"></script>
-<script src="js/ui/events.js?v=20261125c"></script>
-<script src="js/main.js?v=20261125c"></script>
-<script type="module" src="js/core/cloud.js?v=20261125c"></script>
+<script src="js/core/utils.js?v=20261125d"></script>
+<script src="js/core/storage.js?v=20261125d"></script>
+<script src="js/core/state.js?v=20261125d"></script>
+<script src="js/core/calendar-engine.js?v=20261125d"></script>
+<script src="js/ui/feedback.js?v=20261125d"></script>
+<script src="js/ui/header.js?v=20261125d"></script>
+<script src="js/views/today.js?v=20261125d"></script>
+<script src="js/views/calendar.js?v=20261125d"></script>
+<script src="js/views/birthdays.js?v=20261125d"></script>
+<script src="js/views/tasks.js?v=20261125d"></script>
+<script src="js/views/notes.js?v=20261125d"></script>
+<script src="js/views/schedule.js?v=20261125d"></script>
+<script src="js/ui/router.js?v=20261125d"></script>
+<script src="js/ui/actions.js?v=20261125d"></script>
+<script src="js/ui/events.js?v=20261125d"></script>
+<script src="js/main.js?v=20261125d"></script>
+<script type="module" src="js/core/cloud.js?v=20261125d"></script>
 </body>
 </html>

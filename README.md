@@ -89,7 +89,7 @@ Para agregar o editar cualquier cosa (tarea, nota, cumpleaños, horario, activid
 - **Horario:** se puede **duplicar** (⧉), marcar que **no aplica en festivos de Colombia** (fijos, Ley Emiliani y Semana Santa, calculados sin servicios externos) y **saltar días concretos**. Al agregar o editar una actividad que se cruza con otra del mismo horario, avisa y la marca con ⚠. Cada horario tiene apartados de **Tareas** y **Notas** de su día, semana o mes, con el selector **Todas / Solo vinculadas**. Diario, semanal o mensual, con fecha de inicio y fin. Las horas visibles van por defecto de 6:00 AM a 9:00 PM y se pueden cambiar al crear el horario o después (la tabla se amplía sola si una actividad queda fuera).
 
 ## Vínculos
-Los vínculos se ven desde los dos lados (si una tarea se vincula a una nota, la nota muestra la tarea) y se eligen con un selector de chips ("+ Agregar…").
+Los vínculos se ven desde los dos lados (si una tarea se vincula a una nota, la nota muestra la tarea) y se eligen con un **buscador con sugerencias**: se escribe y aparecen las coincidencias (sin importar tildes ni mayúsculas; busca por nombre, apodo, parentesco, categoría y etiqueta), se elige tocando o con ↑ ↓ y Enter, y queda como chip. La pestaña Fechas tiene además su propio buscador.
 
 | Desde | Actividad del horario | Personas o fechas | Notas | Tareas |
 |---|---|---|---|---|
