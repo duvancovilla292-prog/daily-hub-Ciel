@@ -2,7 +2,7 @@
    Módulo: se carga después de los scripts clásicos y usa sus funciones globales (state, Store, replaceState, toast…).
 
    Cómo se guarda: cada elemento es un documento propio en users/{uid}/items/{id}
-     t_<id> tarea · n_<id> nota (con su fecha) · b_<id> cumpleaños · c_<id> categoría · s_<id> horario · x_scratch bloc rápido
+     t_<id> tarea · n_<id> nota (con su fecha) · b_<id> cumpleaños · c_<id> categoría · s_<id> horario · x_scratch bloc rápido · x_look apariencia
    y cada documento lleva { data (JSON), updatedAt (ms), deleted }. Borrar deja una marca (deleted: true) para que
    los demás dispositivos también lo borren. Si dos dispositivos cambian el mismo elemento, gana el cambio más reciente;
    si cambian elementos distintos, se conservan los dos.
@@ -25,7 +25,7 @@ const firebaseConfig = {
 };
 const REC_KEY = 'daily_hub_sync';            // { uid, pending: {id: ms}, known: {id: ms}, confirmed, mergeLocal }
 const OLD_LINK_KEY = 'daily_hub_cloud_uid';  // versión anterior (un solo documento por cuenta)
-const DOC_RE = /^(?:[tnbcs]_[\w-]{1,64}|x_scratch|x_msg)$/;
+const DOC_RE = /^(?:[tnbcs]_[\w-]{1,64}|x_scratch|x_msg|x_look)$/;
 const LABEL = {
   loading: 'Conectando con la nube…', off: 'Sin iniciar sesión: los datos solo están en este navegador',
   syncing: 'Guardando en la nube…', ok: 'Sincronizado con la nube', offline: 'Sin conexión: los cambios se subirán al volver la red',
@@ -60,11 +60,12 @@ function elementsJson(s) {
   s.schedules.forEach(x => m.set('s_' + x.id, JSON.stringify(x)));
   m.set('x_scratch', JSON.stringify({ text: s.scratchpad }));
   m.set('x_msg', JSON.stringify({ text: s.msgTemplate || '' }));
+  m.set('x_look', JSON.stringify(normLook(s.settings && s.settings.look)));
   return m;
 }
 /** Arma el estado a partir de los elementos, conservando el orden que ya tenían. */
 function stateFromElements(map, base) {
-  const raw = { meta: base.meta, tasks: [], notes: {}, birthdays: [], birthdayCategories: [], schedules: [], scratchpad: '', msgTemplate: base.msgTemplate || '', settings: base.settings };
+  const raw = { meta: base.meta, tasks: [], notes: {}, birthdays: [], birthdayCategories: [], schedules: [], scratchpad: '', msgTemplate: base.msgTemplate || '', settings: { ...base.settings } };
   const order = [...elementsJson(base).keys()];
   const ids = order.filter(id => map.has(id)).concat([...map.keys()].filter(id => !order.includes(id)));
   ids.forEach(id => {
@@ -78,6 +79,7 @@ function stateFromElements(map, base) {
     else if (p === 's_') raw.schedules.push(v);
     else if (id === 'x_scratch') raw.scratchpad = typeof v.text === 'string' ? v.text : '';
     else if (id === 'x_msg') raw.msgTemplate = typeof v.text === 'string' ? v.text : '';
+    else if (id === 'x_look') raw.settings.look = v;            // la apariencia viaja con la cuenta
   });
   return Store.normalize(raw, false, { keepLinks: true });
 }

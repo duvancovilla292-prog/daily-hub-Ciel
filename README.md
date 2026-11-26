@@ -12,7 +12,7 @@ El botón ☁ de la barra superior permite entrar con Google. Con sesión inicia
 - **Un documento por elemento:** cada tarea, nota, cumpleaños, categoría y horario es un documento en `users/{uid}/items/{id}` con su hora de cambio (`updatedAt`) y una marca de borrado (`deleted`). Si dos dispositivos cambian cosas distintas, se conservan ambas; si cambian lo mismo, gana el cambio más reciente.
 - **Sin conexión:** cada cambio queda pendiente en el navegador (sobrevive a recargar) hasta que la nube lo confirma; lo que llegue de la nube no lo pisa si es más viejo.
 - **Cuentas:** al cerrar sesión el navegador se vacía (los datos quedan en la cuenta). Si al entrar hay datos sin cuenta, se pregunta antes de subirlos; los datos de otra cuenta nunca se suben. Los datos de la versión anterior (un solo documento `users/{uid}`) se migran solos.
-- El tema, la tipografía y los filtros son de cada dispositivo y no se sincronizan.
+- La **apariencia** (🎨) se sincroniza (documento `x_look`). El modo claro/oscuro, la tipografía y los filtros son de cada dispositivo.
 
 La configuración está en `js/core/cloud.js`. En la consola de Firebase hace falta:
 1. **Authentication → Método de acceso:** activar **Google**.
@@ -110,6 +110,14 @@ El botón **Admin** abre una ventana emergente que se desbloquea al **iniciar se
 - **Categorías de cumpleaños:** crear, renombrar y eliminar.
 
 Los ids de todos los elementos solo pueden tener letras, números, `_` y `-`; los que no cumplen (por ejemplo en un respaldo manipulado) se reemplazan al cargarlos.
+
+## Apariencia
+En el panel Admin, pestaña **🎨 Apariencia** (con sesión iniciada). Los cambios se ven al instante y se guardan en la cuenta:
+- **Color principal** — Cielo (el de siempre), Violeta, Rosa, Esmeralda, Menta, Naranja, Ámbar o Índigo, con su versión para modo claro y oscuro; el texto sobre el color se elige solo para que se lea bien.
+- **Estilo** — Normal, Minimalista (plano, sin sombras ni degradados), Tierno (pastel y bordes muy redondos) o Noche profunda (negro puro para pantallas OLED; pasa a modo oscuro).
+- **Fondo** — Brillo, Liso, Degradado, Puntos o Líneas.
+- **Forma** de las tarjetas (Recto, Normal, Redondo) y **Espacio** (Compacto, Normal, Amplio).
+- **↺ Restablecer** vuelve a lo predeterminado (con Deshacer).
 
 ## Tipografía Aetheri
 El botón **Aa** activa/desactiva la fuente en toda la web (clase `aetheri-on` en `<html>`, preferencia guardada). La fuente solo cubre letras, tildes y ¡¿!?; números y demás símbolos usan la tipografía normal.

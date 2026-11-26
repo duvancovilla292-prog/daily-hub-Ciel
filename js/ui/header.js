@@ -137,7 +137,9 @@ function renderDash() {
     h += `<div class="dash">${dTile(c ? (c.status === 'ok' ? '✓' : c.status === 'offline' ? '…' : c.status === 'error' ? '!' : '—') : '—', 'Estado', c ? esc(c.label) : 'no disponible aquí', c && c.status === 'error' ? 'warn' : '')}
       ${dTile(c ? c.pending : 0, 'Cambios por subir', c && c.pending ? 'se suben al volver la conexión' : 'todo subido')}
       ${dTile(kb(st.bytes), 'Tamaño', 'de todos tus datos')}${dTile(esc(new Date(st.updated).toLocaleString('es-CO', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })), 'Último cambio', '')}</div>
-      <p class="muted small">Cuenta: <b>${esc(ui.adminEmail)}</b>. Cada tarea, nota, fecha y horario es un documento propio en la nube; tema, tipografía y filtros son de cada dispositivo.</p>`;
+      <p class="muted small">Cuenta: <b>${esc(ui.adminEmail)}</b>. Cada tarea, nota, fecha y horario es un documento propio en la nube; la apariencia (🎨) también se sincroniza; modo claro/oscuro, tipografía y filtros son de cada dispositivo.</p>`;
+  } else if (ui.dashTab === 'look') {
+    h += lookPanel();
   } else {
     const pct = st.tasks ? Math.round(st.done / st.tasks * 100) : 0;
     h += `<div class="dash">${dTile(st.tasks, 'Tareas', `${st.pending} pendientes · ${st.done} hechas${st.overdue ? ' · ' + st.overdue + ' atrasadas' : ''}`)}
@@ -150,6 +152,28 @@ function renderDash() {
       <p class="muted small">Toca una pestaña para ver el detalle de cada sección.</p>`;
   }
   $('#adminDash').innerHTML = h;
+}
+
+/* ---------- Apariencia ---------- */
+const LOOK_TXT = {
+  style: { normal: ['✨ Normal', 'Degradados y brillo'], minimal: ['◻️ Minimalista', 'Plano, sin sombras ni degradados'], tierno: ['🌸 Tierno', 'Tonos pastel y bordes muy redondos'], oled: ['🌑 Noche profunda', 'Negro puro; ahorra batería en pantallas OLED'] },
+  bg: { brillo: 'Brillo', liso: 'Liso', degradado: 'Degradado', puntos: 'Puntos', lineas: 'Líneas' },
+  shape: { recto: 'Recto', normal: 'Normal', redondo: 'Redondo' },
+  density: { compacto: 'Compacto', normal: 'Normal', amplio: 'Amplio' }
+};
+function lookPanel() {
+  const l = normLook(state.settings.look), light = state.settings.theme === 'light';
+  const btn = (k, v, inner, cls = '') => `<button class="look-opt ${cls}${l[k] === v ? ' on' : ''}" data-action="look-set" data-k="${k}" data-v="${v}" aria-pressed="${l[k] === v}">${inner}</button>`;
+  const row = (title, k, body) => `<section class="look-row"><h4>${title}</h4><div class="look-opts look-${k}">${body}</div></section>`;
+  return `<div class="look">
+    ${row('Color principal', 'accent', LOOK_OPTS.accent.map(v => { const a = ACCENTS[v]; return btn('accent', v, `<i class="sw" style="background:linear-gradient(135deg,${light ? a[2] : a[0]},${light ? a[3] : a[1]})"></i><span>${a[4]}</span>`, 'swatch'); }).join(''))}
+    ${row('Estilo', 'style', LOOK_OPTS.style.map(v => btn('style', v, `<b>${LOOK_TXT.style[v][0]}</b><small>${LOOK_TXT.style[v][1]}</small>`, 'wide-opt')).join(''))}
+    ${row('Fondo', 'bg', LOOK_OPTS.bg.map(v => btn('bg', v, `<i class="bgp bgp-${v}"></i><span>${LOOK_TXT.bg[v]}</span>`)).join(''))}
+    ${row('Forma de las tarjetas', 'shape', LOOK_OPTS.shape.map(v => btn('shape', v, `<i class="shp shp-${v}"></i><span>${LOOK_TXT.shape[v]}</span>`)).join(''))}
+    ${row('Espacio', 'density', LOOK_OPTS.density.map(v => btn('density', v, `<i class="dns dns-${v}"><u></u><u></u><u></u></i><span>${LOOK_TXT.density[v]}</span>`)).join(''))}
+    <div class="look-foot"><button class="btn btn-ghost" data-action="look-reset">↺ Restablecer</button>
+    <p class="muted small">Los cambios se ven al instante y se guardan en tu cuenta: se aplican en todos tus dispositivos. El modo claro/oscuro (☀/🌙) sigue siendo de cada dispositivo.</p></div>
+  </div>`;
 }
 
 function applyFont() { document.documentElement.classList.toggle('aetheri-on', state.settings.font === 'aetheri'); }

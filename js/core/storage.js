@@ -2,6 +2,22 @@
    Script clásico: comparte el ámbito global con los demás archivos de /js (ver el orden en index.html). */
 'use strict';
 
+/* Apariencia (se sincroniza entre dispositivos): color principal, estilo, fondo, forma y espacio */
+const LOOK_OPTS = {
+  accent: ['cielo', 'violeta', 'rosa', 'esmeralda', 'menta', 'naranja', 'ambar', 'indigo'],
+  style: ['normal', 'minimal', 'tierno', 'oled'],
+  bg: ['brillo', 'liso', 'degradado', 'puntos', 'lineas'],
+  shape: ['normal', 'recto', 'redondo'],
+  density: ['compacto', 'normal', 'amplio']
+};
+const defaultLook = () => ({ accent: 'cielo', style: 'normal', bg: 'brillo', shape: 'normal', density: 'normal' });
+/** Solo valores conocidos; lo demás vuelve a lo predeterminado. */
+function normLook(l) {
+  const o = defaultLook();
+  if (l && typeof l === 'object') for (const k in LOOK_OPTS) if (LOOK_OPTS[k].includes(l[k])) o[k] = l[k];
+  return o;
+}
+
 const defaultState = () => ({
   meta: { version: '1.5', lastUpdated: new Date().toISOString() },
   tasks: [],            // { id, title, date, time, completed, doneAt, priority, link:{sid,iid}|null, mode:'once'|'span'|'repeat', due, doneDates, tags, subtasks, persons:[ids], notes:[ids] }
@@ -11,7 +27,7 @@ const defaultState = () => ({
   schedules: [],        // { id, name, type, color, startDate, endDate, weekdays:[0-6], hourStart, hourEnd, skipHolidays, skipDates:[], items:[{id,title,start,end,days,day}] }
   scratchpad: '',
   msgTemplate: '',
-  settings: { theme: 'dark', filters: [...TYPES], font: 'normal' }
+  settings: { theme: 'dark', filters: [...TYPES], font: 'normal', look: defaultLook() }   // look: apariencia (se sincroniza)
 });
 
 /* Los ids solo pueden tener letras, números, "_" y "-": se usan en atributos HTML y como nombre de documento en la nube */
@@ -167,6 +183,7 @@ const Store = {
     if (raw.settings && typeof raw.settings === 'object') {
       if (raw.settings.theme === 'light' || raw.settings.theme === 'dark') out.settings.theme = raw.settings.theme;
       if (raw.settings.font === 'aetheri' || raw.settings.font === 'normal') out.settings.font = raw.settings.font;
+      out.settings.look = normLook(raw.settings.look);
       if (Array.isArray(raw.settings.filters)) {
         const f = raw.settings.filters.filter(x => TYPES.includes(x));
         if (f.length) out.settings.filters = f;

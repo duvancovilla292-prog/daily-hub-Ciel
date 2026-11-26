@@ -14,22 +14,22 @@
 .search {
   position: relative; flex-direction: row; align-items: center;
   background: var(--card); border: 1px solid var(--line);
-  border-radius: 14px; padding: 0 10px; gap: 8px; color: var(--muted);
+  border-radius: calc(var(--r2) + 2px); padding: 0 10px; gap: 8px; color: var(--muted);
 }
 .search input { border: 0; background: transparent; box-shadow: none !important; padding: 10px 4px; }
 .actions { display: flex; gap: 6px; }
 
 .btn {
   border: 1px solid var(--line); background: var(--card);
-  padding: 8px 14px; border-radius: 12px; font-size: .88rem;
+  padding: 8px 14px; border-radius: var(--r2); font-size: .88rem;
   transition: transform .15s, background .2s, border-color .2s;
 }
 .btn:hover { border-color: var(--accent); }
 .btn:active { transform: scale(.97); }
-.btn.on, .btn.active { background: var(--accent); color: #04121f; border-color: var(--accent); }
+.btn.on, .btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 .btn-primary {
   background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: #fff; border: 0; font-weight: 600;
+  color: var(--on-primary); border: 0; font-weight: 600;
 }
 .btn-primary:hover { filter: brightness(1.1); }
 .btn-ghost { background: transparent; }
@@ -50,22 +50,22 @@
 }
 .tab {
   display: flex; align-items: center; gap: 8px; border: 0; background: transparent;
-  padding: 9px 16px; border-radius: 12px; color: var(--muted); font-weight: 500;
+  padding: 9px 16px; border-radius: var(--r2); color: var(--muted); font-weight: 500;
   transition: background .2s, color .2s;
 }
 .tab:hover { color: var(--text); }
 .tab.active { background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 24%, transparent), color-mix(in srgb, var(--accent2) 24%, transparent)); color: var(--text); }
 .badge {
   font-style: normal; font-size: .7rem; font-weight: 700; min-width: 20px; padding: 1px 6px;
-  text-align: center; border-radius: 99px; background: var(--task); color: #1a1100;
+  text-align: center; border-radius: var(--rp); background: var(--task); color: #1a1100;
 }
 
 /* ===== Cards / bento ===== */
 .card {
   background: var(--card); border: 1px solid var(--line);
-  border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow);
+  border-radius: var(--radius); padding: var(--pad); box-shadow: var(--shadow);
 }
-.bento { display: grid; gap: 16px; }
+.bento { display: grid; gap: var(--gap); }
 .tasks-bento { grid-template-columns: minmax(280px, 1fr) minmax(0, 2fr); align-items: start; }
 .notes-bento { grid-template-columns: minmax(260px, 1fr) minmax(0, 2fr); align-items: start; }
 .bday-bento { grid-template-columns: minmax(280px, 1fr) minmax(0, 2fr); align-items: start; }
@@ -74,7 +74,7 @@
 .row3 { display: grid; grid-template-columns: .8fr 1.4fr 1fr; gap: 10px; }
 .toolbar { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 14px; }
 .toolbar select { width: auto; }
-.seg { display: inline-flex; background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 3px; }
+.seg { display: inline-flex; background: var(--card2); border: 1px solid var(--line); border-radius: var(--r2); padding: 3px; }
 .seg button { border: 0; background: transparent; padding: 6px 12px; border-radius: 9px; font-size: .85rem; color: var(--muted); }
-.seg button.on { background: var(--accent); color: #04121f; font-weight: 600; }
+.seg button.on { background: var(--accent); color: var(--on-accent); font-weight: 600; }
 

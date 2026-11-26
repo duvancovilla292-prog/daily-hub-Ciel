@@ -365,6 +365,18 @@ const actions = {
 
   /* administrador */
   'dash-tab': el => { ui.dashTab = el.dataset.v; renderDash(); },
+  'look-set': el => {
+    const k = el.dataset.k, v = el.dataset.v;
+    if (!LOOK_OPTS[k] || !LOOK_OPTS[k].includes(v)) return;
+    state.settings.look = { ...normLook(state.settings.look), [k]: v };
+    if (k === 'style' && v === 'oled' && state.settings.theme !== 'dark') { state.settings.theme = 'dark'; toast('Noche profunda usa el modo oscuro', 'info'); }
+    applyTheme(); commit(); renderHeader(); renderDash();
+  },
+  'look-reset': () => {
+    const before = clone(state.settings.look);
+    state.settings.look = defaultLook(); applyTheme(); commit(); renderDash();
+    toastAction('Apariencia restablecida', 'Deshacer', () => { state.settings.look = before; applyTheme(); commit(); renderDash(); });
+  },
   'admin-toggle': () => { ui.adminOpen = !ui.adminOpen; renderAdmin(); },
   'cloud-signin': () => window.Cloud ? window.Cloud.signIn() : toast('La sesión con Google no está disponible aquí. Abre la app desde su página web.', 'error'),
   'admin-close': () => { ui.adminOpen = false; renderAdmin(); $('#adminBtn').focus(); },
