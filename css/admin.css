@@ -87,3 +87,10 @@ body.no-scroll { overflow: hidden; }
 .dns-amplio u, .dns-compacto u { flex: none; }
 .look-foot { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .look-foot p { flex: 1 1 220px; }
+
+/* Sin sesión: solo el inicio de sesión, sin herramientas bloqueadas */
+.admin-modal.logged-out { max-width: 440px; }
+.admin-modal.logged-out .admin-grid { grid-template-columns: 1fr; }
+.look-row h4 small { font-weight: 400; }
+.fontp { display: grid; place-items: center; width: 52px; height: 34px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); font-weight: 700; font-family: ui-sans-serif, system-ui, sans-serif; }
+.fontp.aet { font-family: "Aetheri", cursive; font-weight: 400; font-size: 1.1rem; }

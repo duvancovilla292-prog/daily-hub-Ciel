@@ -55,17 +55,18 @@ function renderToday() {
   const overdue = state.tasks.filter(t => t.mode !== 'repeat' && isOverdue(t) && !taskOn(t, k));
   const notes = Cal.notesOn(k);
   const bdays = Cal.birthdaysOn(k);
-  let side = '';
+  let side = '', late = '';
+  if (overdue.length) {                                         // las 5 más antiguas; el resto, en Tareas → Atrasadas (va primero: es lo más urgente)
+    const first = overdue.sort((x, y) => (x.mode === 'span' ? x.due : x.date).localeCompare(y.mode === 'span' ? y.due : y.date)).slice(0, 5);
+    late = `<div class="panel" style="--c:var(--danger)"><span class="ptitle">Atrasadas</span><ul class="tasks">${first.map(t => taskRow(t)).join('')}</ul>
+      ${overdue.length > 5 ? `<button class="btn btn-ghost" data-action="show-overdue">Ver las ${overdue.length} atrasadas</button>` : ''}</div>`;
+  }
+  side += late;
   if (bdays.length) side += `<div class="panel" style="--c:var(--accent2)"><span class="ptitle">Fechas</span><ul class="mini-list">${bdays.map(x => `<li class="person-link" data-action="open-person" data-id="${esc(x.b.id)}" role="button" tabindex="0">${kindIcon(x.b)} <b>${esc(dateName(x.b))}</b>${x.age ? ` — ${yearsText(x.b, x.age, true)}` : ''} ${bdayTags(x.b)}</li>`).join('')}</ul></div>`;
   side += `<div class="panel" style="--c:var(--accent)"><span class="ptitle">Tareas</span>${dayTasks.length ? `<ul class="tasks">${dayTasks.sort(byTime).map(t => taskRow(t, k)).join('')}</ul>` : '<p class="empty-note">Sin tareas para este día.</p>'}
     <button class="btn btn-ghost" data-action="new-task" data-key="${esc(k)}">+ Nueva tarea</button></div>`;
   const soon = state.tasks.filter(t => dueSoon(t) && !(isToday && dayTasks.includes(t))).sort((x, y) => hoursToDue(x) - hoursToDue(y));
   if (soon.length) side += `<div class="panel" style="--c:var(--task)"><span class="ptitle">⏰ Por vencer</span><p class="muted small">Prioridad alta, vencen en menos de 48 horas.</p><ul class="tasks">${soon.map(t => taskRow(t)).join('')}</ul></div>`;
-  if (overdue.length) {                                         // las 5 más antiguas; el resto, en Tareas → Atrasadas
-    const first = overdue.sort((x, y) => (x.mode === 'span' ? x.due : x.date).localeCompare(y.mode === 'span' ? y.due : y.date)).slice(0, 5);
-    side += `<div class="panel" style="--c:var(--danger)"><span class="ptitle">Atrasadas</span><ul class="tasks">${first.map(t => taskRow(t)).join('')}</ul>
-      ${overdue.length > 5 ? `<button class="btn btn-ghost" data-action="show-overdue">Ver las ${overdue.length} atrasadas</button>` : ''}</div>`;
-  }
   side += `<div class="panel" style="--c:var(--mint)"><span class="ptitle">Notas</span>${notes.length ? notes.map(n => `<button class="note-chip" data-action="open-note" data-key="${esc(k)}" data-id="${esc(n.id)}">${n.pinned ? '📌 ' : ''}${n.type === 'list' ? '☑' : '📝'} ${esc(noteLabel(n))}</button>`).join('') : '<p class="empty-note">No hay notas este día.</p>'}
     <button class="btn btn-ghost" data-action="open-note" data-key="${esc(k)}">+ Nueva nota</button></div>`;
   $('#todaySide').innerHTML = side;

@@ -13,7 +13,6 @@
 html.aetheri-on {
   --font: "Aetheri", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
-html.aetheri-on .script,
 html.aetheri-on .cal-dow { font-family: var(--font); }
 html.aetheri-on .cal-dow { font-size: 1.15rem; }
 html.aetheri-on body { letter-spacing: .02em; }

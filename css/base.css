@@ -108,3 +108,12 @@ label { display: flex; flex-direction: column; gap: 5px; font-size: .8rem; color
 
 .app { max-width: 1280px; margin: 0 auto; padding: 18px 18px 90px; }
 
+
+/* ===== Distribución (revisión de diseño) ===== */
+.date-short { display: none; }
+@media (max-width: 720px) {
+  .date-long { display: none; }
+  .date-short { display: inline; }
+}
+/* Ayer/Hoy/Mañana solo donde importa el día: Hoy, Notas y Horario (y Tareas con "Solo la fecha activa") */
+body[data-tab="calendar"] .date-nav, body[data-tab="birthdays"] .date-nav, body[data-tab="tasks"]:not(.task-active-scope) .date-nav { display: none; }

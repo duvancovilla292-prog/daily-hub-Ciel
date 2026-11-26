@@ -3,6 +3,7 @@
 .topbar {
   display: grid;
   grid-template-columns: auto auto 1fr auto;
+  grid-template-areas: "brand date search actions";      /* con áreas, ocultar Ayer/Hoy/Mañana no corre lo demás */
   gap: 14px;
   align-items: center;
   margin-bottom: 14px;
@@ -45,12 +46,12 @@
 
 /* ===== Tabs ===== */
 .tabs {
-  display: flex; gap: 6px; padding: 5px; width: fit-content; max-width: 100%;
+  display: flex; gap: 6px; padding: 5px; width: 100%;
   background: var(--card); border: 1px solid var(--line); border-radius: 16px; margin-bottom: 16px;
 }
 .tab {
   display: flex; align-items: center; gap: 8px; border: 0; background: transparent;
-  padding: 9px 16px; border-radius: var(--r2); color: var(--muted); font-weight: 500;
+  padding: 9px 16px; border-radius: var(--r2); color: var(--muted); font-weight: 500; flex: 1; justify-content: center;
   transition: background .2s, color .2s;
 }
 .tab:hover { color: var(--text); }
@@ -78,3 +79,5 @@
 .seg button { border: 0; background: transparent; padding: 6px 12px; border-radius: 9px; font-size: .85rem; color: var(--muted); }
 .seg button.on { background: var(--accent); color: var(--on-accent); font-weight: 600; }
 
+
+.topbar > .brand { grid-area: brand; } .topbar > .date-nav { grid-area: date; } .topbar > .search { grid-area: search; } .topbar > .actions { grid-area: actions; }

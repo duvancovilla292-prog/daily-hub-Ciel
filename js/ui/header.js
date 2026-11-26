@@ -4,6 +4,9 @@
 
 function renderHeader() {
   $('#todayLabel').textContent = cap(D.long(ui.today));
+  { const t = D.parse(ui.today); $('#todayShort').textContent = `${cap(WD_SHORT[D.wd(t)])} ${t.getDate()} ${MONTHS[t.getMonth()].slice(0, 3)}`; }
+  document.body.dataset.tab = ui.tab;
+  document.body.classList.toggle('task-active-scope', ui.taskScope === 'active');   // en Tareas, "Solo la fecha activa" necesita elegir el día
   $('#datePicker').value = ui.active;
   $$('[data-action="date-rel"]').forEach(b => b.classList.toggle('on', D.add(ui.today, +b.dataset.offset) === ui.active));
   $('#searchClear').hidden = !ui.query;
@@ -14,9 +17,6 @@ function renderHeader() {
   badge.hidden = !pending;
   badge.textContent = pending > 99 ? '99+' : pending;
   $('#taskDate').value = $('#taskDate').value || ui.active;
-  const aet = state.settings.font === 'aetheri';
-  $('#fontBtn').classList.toggle('on', aet);
-  $('#fontBtn').setAttribute('aria-pressed', aet);
   renderAdmin();
 }
 
@@ -32,6 +32,8 @@ function renderAdmin() {
   $('#adminSession').hidden = !ui.admin;
   $('#adminEmail').textContent = ui.adminEmail;
   $('#adminTools').classList.toggle('locked', !ui.admin);
+  $('#adminTools').hidden = !ui.admin;
+  $('#adminPanel .admin-modal').classList.toggle('logged-out', !ui.admin);
   renderDash();
   renderCats();
   $$('#adminTools button, #adminTools input').forEach(b => { b.disabled = !ui.admin; });
@@ -171,6 +173,9 @@ function lookPanel() {
     ${row('Fondo', 'bg', LOOK_OPTS.bg.map(v => btn('bg', v, `<i class="bgp bgp-${v}"></i><span>${LOOK_TXT.bg[v]}</span>`)).join(''))}
     ${row('Forma de las tarjetas', 'shape', LOOK_OPTS.shape.map(v => btn('shape', v, `<i class="shp shp-${v}"></i><span>${LOOK_TXT.shape[v]}</span>`)).join(''))}
     ${row('Espacio', 'density', LOOK_OPTS.density.map(v => btn('density', v, `<i class="dns dns-${v}"><u></u><u></u><u></u></i><span>${LOOK_TXT.density[v]}</span>`)).join(''))}
+    <section class="look-row"><h4>Tipografía <small>(solo en este dispositivo)</small></h4><div class="look-opts">
+      ${[['normal', 'Normal', ''], ['aetheri', 'Aetheri', 'aet']].map(([v, n, c]) => `<button class="look-opt${state.settings.font === v ? ' on' : ''}" data-action="set-font" data-v="${v}" aria-pressed="${state.settings.font === v}"><i class="fontp ${c}">Aa</i><span>${n}</span></button>`).join('')}
+    </div></section>
     <div class="look-foot"><button class="btn btn-ghost" data-action="look-reset">↺ Restablecer</button>
     <p class="muted small">Los cambios se ven al instante y se guardan en tu cuenta: se aplican en todos tus dispositivos. El modo claro/oscuro (☀/🌙) sigue siendo de cada dispositivo.</p></div>
   </div>`;

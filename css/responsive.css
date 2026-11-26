@@ -1,25 +1,29 @@
 /* ===== responsive.css — ajustes para tablet y celular (se carga al final) ===== */
 @media (max-width: 1000px) {
   .admin-grid { grid-template-columns: 1fr; }
-  .topbar { grid-template-columns: 1fr auto; }
-  .date-nav { grid-column: 1 / -1; order: 3; flex-wrap: wrap; }
+  .topbar { grid-template-columns: 1fr auto; grid-template-areas: "brand actions" "date date" "search search"; }
+  .date-nav { grid-column: 1 / -1; order: 3; }
+  .date-nav input[type="date"] { flex: 1; min-width: 0; width: auto; }
   .search { grid-column: 1 / -1; order: 4; }
   .tasks-bento, .notes-bento { grid-template-columns: 1fr; }
   .daily { grid-template-columns: 1fr; }
+  .daily .d-side { order: 2; }                         /* en pantallas angostas, primero la línea de tiempo */
+  .today-side { order: -1; padding-top: 0; }           /* Hoy: atrasadas y tareas antes que la agenda */
   .d-side { flex-direction: row; flex-wrap: wrap; gap: 22px 14px; }
   .d-side .panel { flex: 1 1 220px; }
 }
 @media (max-width: 720px) {
   .app { padding: 12px 12px 90px; }
+  .topbar { gap: 10px; margin-bottom: 12px; }
+  .date-nav .btn { padding: 7px 11px; }
   .tabs {
     position: fixed; left: 10px; right: 10px; bottom: 10px; width: auto; z-index: 40;
     justify-content: space-around; margin: 0; box-shadow: var(--shadow); backdrop-filter: blur(10px);
   }
   .tab { flex-direction: column; gap: 2px; padding: 7px 4px; font-size: .62rem; position: relative; flex: 1; }
   .badge { position: absolute; top: 2px; right: 6px; }
-  .cal-nav h2 { font-size: 1.8rem; min-width: 0; }
+  .cal-nav h2 { font-size: 1.25rem; min-width: 0; }
   .cal-dows { gap: 3px; }
-  .cal-dow { font-size: 1.05rem; border-radius: 6px 12px 8px 12px / 10px 6px 12px 6px; }
   .cal-dow .l { display: none; }
   .cal-dow .s { display: inline; }
   .cal-cell, .cal-cell.static { min-height: 58px; padding: 4px; align-items: center; }
@@ -34,8 +38,7 @@
   .tl > .tl-acts { left: 92px; }
   .period b { min-width: 0; flex: 1; }
   .pp-grid { grid-template-columns: 1fr; }
-  .bday-controls { flex-basis: 100%; }
-  .bday-controls select { max-width: none; }
+  .bday-bar select { flex: 1 1 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }

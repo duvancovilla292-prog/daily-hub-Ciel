@@ -308,7 +308,6 @@ function refreshPersonSheet() {
 
 /* ---------- Lista ---------- */
 function renderBirthdays() {
-  renderAlerts();
   const fsel = $('#bdayCatFilter');
   if (ui.bdayCat !== 'all' && ui.bdayCat !== 'none' && !catName(ui.bdayCat)) ui.bdayCat = 'all';
   if (ui.bdayKind !== 'all' && !DATE_KINDS[ui.bdayKind]) ui.bdayKind = 'all';

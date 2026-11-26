@@ -1,9 +1,8 @@
 /* ===== calendar.css — calendario del mes, detalle del día, vínculos y alertas ===== */
 /* ===== Calendario (estilo "Mi mes") ===== */
-.script { font-family: "Caveat", "Segoe Script", "Bradley Hand", "Comic Sans MS", cursive; font-weight: 700; letter-spacing: .01em; }
 .cal-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; align-items: center; }
 .cal-nav { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.cal-nav h2 { margin: 0; font-size: 2.3rem; line-height: 1; min-width: 190px; text-align: center; }
+.cal-nav h2 { margin: 0; font-size: 1.5rem; line-height: 1.1; min-width: 200px; text-align: center; }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .chip {
   border: 1px solid var(--line); background: var(--card2); color: var(--muted);
@@ -13,9 +12,8 @@
 .cal-dows { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; margin: 12px 0 8px; }
 .cal-dow {
   text-align: center; padding: 4px 4px 2px; color: var(--text);
-  font-family: "Caveat", "Segoe Script", "Bradley Hand", "Comic Sans MS", cursive; font-weight: 700; font-size: 1.35rem; line-height: 1.2;
-  border-radius: 8px 18px 10px 20px / 16px 8px 18px 8px;
-  background: linear-gradient(105deg, color-mix(in srgb, var(--mint) 50%, transparent), color-mix(in srgb, var(--mint) 22%, transparent) 55%, color-mix(in srgb, var(--mint) 42%, transparent));
+  font-weight: 600; font-size: .78rem; line-height: 1.6; text-transform: capitalize; color: var(--muted);
+  border-radius: var(--r2); background: var(--card2);
 }
 .cal-dow .s { display: none; }
 .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 2px solid var(--line); border-left: 2px solid var(--line); }
@@ -53,8 +51,12 @@ button.cal-cell:hover { background: color-mix(in srgb, var(--accent) 9%, transpa
 .cc.more { --c: var(--muted); color: var(--muted); }
 .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 14px; font-size: .75rem; color: var(--muted); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
-.cal-notes { margin-top: 14px; border: 2px solid var(--line); border-radius: calc(var(--r2) - 2px); padding: 8px 14px 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 60px; }
-.cal-notes .script { font-size: 1.6rem; width: 100%; line-height: 1.1; }
+.cal-day { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 18px; scroll-margin-top: 12px; }
+.cal-day > h2 { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0; }
+.cal-day > .hol-badge { grid-column: 1 / -1; justify-self: start; }
+.cal-day section h3 { margin: 0 0 6px; font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.cal-day > * { min-width: 0; }
+@media (max-width: 720px) { .cal-day { grid-template-columns: minmax(0, 1fr); } }
 .note-chip { border: 1px solid var(--line); background: var(--card2); border-radius: var(--rp); padding: 4px 12px; font-size: .8rem; text-align: left; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .note-chip:hover { border-color: var(--accent); }
 .note-chip b { color: var(--accent); margin-right: 4px; }
@@ -71,6 +73,7 @@ button.cal-cell:hover { background: color-mix(in srgb, var(--accent) 9%, transpa
 .quick select { width: 92px; }
 .s-line { display: flex; gap: 8px; align-items: baseline; font-size: .88rem; padding-left: 8px; border-left: 3px solid var(--c, var(--sched)); }
 .s-line .tm { color: var(--muted); font-size: .76rem; min-width: 110px; white-space: nowrap; }
+.s-line > span:last-child { min-width: 0; }
 .tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
 .empty-note { color: var(--muted); font-size: .85rem; }
 

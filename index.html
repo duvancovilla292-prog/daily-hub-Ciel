@@ -9,17 +9,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap" rel="stylesheet">
   <!-- ?v=… : al publicar cambios, sube este número en TODOS los archivos para que el navegador no use copias viejas -->
-  <link rel="stylesheet" href="css/fonts.css?v=20261126a">
-  <link rel="stylesheet" href="css/base.css?v=20261126a">
-  <link rel="stylesheet" href="css/layout.css?v=20261126a">
-  <link rel="stylesheet" href="css/calendar.css?v=20261126a">
-  <link rel="stylesheet" href="css/tasks.css?v=20261126a">
-  <link rel="stylesheet" href="css/notes.css?v=20261126a">
-  <link rel="stylesheet" href="css/schedule.css?v=20261126a">
-  <link rel="stylesheet" href="css/components.css?v=20261126a">
-  <link rel="stylesheet" href="css/admin.css?v=20261126a">
-  <link rel="stylesheet" href="css/today.css?v=20261126a">
-  <link rel="stylesheet" href="css/responsive.css?v=20261126a">
+  <link rel="stylesheet" href="css/fonts.css?v=20261126b">
+  <link rel="stylesheet" href="css/base.css?v=20261126b">
+  <link rel="stylesheet" href="css/layout.css?v=20261126b">
+  <link rel="stylesheet" href="css/calendar.css?v=20261126b">
+  <link rel="stylesheet" href="css/tasks.css?v=20261126b">
+  <link rel="stylesheet" href="css/notes.css?v=20261126b">
+  <link rel="stylesheet" href="css/schedule.css?v=20261126b">
+  <link rel="stylesheet" href="css/components.css?v=20261126b">
+  <link rel="stylesheet" href="css/admin.css?v=20261126b">
+  <link rel="stylesheet" href="css/today.css?v=20261126b">
+  <link rel="stylesheet" href="css/responsive.css?v=20261126b">
 </head>
 <body>
 <div class="app">
@@ -41,7 +41,7 @@
       </svg>
       <div>
         <h1>Daily Hub</h1>
-        <p id="todayLabel" class="muted"></p>
+        <p class="muted"><span id="todayLabel" class="date-long"></span><span id="todayShort" class="date-short"></span></p>
       </div>
     </div>
 
@@ -67,7 +67,6 @@
         <svg id="iconSun" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
         <svg id="iconMoon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       </button>
-      <button class="icon-btn fontbtn" data-action="toggle-font" id="fontBtn" title="Tipografía Aetheri (activar/desactivar)" aria-label="Tipografía Aetheri" aria-pressed="false">Aa</button>
       <button class="btn admin-btn" data-action="admin-toggle" id="adminBtn" aria-haspopup="dialog" aria-controls="adminPanel" title="Panel de administrador">
         <svg id="adminLockIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="3"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
         <svg id="adminUnlockIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden><rect x="4" y="11" width="16" height="10" rx="3"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg>
@@ -162,12 +161,11 @@
     </section>
 
     <section id="view-calendar" class="view" hidden>
-      <div id="bdayAlerts"></div>
       <section class="card cal-card">
         <div class="cal-head">
           <div class="cal-nav">
             <button class="icon-btn" data-action="cal-nav" data-d="-1" aria-label="Mes anterior">‹</button>
-            <h2 id="calTitle" class="script"></h2>
+            <h2 id="calTitle"></h2>
             <button class="icon-btn" data-action="cal-nav" data-d="1" aria-label="Mes siguiente">›</button>
             <button class="btn btn-ghost" data-action="cal-today">Mes actual</button>
           </div>
@@ -183,19 +181,15 @@
           <span><i class="d b"></i> Fechas</span>
           <span><i class="d s"></i> Horarios</span>
         </div>
-        <div class="cal-notes" id="calNotes"></div>
+        <div class="cal-day" id="calDay" aria-live="polite"></div>
       </section>
     </section>
 
     <!-- ================= TAREAS ================= -->
     <section id="view-tasks" class="view" hidden>
-      <div class="bento tasks-bento">
-        <section class="card">
-          <div class="card-head"><h2>Tareas</h2><button class="btn btn-primary" data-action="new-task">+ Nueva tarea</button></div>
-          <div id="taskStats" class="stats"></div>
-        </section>
-
+      <div class="tasks-single">
         <section class="card list-card">
+          <div class="card-head"><h2>Tareas</h2><button class="btn btn-primary" data-action="new-task">+ Nueva tarea</button></div>
           <div class="toolbar">
             <div class="seg" id="taskStatusSeg" role="group" aria-label="Estado">
               <button data-action="task-status" data-v="all" class="on">Todas</button>
@@ -210,6 +204,7 @@
             </select>
             <select id="taskTag" data-change="task-tag" aria-label="Etiqueta" hidden></select>
           </div>
+          <div id="taskProgress" class="task-progress"></div>
           <div id="taskList"></div>
         </section>
       </div>
@@ -219,30 +214,24 @@
     <section id="view-notes" class="view" hidden>
       <div class="bento notes-bento">
         <aside class="card">
-          <div class="toolbar tight">
-            <h2>Apuntes guardados</h2>
-            <select id="noteScope" data-change="note-scope" aria-label="Qué notas ver">
-              <option value="all">Todas las fechas</option>
-              <option value="active">Solo la fecha activa</option>
-            </select>
-          </div>
+          <div class="card-head"><h2>Notas</h2><button class="btn btn-primary" data-action="new-note">+ Nueva nota</button></div>
+          <select id="noteScope" class="note-scope" data-change="note-scope" aria-label="Qué notas ver">
+            <option value="all">Todas las fechas</option>
+            <option value="active">Solo la fecha activa</option>
+          </select>
           <div id="notesList" class="notes-list"></div>
         </aside>
 
         <section class="card editor-card">
           <div class="toolbar">
             <div class="seg" role="group" aria-label="Tipo de apunte">
-              <button data-action="notes-mode" data-v="day" id="modeDay" class="on">Notas del día</button>
+              <button data-action="notes-mode" data-v="day" id="modeDay" class="on">Nota abierta</button>
               <button data-action="notes-mode" data-v="scratch" id="modeScratch">Bloc rápido</button>
             </div>
             <span id="saveStatus" class="save-status">Guardada</span>
           </div>
 
           <div id="dayEditor">
-            <div class="editor-top">
-              <h2 id="editorTitle">Notas</h2>
-              <button class="btn btn-primary" data-action="new-note">+ Nueva nota</button>
-            </div>
             <div id="noteRead" class="note-read"></div>
           </div>
 
@@ -258,24 +247,23 @@
 
     <!-- ================= CUMPLEAÑOS ================= -->
     <section id="view-birthdays" class="view" hidden>
-      <div id="bdayAlerts2"></div>
       <div class="bday-single">
         <section class="card">
           <div class="bday-head">
             <h2>Fechas importantes <small id="bdayCount" class="muted"></small></h2>
+            <button class="btn btn-primary btn-compact" data-action="new-bday" aria-label="Nueva fecha importante">+ Nueva</button>
+          </div>
+          <div class="bday-bar">
             <label class="search bday-search">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
               <input id="bdayQ" type="search" placeholder="Buscar nombre, apodo o parentesco…" autocomplete="off" aria-label="Buscar persona o fecha">
             </label>
-            <div class="bday-controls">
-              <select id="bdayCatFilter" data-change="bday-cat-filter" aria-label="Filtrar por categoría"></select>
-              <button class="btn btn-primary btn-compact" data-action="new-bday" aria-label="Nueva fecha importante">+ Nueva</button>
+            <select id="bdayCatFilter" data-change="bday-cat-filter" aria-label="Filtrar por categoría"></select>
+            <div class="seg kind-seg" id="bdayKindSeg" role="group" aria-label="Tipo de fecha">
+              <button data-action="bday-kind-filter" data-v="all" class="on">Todas</button>
+              <button data-action="bday-kind-filter" data-v="birthday">🎂 Cumpleaños</button>
+              <button data-action="bday-kind-filter" data-v="event">📅 Otras</button>
             </div>
-          </div>
-          <div class="seg kind-seg" id="bdayKindSeg" role="group" aria-label="Tipo de fecha">
-            <button data-action="bday-kind-filter" data-v="all" class="on">Todas</button>
-            <button data-action="bday-kind-filter" data-v="birthday">🎂 Cumpleaños</button>
-            <button data-action="bday-kind-filter" data-v="event">📅 Otras</button>
           </div>
           <div id="bdayList" class="bday-list"></div>
         </section>
@@ -300,12 +288,6 @@
   </main>
 </div>
 
-<div class="overlay" id="daySheet" hidden>
-  <div class="modal sheet" role="dialog" aria-modal="true" aria-label="Detalle del día">
-    <button class="icon-btn sheet-x" data-action="close-sheet" aria-label="Cerrar">✕</button>
-    <div id="dayDetail"></div>
-  </div>
-</div>
 
 <!-- Formularios: viven aquí ocultos y se mueven a una ventana emergente al presionar "+ Nuevo…" (ver openSheet en js/ui/feedback.js) -->
 <div id="formStore" hidden>
@@ -433,22 +415,22 @@
 <div id="toasts" aria-live="polite"></div>
 <input type="file" id="importFile" accept=".json,application/json" hidden>
 
-<script src="js/core/utils.js?v=20261126a"></script>
-<script src="js/core/storage.js?v=20261126a"></script>
-<script src="js/core/state.js?v=20261126a"></script>
-<script src="js/core/calendar-engine.js?v=20261126a"></script>
-<script src="js/ui/feedback.js?v=20261126a"></script>
-<script src="js/ui/header.js?v=20261126a"></script>
-<script src="js/views/today.js?v=20261126a"></script>
-<script src="js/views/calendar.js?v=20261126a"></script>
-<script src="js/views/birthdays.js?v=20261126a"></script>
-<script src="js/views/tasks.js?v=20261126a"></script>
-<script src="js/views/notes.js?v=20261126a"></script>
-<script src="js/views/schedule.js?v=20261126a"></script>
-<script src="js/ui/router.js?v=20261126a"></script>
-<script src="js/ui/actions.js?v=20261126a"></script>
-<script src="js/ui/events.js?v=20261126a"></script>
-<script src="js/main.js?v=20261126a"></script>
-<script type="module" src="js/core/cloud.js?v=20261126a"></script>
+<script src="js/core/utils.js?v=20261126b"></script>
+<script src="js/core/storage.js?v=20261126b"></script>
+<script src="js/core/state.js?v=20261126b"></script>
+<script src="js/core/calendar-engine.js?v=20261126b"></script>
+<script src="js/ui/feedback.js?v=20261126b"></script>
+<script src="js/ui/header.js?v=20261126b"></script>
+<script src="js/views/today.js?v=20261126b"></script>
+<script src="js/views/calendar.js?v=20261126b"></script>
+<script src="js/views/birthdays.js?v=20261126b"></script>
+<script src="js/views/tasks.js?v=20261126b"></script>
+<script src="js/views/notes.js?v=20261126b"></script>
+<script src="js/views/schedule.js?v=20261126b"></script>
+<script src="js/ui/router.js?v=20261126b"></script>
+<script src="js/ui/actions.js?v=20261126b"></script>
+<script src="js/ui/events.js?v=20261126b"></script>
+<script src="js/main.js?v=20261126b"></script>
+<script type="module" src="js/core/cloud.js?v=20261126b"></script>
 </body>
 </html>

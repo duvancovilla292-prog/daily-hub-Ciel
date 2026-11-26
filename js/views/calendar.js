@@ -5,6 +5,7 @@
 function renderCalendar() {
   const { y, m } = ui.cal;
   $('#calTitle').textContent = `${cap(MONTHS[m])} ${y}`;
+  { const n = D.today(); $('[data-action=cal-today]').hidden = n.getFullYear() === y && n.getMonth() === m; }   // solo si se está en otro mes
 
   const f = activeFilters(), q = ui.query, allOn = f.size === TYPES.length;
   $('#calFilters').innerHTML =
@@ -48,17 +49,10 @@ function renderCalendar() {
 
   $('#calSummary').textContent = q
     ? `${plural(matchDays, 'día con coincidencias', 'días con coincidencias')} para “${ui.queryRaw}”`
-    : (allOn ? 'Toca un día para ver su detalle. Usa las flechas para cambiar de mes.' : 'Mostrando: ' + TYPES.filter(k => f.has(k)).map(k => TYPE_LABEL[k].toLowerCase()).join(', '));
+    : (allOn ? 'Toca un día para ver su detalle debajo del calendario.' : 'Mostrando: ' + TYPES.filter(k => f.has(k)).map(k => TYPE_LABEL[k].toLowerCase()).join(', '));
 
-  // Cuadro de notas del mes (como en la plantilla "Mi mes")
-  const prefix = `${y}-${D.pad(m + 1)}`;
-  const mine = [];
-  if (f.has('notes')) Object.keys(state.notes).filter(k => k.startsWith(prefix)).sort().forEach(k => state.notes[k].forEach(n => { if (hit(noteText(n), q)) mine.push([k, n]); }));
-  $('#calNotes').innerHTML = `<span class="script">notas</span>` + (mine.length
-    ? mine.map(([k, n]) => `<button class="note-chip" data-action="open-note" data-key="${esc(k)}" data-id="${esc(n.id)}"><b>${+k.slice(8)}</b> ${esc(noteLabel(n))}</button>`).join('')
-    : '<span class="muted small">No hay notas en este mes.</span>');
-
-  renderAlerts();
+  // Debajo: todo lo del día elegido (al tocar un día se muestra aquí, sin ventana)
+  $('#calDay').innerHTML = detailHtml(ui.active);
 }
 
 function renderAlerts() {
@@ -79,15 +73,13 @@ function renderAlerts() {
   if (up.length) {
     html += `<div class="alert soft"><span class="em">🎈</span><div><b>Próximos 7 días</b><div class="small muted">${up.map(x => `${kindOf(x.b) === 'birthday' ? '' : kindIcon(x.b) + ' '}${esc(dateName(x.b))} — ${x.i === 1 ? 'al día siguiente' : 'en ' + x.i + ' días'} (${D.short(x.key)})${x.age ? ', ' + yearsText(x.b, x.age, false) : ''}`).join('<br>')}</div></div></div>`;
   }
-  $('#bdayAlerts').innerHTML = html;
-  $('#bdayAlerts2').innerHTML = html;
   $('#bdayAlerts0').innerHTML = html;
 }
 
 /* Ventana con el detalle del día (se abre al tocar un día del calendario) */
 function detailHtml(k) {
   const info = Cal.dayInfo(k, ''), rel = D.rel(k);
-  let h = `<h2>${esc(cap(D.long(k)))}${rel ? `<span class="pill">${rel}</span>` : ''}</h2>${holidayName(k) ? `<p class="hol-badge">🇨🇴 Festivo: ${esc(holidayName(k))}</p>` : ''}`;
+  let h = `<h2>${esc(cap(D.long(k)))}${rel ? `<span class="pill">${rel}</span>` : ''}${ui.tab === 'calendar' ? `<button class="btn btn-ghost btn-xs" data-action="go-today-view" data-key="${esc(k)}">Abrir en Hoy</button>` : ''}</h2>${holidayName(k) ? `<p class="hol-badge">🇨🇴 Festivo: ${esc(holidayName(k))}</p>` : ''}`;
 
   h += '<section><h3>Fechas importantes</h3>' + (info.bdays.length
     ? `<ul class="mini-list">${info.bdays.map(x => `<li class="person-link" data-action="open-person" data-id="${esc(x.b.id)}" role="button" tabindex="0">${kindIcon(x.b)} <b>${esc(dateName(x.b))}</b>${x.age ? ` — ${yearsText(x.b, x.age, true)}` : ''}${x.b.category || x.b.tag ? ` <span class="bday-tags" style="display:inline-flex">${bdayTags(x.b)}</span>` : ''}</li>`).join('')}</ul>`
@@ -107,7 +99,4 @@ function detailHtml(k) {
   return h;
 }
 
-function renderSheet() {
-  $('#daySheet').hidden = !ui.sheet;
-  if (ui.sheet) $('#dayDetail').innerHTML = detailHtml(ui.active);
-}
+function renderSheet() { /* el detalle del día ahora vive debajo del calendario (#calDay) */ }

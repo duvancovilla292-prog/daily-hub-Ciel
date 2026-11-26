@@ -35,3 +35,5 @@
 .icon-btn.mini:hover { color: var(--danger); }
 .icon-btn.mini.edit:hover { color: var(--accent); }
 
+
+.note-scope { margin: 0 0 12px; }

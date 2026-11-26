@@ -143,7 +143,7 @@ function closeMenu() {
   document.querySelector('.pop-menu')?.remove();
   if (menuBtn) { menuBtn.setAttribute('aria-expanded', 'false'); menuBtn = null; }
 }
-document.addEventListener('pointerdown', e => { if (menuBtn && !e.target.closest('.pop-menu') && e.target.closest('[data-action=row-menu]') !== menuBtn) closeMenu(); }, true);
+document.addEventListener('pointerdown', e => { if (menuBtn && !e.target.closest('.pop-menu') && e.target.closest('[data-action$="-menu"]') !== menuBtn) closeMenu(); }, true);
 window.addEventListener('resize', () => closeMenu());
 window.addEventListener('scroll', () => { if (menuBtn && Date.now() - menuAt > 300) closeMenu(); }, true);   // al desplazar la página (no al abrirlo)
 

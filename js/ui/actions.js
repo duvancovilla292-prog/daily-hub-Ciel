@@ -17,6 +17,12 @@ function downloadBackup() {
 }
 
 /** Abre el editor de notas en una ventana (nueva o editar). `after` se ejecuta al cerrarla (ej. volver a la ficha de la persona). */
+/** Celular: la nota guardada se lee en una ventana; Editar, Fijar y Eliminar funcionan igual que en la tarjeta. */
+function openNoteReader() {
+  const read = $('#noteRead');
+  if (!ui.editor.id || !read) return;
+  openSheet({ title: 'Nota', node: read, wide: true, focus: false, isDirty: () => false, onClose: () => renderNotes() });
+}
 function openNoteSheet(after) {
   const e = ui.editor;
   e.reading = false;
@@ -39,7 +45,11 @@ async function confirmDiscard() {
 const actions = {
   'go-tab': el => goTab(el.dataset.tab),
   'date-rel': el => setActive(D.add(ui.today, +el.dataset.offset)),
-  'select-day': el => { ui.sheet = true; setActive(el.dataset.key); },
+  'select-day': el => {
+    setActive(el.dataset.key);
+    if (matchMedia('(max-width: 1000px)').matches) $('#calDay').scrollIntoView({ behavior: 'smooth', block: 'start' });   // en celular el detalle queda debajo
+  },
+  'go-today-view': el => { setActiveSilent(el.dataset.key); goTab('today'); },
   'close-sheet': () => { ui.sheet = false; renderSheet(); },
   'clear-search': () => { $('#searchInput').value = ''; ui.query = ''; ui.queryRaw = ''; render(); },
   'cloud': () => window.Cloud ? window.Cloud.open() : toast('La sincronización no está disponible aquí. Abre la app desde su página web (no desde el archivo en la carpeta).', 'error'),
@@ -199,7 +209,7 @@ const actions = {
     ui.editor.date = key;
     goTab('notes');
     if (!el.dataset.id) { openNoteSheet(); return; }                 // "+ Nueva nota" desde Hoy o el calendario
-    if (matchMedia('(max-width: 1000px)').matches) $('.editor-card').scrollIntoView({ behavior: 'smooth', block: 'start' });   // en celular la nota queda debajo de la lista
+    if (matchMedia('(max-width: 1000px)').matches) openNoteReader();   // en celular la nota se abre en una ventana (no queda escondida debajo de la lista)
   },
   'note-type': el => {
     const e = ui.editor, v = el.dataset.v;
@@ -230,6 +240,7 @@ const actions = {
     const e = ui.editor; if (!e.id) return;
     const ok = await modal({ title: 'Eliminar nota', body: 'Se eliminará esta nota.', actions: [{ label: 'Cancelar', value: false }, { label: 'Eliminar', value: true, cls: 'btn-danger' }] });
     if (!ok) return;
+    if (sheetOpen()) closeSheetNow();                                   // la ventana de lectura (celular)
     const snap = snapshot();
     Object.keys(state.notes).forEach(k => { state.notes[k] = state.notes[k].filter(n => n.id !== e.id); if (!state.notes[k].length) delete state.notes[k]; });
     state.tasks.forEach(t => { if (t.notes) t.notes = t.notes.filter(id => id !== e.id); });
@@ -302,6 +313,46 @@ const actions = {
   'picker-del': el => { const p = el.closest('.picker'); fillPicker(p, pickerValues(p).filter(v => v !== el.dataset.v)); pickerChanged(p); },
   'sched-nav': el => { const s = state.schedules.find(x => x.id === el.dataset.id); if (s) { shiftAnchor(s, +el.dataset.d); renderSchedule(); } },
   'sched-follow': el => { delete ui.anchors[el.dataset.id]; renderSchedule(); },
+  'sched-menu': el => {
+    const id = el.dataset.id;
+    openMenu(el, [
+      { label: 'Editar horario', action: 'edit-sched', id, icon: ICON_EDIT },
+      { label: 'Duplicar', action: 'dup-sched', id, icon: '⧉' },
+      { label: 'Eliminar', action: 'del-sched', id, icon: ICON_X, cls: 'danger' }
+    ]);
+  },
+  'edit-sched': async el => {
+    const s = state.schedules.find(x => x.id === el.dataset.id); if (!s) return;
+    let data;
+    const hours = s.type === 'monthly' ? '' : `<div class="row2"><label>Hora inicial de la tabla <select name="hstart">${hourOptions(s.hourStart)}</select></label><label>Hora final de la tabla <select name="hend">${hourOptions(s.hourEnd)}</select></label></div>`;
+    const wdays = s.type !== 'daily' ? '' : `<div><span class="lbl">Días en que aplica</span><div class="daychecks">${WD_SHORT.map((n, i) => `<label class="daychk"><input type="checkbox" name="wdays" value="${i}" ${s.weekdays.includes(i) ? 'checked' : ''}><span>${n}</span></label>`).join('')}</div></div>`;
+    const f = await formModal({
+      title: 'Editar horario', desc: esc(SCHED_TYPES[s.type]),
+      fields: `<label>Nombre <input name="name" required maxlength="60" value="${esc(s.name)}"></label>
+        <div class="row2"><label>Empieza <input type="date" name="start" value="${esc(s.startDate)}"></label><label>Termina (opcional) <input type="date" name="end" value="${esc(s.endDate)}"></label></div>
+        ${hours}${wdays}
+        <div><span class="lbl">Color</span><div class="swatches">${SCHED_COLORS.map(c => `<label class="sw" style="--c:${c}"><input type="radio" name="color" value="${c}" ${c === s.color ? 'checked' : ''}><span></span></label>`).join('')}</div></div>`,
+      submit: 'Guardar cambios',
+      check: form => {
+        const fd = new FormData(form);
+        const name = String(fd.get('name') || '').trim(), start = String(fd.get('start') || ''), end = String(fd.get('end') || '');
+        if (!name) return 'Escribe el nombre del horario';
+        if (start && !D.isValidKey(start)) return 'Fecha de inicio inválida';
+        if (end && (!D.isValidKey(end) || (start && end < start))) return 'La fecha final es anterior al inicio';
+        data = { name, startDate: start, endDate: end };
+        const c = String(fd.get('color') || ''); if (SCHED_COLORS.includes(c)) data.color = c;
+        if (s.type !== 'monthly') {
+          const hs = +fd.get('hstart'), he = +fd.get('hend');
+          if (he < hs) return 'La hora final es anterior a la inicial';
+          data.hourStart = hs; data.hourEnd = he;
+        }
+        if (s.type === 'daily') { data.weekdays = fd.getAll('wdays').map(Number); if (!data.weekdays.length) return 'Elige al menos un día'; }
+        return true;
+      }
+    });
+    if (!f) return;
+    Object.assign(s, data); commit(); render(); toast('Horario actualizado', 'ok');
+  },
   'dup-sched': el => {
     const s = state.schedules.find(x => x.id === el.dataset.id); if (!s) return;
     const copy = { ...clone(s), id: uid(), name: (s.name + ' (copia)').slice(0, 60), items: s.items.map(it => ({ ...clone(it), id: uid() })) };
@@ -380,6 +431,10 @@ const actions = {
   'admin-toggle': () => { ui.adminOpen = !ui.adminOpen; renderAdmin(); },
   'cloud-signin': () => window.Cloud ? window.Cloud.signIn() : toast('La sesión con Google no está disponible aquí. Abre la app desde su página web.', 'error'),
   'admin-close': () => { ui.adminOpen = false; renderAdmin(); $('#adminBtn').focus(); },
+  'set-font': el => {
+    state.settings.font = el.dataset.v === 'aetheri' ? 'aetheri' : 'normal';
+    applyFont(); commit(); renderDash();
+  },
   'toggle-font': () => {
     state.settings.font = state.settings.font === 'aetheri' ? 'normal' : 'aetheri';
     applyFont(); commit(); renderHeader();
@@ -428,7 +483,6 @@ document.addEventListener('click', e => {
     if (inMenu) closeMenu();                               // elegir una opción cierra el menú ⋮
   }
 });
-$('#daySheet').addEventListener('mousedown', e => { if (e.target.id === 'daySheet') actions['close-sheet'](); });
 $('#adminPanel').addEventListener('mousedown', e => { if (e.target.id === 'adminPanel') actions['admin-close'](); });
 document.addEventListener('keydown', e => {
   // Las filas que se abren al tocarlas (role="button") también con Enter o Espacio

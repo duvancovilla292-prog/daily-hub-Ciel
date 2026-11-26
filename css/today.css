@@ -6,7 +6,7 @@
 .today-agenda .sub { margin-top: 0; }
 .today-agenda .tl { margin-top: 18px; }
 .today-allday { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-.today-side { display: flex; flex-direction: column; gap: 26px; padding-top: 12px; }
+.today-side { display: flex; flex-direction: column; gap: var(--gap); }
 .today-side .panel { min-height: 0; align-items: stretch; }
 .today-side .tasks { width: 100%; }
 .today-side .note-chip { align-self: flex-start; }
@@ -95,7 +95,7 @@
 /* Fechas importantes: avatar con ícono, filtro por tipo y "por vencer" */
 .avatar.icon { font-size: 1.25rem; }
 .avatar.big.icon { font-size: 1.9rem; }
-.kind-seg { margin: -4px 0 12px; flex-wrap: wrap; max-width: 100%; }
+.kind-seg { flex-wrap: wrap; max-width: 100%; }
 .kind-seg button { font-size: .78rem; padding: 6px 10px; }
 .t-due { font-size: .72rem; font-weight: 700; color: var(--task); }
 
@@ -146,4 +146,6 @@
 .combo-list button:hover, .combo-list button.on { background: color-mix(in srgb, var(--accent) 16%, var(--card2)); }
 .combo-more { padding: 8px 10px; font-size: .78rem; color: var(--muted); }
 .li-tools .combo { flex: 1 1 220px; min-width: 0; }
-.bday-search { margin: 0 0 10px; width: 100%; }
+.bday-search { margin: 0; flex: 1 1 240px; min-width: 0; }
+.bday-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.bday-bar select { flex: 0 1 220px; min-width: 0; }

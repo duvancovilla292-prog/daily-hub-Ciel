@@ -21,9 +21,13 @@
 
 /* Diario: estilo "Daily plan" */
 .daily { display: grid; grid-template-columns: minmax(190px, .8fr) minmax(0, 2.2fr); gap: 14px; align-items: start; }
-.d-side { display: flex; flex-direction: column; gap: 22px; padding-top: 12px; }
-.panel { position: relative; border: 3px solid color-mix(in srgb, var(--text) 38%, var(--card)); border-radius: 18px; padding: 24px 12px 12px; min-height: 120px; background: var(--card2); display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
-.ptitle { position: absolute; top: -13px; left: 14px; background: var(--c); color: #0b1220; font-weight: 700; font-size: .78rem; padding: 4px 16px; border-radius: var(--rp); }
+.d-side { display: flex; flex-direction: column; gap: 12px; }
+.panel { position: relative; border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; min-height: 0; background: var(--card); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.ptitle { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: .95rem; color: var(--text); }
+.ptitle::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--c, var(--accent)); flex: none; }
+.d-side .panel, .period-panels .panel { background: var(--card2); box-shadow: none; }
+.sub-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 16px 0 8px; }
+.sub-head .sub { margin: 0; }
 .mini-tasks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; width: 100%; font-size: .85rem; }
 .mini-tasks li { display: flex; gap: 8px; align-items: center; }
 .mini-tasks li.done span:last-child { text-decoration: line-through; color: var(--muted); }

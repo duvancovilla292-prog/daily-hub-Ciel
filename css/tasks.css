@@ -44,3 +44,9 @@
 .task .icon-btn.edit:hover { color: var(--accent); }
 .empty { text-align: center; padding: 34px 10px; color: var(--muted); }
 
+
+/* Una sola tarjeta: números en las pestañas y barra de avance fina */
+.seg .cnt { font-style: normal; font-size: .72rem; opacity: .75; margin-left: 2px; }
+.task-progress { display: flex; align-items: center; gap: 10px; margin: -4px 0 12px; }
+.task-progress .progress { flex: 1; margin: 0; }
+.task-progress small { white-space: nowrap; }

@@ -12,6 +12,7 @@ function render() {
 function goTab(tab) {
   flushScratch();
   ui.tab = tab; ui.sheet = false;
+  document.body.dataset.tab = tab;                    // el CSS muestra Ayer/Hoy/Mañana solo donde importa el día
   $$('.view').forEach(v => v.hidden = v.id !== 'view-' + tab);
   $$('.tab').forEach(b => { const on = b.dataset.tab === tab; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
   render();

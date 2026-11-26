@@ -2,7 +2,7 @@
    Script clásico: comparte el ámbito global con los demás archivos de /js (ver el orden en index.html). */
 'use strict';
 
-const anchorOf = s => ui.anchors[s.id] || ui.active;
+const anchorOf = s => (s.type !== 'daily' && ui.anchors[s.id]) || ui.active;   // el diario siempre sigue la fecha de arriba
 function shiftAnchor(s, d) {
   const a = anchorOf(s);
   ui.anchors[s.id] = s.type === 'daily' ? D.add(a, d) : s.type === 'weekly' ? D.add(a, 7 * d) : D.addMonths(a, d);
@@ -203,26 +203,23 @@ function schedCard(s) {
   const view = s.type === 'daily' ? dailyView(s, a) : s.type === 'weekly' ? weeklyView(s, a) : monthlyView(s, a);
   const items = s.items.length
     ? `<div class="it-list">${s.items.slice().sort(byStart).map(it => { const c = itemConflicts(s, it); return `<span class="it-chip ${c.length ? 'clashing' : ''}" style="--c:${s.color}" ${c.length ? `title="Se cruza con: ${esc(c.map(o => o.title).join(', '))}"` : ''}>${c.length ? '⚠ ' : ''}<b>${esc(it.title)}</b> · ${esc(itemWhen(s, it))}<button class="icon-btn mini edit" data-action="edit-item" data-sid="${esc(s.id)}" data-iid="${esc(it.id)}" aria-label="Editar actividad" title="Editar">${ICON_EDIT}</button><button class="icon-btn mini" data-action="del-item" data-sid="${esc(s.id)}" data-iid="${esc(it.id)}" aria-label="Eliminar actividad">${ICON_X}</button></span>`; }).join('')}</div>`
-    : '<p class="empty-note">Aún no tiene actividades. Agrégalas con el botón de abajo.</p>';
+    : '<p class="empty-note">Aún no tiene actividades. Agrégalas con «+ Agregar actividad».</p>';
 
-  const hoursEdit = s.type === 'monthly' ? '' : `<span class="hours-edit">Horas
-      <select data-change="sched-hour" data-id="${esc(s.id)}" data-k="start" aria-label="Hora inicial">${hourOptions(s.hourStart)}</select> a
-      <select data-change="sched-hour" data-id="${esc(s.id)}" data-k="end" aria-label="Hora final">${hourOptions(s.hourEnd)}</select></span>`;
+  // Diario: usa la fecha de arriba (Ayer/Hoy/Mañana). Semanal y mensual: se mueven por semana o por mes.
+  const nav = s.type === 'daily' ? '' : `<div class="period">
+      <button class="icon-btn" data-action="sched-nav" data-id="${esc(s.id)}" data-d="-1" aria-label="${s.type === 'weekly' ? 'Semana anterior' : 'Mes anterior'}">‹</button>
+      <b>${esc(periodLabel(s, a))}</b>
+      <button class="icon-btn" data-action="sched-nav" data-id="${esc(s.id)}" data-d="1" aria-label="${s.type === 'weekly' ? 'Semana siguiente' : 'Mes siguiente'}">›</button>
+      ${ui.anchors[s.id] ? `<button class="btn btn-ghost btn-xs" data-action="sched-follow" data-id="${esc(s.id)}">Volver a la fecha activa</button>` : ''}
+    </div>`;
 
   return `<section class="card sched-card" style="--c:${s.color}">
     <div class="sched-head"><span class="dot"></span><h2>${esc(s.name)}</h2><span class="tag">${SCHED_TYPES[s.type]}</span>
-      <button class="icon-btn" data-action="dup-sched" data-id="${esc(s.id)}" aria-label="Duplicar horario" title="Duplicar horario">⧉</button>
-      <button class="icon-btn" data-action="del-sched" data-id="${esc(s.id)}" aria-label="Eliminar horario" title="Eliminar horario">${ICON_X}</button></div>
+      <button class="icon-btn more" data-action="sched-menu" data-id="${esc(s.id)}" aria-haspopup="menu" aria-expanded="false" aria-label="Opciones del horario ${esc(s.name)}">⋮</button></div>
     <p class="muted small vig">${esc(vigencia(s))}${s.type === 'daily' && s.weekdays.length < 7 ? ' · ' + s.weekdays.map(d => WD_SHORT[d]).join(', ') : ''}</p>
-    <div class="period">
-      <button class="icon-btn" data-action="sched-nav" data-id="${esc(s.id)}" data-d="-1" aria-label="Anterior">‹</button>
-      <b>${esc(periodLabel(s, a))}</b>
-      <button class="icon-btn" data-action="sched-nav" data-id="${esc(s.id)}" data-d="1" aria-label="Siguiente">›</button>
-      <button class="btn btn-ghost" data-action="sched-follow" data-id="${esc(s.id)}">${ui.anchors[s.id] ? 'Ir a la fecha activa' : 'Sigue la fecha activa'}</button>
-      ${hoursEdit}
-    </div>
+    ${nav}
     ${view}
-    <h4 class="sub">Actividades</h4>
+    <div class="sub-head"><h4 class="sub">Actividades</h4><button class="btn btn-ghost btn-xs" data-action="new-item" data-sid="${esc(s.id)}">+ Agregar actividad</button></div>
     ${items}
     <details class="add-item sched-opts" data-opts="${esc(s.id)}" ${ui.openOpts.has(s.id) ? 'open' : ''}>
       <summary>Festivos y días sin actividades${s.skipDates.length ? ` (${s.skipDates.length})` : ''}</summary>
@@ -232,12 +229,12 @@ function schedCard(s) {
         ${s.skipDates.length ? `<div class="it-list">${s.skipDates.map(k => `<span class="it-chip" style="--c:var(--muted)">🚫 ${esc(D.full(k))}<button class="icon-btn mini" data-action="unskip" data-id="${esc(s.id)}" data-key="${esc(k)}" aria-label="Restaurar ${esc(D.full(k))}" title="Restaurar">${ICON_X}</button></span>`).join('')}</div>` : '<p class="empty-note">No hay días saltados.</p>'}
       </div>
     </details>
-    <button class="btn btn-ghost add-btn" data-action="new-item" data-sid="${esc(s.id)}">+ Agregar actividad</button>
   </section>`;
 }
 
 function renderSchedule() {
   $$('#schedFilterSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === ui.schedFilter));
+  $('#schedFilterSeg').hidden = state.schedules.length < 2 && ui.schedFilter === 'all';   // con un solo horario el filtro sobra
   const q = ui.query;
   const cards = state.schedules
     .filter(s => ui.schedFilter === 'all' || s.type === ui.schedFilter)

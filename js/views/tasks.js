@@ -97,14 +97,15 @@ function renderTasks() {
   const all = state.tasks, tk = ui.today, tmonth = tk.slice(0, 7);
   const done = all.filter(t => taskStatus(t) === 'done').length, pend = all.length - done;
   const pct = all.length ? Math.round(done / all.length * 100) : 0;
-  $('#taskStats').innerHTML = `
-    <div class="stat"><b>${all.length}</b><span>Total</span></div>
-    <div class="stat"><b>${pend}</b><span>Pendientes</span></div>
-    <div class="stat"><b>${done}</b><span>Hechas</span></div>
-    <div class="progress" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div>`;
-
-  $$('#taskStatusSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === ui.taskStatus));
+  // Los números van en cada pestaña; debajo, una barra fina con el avance
+  const counts = { all: all.length, pending: pend, done };
+  $$('#taskStatusSeg button').forEach(b => {
+    b.classList.toggle('on', b.dataset.v === ui.taskStatus);
+    b.innerHTML = `${{ all: 'Todas', pending: 'Pendientes', done: 'Completadas' }[b.dataset.v]} <em class="cnt">${counts[b.dataset.v]}</em>`;
+  });
+  $('#taskProgress').innerHTML = all.length ? `<div class="progress" role="progressbar" aria-label="Tareas completadas" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div><small class="muted">${pct}% completadas</small>` : '';
   $('#taskScope').value = ui.taskScope;
+  document.body.classList.toggle('task-active-scope', ui.taskScope === 'active');   // muestra el selector del día arriba
   fillLinkSelect($('#taskLink'));
 
   const q = ui.query, A = ui.active;
@@ -136,6 +137,7 @@ function renderTasks() {
   if (ui.taskStatus === 'done') reps = reps.filter(t => taskStatus(t) === 'done');
   if (ui.taskScope === 'overdue') reps = reps.filter(t => taskStatus(t) === 'missed');
   if (ui.taskScope === 'active') reps = [];
+  reps = reps.filter(t => !list.some(e => e.t === t));         // las que ya salen en el día no se repiten abajo
 
   if (!list.length && !reps.length) {
     $('#taskList').innerHTML = `<div class="empty">${all.length ? 'No hay tareas que coincidan con los filtros.' : 'Todavía no tienes tareas. Crea la primera desde el formulario.'}</div>`;

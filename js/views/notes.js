@@ -19,9 +19,8 @@ function renderEditor() {
   const e = ui.editor;
   // Tarjeta: lectura de la nota guardada (o una indicación). El formulario vive en la ventana emergente.
   const saved = e.id && findNote(e.id);
-  $('#editorTitle').textContent = saved ? 'Nota' : 'Notas';
   if (saved) renderNoteRead(editorFrom(saved[1], saved[0]));
-  else $('#noteRead').innerHTML = '<p class="empty-note note-empty">Elige una nota de la lista para leerla, o crea una con «+ Nueva nota».</p>';
+  else $('#noteRead').innerHTML = '<p class="empty-note note-empty">Elige una nota de la lista para leerla aquí, o crea una con «+ Nueva nota».</p>';
   $('#noteTitle').value = e.title;
   $('#noteDate').value = e.date;
   $$('#noteTypeSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === e.type));

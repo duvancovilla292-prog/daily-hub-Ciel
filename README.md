@@ -86,7 +86,16 @@ Para agregar o editar cualquier cosa (tarea, nota, cumpleaños, horario, activid
   - **📋 Copiar mensaje:** plantilla editable con `{nombre}`, `{apodo}` y `{edad}`, con vista previa; se copia al portapapeles y la plantilla se guarda (y se sincroniza).
   - **Vincular a personas:** tareas y notas pueden vincularse a una persona (además del horario); se ve 👤 en ellas y se buscan por su nombre.
   - **Recordatorio** (desactivado por defecto, en la ficha): "Recordarme comprar regalo / preparar algo N días antes" (7 por defecto). Se crea una tarea ("🎁 Regalo para …" o "📅 Preparar: …") vinculada a la fecha, una sola vez por cada vez que ocurre (en las anuales, cuando faltan 30 días o menos). Su id es fijo por ocurrencia (`r<año>-<id>` o `r<AAAAMMDD>-<id>`), así que si dos dispositivos la crean a la vez queda una sola en la nube.
-- **Horario:** se puede **duplicar** (⧉), marcar que **no aplica en festivos de Colombia** (fijos, Ley Emiliani y Semana Santa, calculados sin servicios externos) y **saltar días concretos**. Al agregar o editar una actividad que se cruza con otra del mismo horario, avisa y la marca con ⚠. Cada horario tiene apartados de **Tareas** y **Notas** de su día, semana o mes, con el selector **Todas / Solo vinculadas**. Diario, semanal o mensual, con fecha de inicio y fin. Las horas visibles van por defecto de 6:00 AM a 9:00 PM y se pueden cambiar al crear el horario o después (la tabla se amplía sola si una actividad queda fuera).
+- **Horario:** el menú **⋮** de cada horario trae **Editar horario** (nombre, fechas, horas visibles, días y color), **Duplicar** y **Eliminar**. Se puede marcar que **no aplica en festivos de Colombia** (fijos, Ley Emiliani y Semana Santa, calculados sin servicios externos) y **saltar días concretos**. Al agregar o editar una actividad que se cruza con otra del mismo horario, avisa y la marca con ⚠. Cada horario tiene apartados de **Tareas** y **Notas** de su día, semana o mes, con el selector **Todas / Solo vinculadas**. Diario, semanal o mensual, con fecha de inicio y fin. Las horas visibles van por defecto de 6:00 AM a 9:00 PM y se cambian al crear el horario o en *Editar horario* (la tabla se amplía sola si una actividad queda fuera). El diario sigue la fecha de arriba (Ayer/Hoy/Mañana); el semanal y el mensual se mueven con ‹ › por semana o por mes.
+
+## Distribución
+- **Arriba:** en celular la fecha va corta ("Jue 26 nov"). *Ayer / Hoy / Mañana* solo aparece en Hoy, Notas y Horario (y en Tareas al elegir "Solo la fecha activa"), que son los apartados que dependen del día.
+- **Próximos 7 días** se muestra solo en Hoy. En celular, Hoy muestra primero **Atrasadas** y las tareas, y después la agenda.
+- **Tareas:** una sola tarjeta; los números van en las pestañas (Todas / Pendientes / Completadas) con una barra fina de avance. Una tarea que se repite y ya sale en su día no se repite en "Se repiten".
+- **Notas:** "+ Nueva nota" junto al título de la lista; en celular la nota se abre en una ventana.
+- **Fechas:** buscador, categoría y tipo en una fila; en computador la lista va en dos columnas.
+- **Calendario:** al tocar un día, su detalle (fechas, tareas, notas y horario) aparece debajo del calendario, con "Abrir en Hoy".
+- **Admin:** sin sesión solo muestra "Entrar con Google".
 
 ## Vínculos
 Los vínculos se ven desde los dos lados (si una tarea se vincula a una nota, la nota muestra la tarea) y se eligen con un **buscador con sugerencias**: se escribe y aparecen las coincidencias (sin importar tildes ni mayúsculas; busca por nombre, apodo, parentesco, categoría y etiqueta), se elige tocando o con ↑ ↓ y Enter, y queda como chip. La pestaña Fechas tiene además su propio buscador.
@@ -120,7 +129,7 @@ En el panel Admin, pestaña **🎨 Apariencia** (con sesión iniciada). Los camb
 - **↺ Restablecer** vuelve a lo predeterminado (con Deshacer).
 
 ## Tipografía Aetheri
-El botón **Aa** activa/desactiva la fuente en toda la web (clase `aetheri-on` en `<html>`, preferencia guardada). La fuente solo cubre letras, tildes y ¡¿!?; números y demás símbolos usan la tipografía normal.
+Se activa en **Admin → 🎨 Apariencia → Tipografía** (clase `aetheri-on` en `<html>`, preferencia de cada dispositivo). La fuente solo cubre letras, tildes y ¡¿!?; números y demás símbolos usan la tipografía normal.
 
 ## Probar con datos de ejemplo
 La app arranca **vacía**: nunca carga sola los datos del repositorio. Para probarla, entra como administrador → **Cargar datos de prueba** (lee `data/datos-prueba.json`). Si abres `index.html` directo desde la carpeta, el navegador no deja leer ese archivo: usa **Cargar respaldo** y elígelo a mano. Si lo cargas otra vez, avisa que no hay nada nuevo.
