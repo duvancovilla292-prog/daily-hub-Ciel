@@ -145,6 +145,9 @@
 .combo-list button small { color: var(--muted); font-size: .72rem; }
 .combo-list button:hover, .combo-list button.on { background: color-mix(in srgb, var(--accent) 16%, var(--card2)); }
 .combo-more { padding: 8px 10px; font-size: .78rem; color: var(--muted); }
+.suggest { position: relative; }
+.suggest .combo-list { max-height: 216px; z-index: 30; }   /* ~6 opciones visibles; el resto con desplazamiento */
+.suggest .combo-list button { padding: 7px 10px; }
 .li-tools .combo { flex: 1 1 220px; min-width: 0; }
 .bday-search { margin: 0; flex: 1 1 240px; min-width: 0; }
 .bday-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }

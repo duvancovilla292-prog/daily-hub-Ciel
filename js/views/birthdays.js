@@ -155,9 +155,8 @@ function bdayFieldsHtml(b) {
     <div class="field event-only" ${k === 'event' ? '' : 'hidden'}><span class="lbl">Personas vinculadas (opcional)</span>${pickerHtml('people', 'persons', b ? b.persons || [] : [], b ? b.id : '')}</div>
     <div class="row2 person-only" ${k === 'birthday' ? '' : 'hidden'}>
       <label>Apodo <input name="nick" maxlength="30" placeholder="Opcional (ej. Javi)" value="${esc(b ? b.nick || '' : '')}"></label>
-      <label>Parentesco <input name="relation" maxlength="30" list="relList" placeholder="Opcional (ej. Primo)" value="${esc(b ? b.relation || '' : '')}"></label>
+      <label class="suggest">Parentesco <input name="relation" maxlength="30" data-suggest="relation" autocomplete="off" aria-autocomplete="list" placeholder="Opcional (ej. Primo)" value="${esc(b ? b.relation || '' : '')}"><ul class="combo-list" role="listbox" hidden></ul></label>
     </div>
-    <datalist id="relList">${RELATIONS.map(x => `<option value="${x}">`).join('')}</datalist>
     <div class="row2">
       <label>Categoría <select name="category" id="bdayCat">${catOptions(b ? b.category : '')}</select></label>
       <label>Etiqueta <input name="tag" maxlength="30" placeholder="Opcional" value="${esc(b ? b.tag || '' : '')}"></label>

@@ -99,6 +99,43 @@ function comboPick(box, value) {
   const inp = box.querySelector('.combo-input'); inp.value = ''; closeCombos(); if (!isTouch()) { inp.dataset.quiet = '1'; inp.focus(); delete inp.dataset.quiet; }   // en celular se cierra el teclado tras elegir
 }
 document.addEventListener('input', e => { const box = e.target.closest && e.target.closest('.combo'); if (box && e.target.classList.contains('combo-input')) renderCombo(box); });
+/* ===== Sugerencias para un campo de texto libre (ej. Parentesco) =====
+   Lista corta y propia (en vez de la del navegador, que en computador sale gigante): filtra mientras se escribe,
+   se elige tocando o con flechas y Enter, y siempre se puede escribir algo que no esté en la lista. */
+const SUGGEST = { relation: () => RELATIONS };
+function renderSuggest(inp) {
+  const ul = inp.parentElement.querySelector('.combo-list'), q = norm(inp.value.trim());
+  const all = SUGGEST[inp.dataset.suggest] ? SUGGEST[inp.dataset.suggest]() : [];
+  const found = all.filter(x => !q || norm(x).includes(q)).sort((a, b) => (norm(b).startsWith(q) ? 1 : 0) - (norm(a).startsWith(q) ? 1 : 0));
+  if (!found.length || (found.length === 1 && norm(found[0]) === q)) { ul.hidden = true; return; }   // nada que sugerir
+  ul.innerHTML = found.map((x, i) => `<li><button type="button" role="option" class="${i === 0 && q ? 'on' : ''}" data-v="${esc(x)}">${esc(x)}</button></li>`).join('');
+  ul.hidden = false;
+}
+function pickSuggest(inp, v) {
+  inp.value = v; inp.parentElement.querySelector('.combo-list').hidden = true;
+  inp.dispatchEvent(new Event('change', { bubbles: true }));
+  if (sheet && inp.closest('#sheetRoot')) sheet.dirty = true;
+}
+const closeSuggests = () => $$('.suggest .combo-list').forEach(ul => { ul.hidden = true; });
+document.addEventListener('focusin', e => { if (e.target.dataset && e.target.dataset.suggest) { closeSuggests(); renderSuggest(e.target); } });
+document.addEventListener('input', e => { if (e.target.dataset && e.target.dataset.suggest) renderSuggest(e.target); });
+document.addEventListener('pointerdown', e => {
+  const opt = e.target.closest && e.target.closest('.suggest .combo-list button');
+  if (opt) { e.preventDefault(); pickSuggest(opt.closest('.suggest').querySelector('input'), opt.dataset.v); return; }
+  if (!(e.target.closest && e.target.closest('.suggest'))) closeSuggests();
+}, true);
+document.addEventListener('focusout', e => { if (e.target.dataset && e.target.dataset.suggest) setTimeout(() => { if (document.activeElement !== e.target) closeSuggests(); }, 120); });
+document.addEventListener('keydown', e => {
+  const inp = e.target; if (!inp.dataset || !inp.dataset.suggest) return;
+  const ul = inp.parentElement.querySelector('.combo-list'); if (ul.hidden) return;
+  const btns = [...ul.querySelectorAll('button')]; let i = btns.findIndex(b => b.classList.contains('on'));
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault(); i = (i + (e.key === 'ArrowDown' ? 1 : -1) + btns.length) % btns.length;
+    btns.forEach((b, j) => b.classList.toggle('on', j === i)); btns[i].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter' && i >= 0) { e.preventDefault(); pickSuggest(inp, btns[i].dataset.v); }
+  else if (e.key === 'Escape') { e.stopPropagation(); ul.hidden = true; }
+}, true);
+
 document.addEventListener('focusin', e => { const box = e.target.closest && e.target.closest('.combo'); if (box && e.target.classList.contains('combo-input') && !e.target.dataset.quiet) { closeCombos(box); renderCombo(box); } });
 document.addEventListener('pointerdown', e => { if (!(e.target.closest && e.target.closest('.combo'))) closeCombos(); }, true);
 document.addEventListener('keydown', e => {
