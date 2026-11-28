@@ -138,7 +138,7 @@
 /* Buscador con sugerencias */
 .combo { position: relative; }
 .combo-input { width: 100%; }
-.combo-list { position: absolute; z-index: 5; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px; list-style: none; max-height: 280px; overflow-y: auto;
+.combo-list { position: absolute; z-index: 5; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px; list-style: none; max-height: 280px; overflow-y: auto; overscroll-behavior: contain;
   background: var(--card); border: 1px solid var(--line); border-radius: var(--r2); box-shadow: var(--shadow); }
 .combo-list button { width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; text-align: left; border: 0; background: transparent; color: var(--text);
   padding: 8px 10px; border-radius: 8px; font-size: .88rem; }
@@ -146,6 +146,8 @@
 .combo-list button:hover, .combo-list button.on { background: color-mix(in srgb, var(--accent) 16%, var(--card2)); }
 .combo-more { padding: 8px 10px; font-size: .78rem; color: var(--muted); }
 .suggest { position: relative; }
+.combo-list.up { top: auto; bottom: calc(100% + 4px); }   /* sin espacio abajo: se abre hacia arriba */
+.suggest .combo-list.up { bottom: 100%; }
 .suggest .combo-list { max-height: 216px; z-index: 30; }   /* ~6 opciones visibles; el resto con desplazamiento */
 .suggest .combo-list button { padding: 7px 10px; }
 .li-tools .combo { flex: 1 1 220px; min-width: 0; }

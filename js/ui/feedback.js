@@ -70,6 +70,18 @@ function renderCombo(box) {
       (total > list.length ? `<li class="combo-more">${total - list.length} más… sigue escribiendo para afinar</li>` : '')
     : `<li class="combo-more">${q ? 'Sin coincidencias' : 'No hay nada para elegir'}</li>`;
   ul.hidden = false; inp.setAttribute('aria-expanded', 'true');
+  placeDrop(ul, inp);
+}
+/** Coloca una lista desplegable donde quepa: hacia abajo, o hacia arriba si abajo no hay espacio, y con un alto
+    que no se salga de la ventana (o de la pantalla). Así nunca queda cortada ni obliga a mover la página. */
+function placeDrop(ul, inp) {
+  ul.classList.remove('up'); ul.style.maxHeight = '';
+  const box = ul.closest('.sheet-body, .fm-body, .modal, .admin-modal');
+  const lim = box ? box.getBoundingClientRect() : { top: 0, bottom: innerHeight };
+  const r = inp.getBoundingClientRect(), want = Math.min(ul.scrollHeight, parseFloat(getComputedStyle(ul).maxHeight) || 280);
+  const below = Math.min(lim.bottom, innerHeight) - r.bottom - 10, above = r.top - Math.max(lim.top, 0) - 10;
+  if (want > below && above > below) { ul.classList.add('up'); ul.style.maxHeight = Math.max(120, Math.min(want, above)) + 'px'; }
+  else ul.style.maxHeight = Math.max(120, Math.min(want, below)) + 'px';
 }
 function closeCombos(except) {
   $$('.combo').forEach(b => { if (b !== except) { const ul = b.querySelector('.combo-list'); if (ul) ul.hidden = true; b.querySelector('.combo-input')?.setAttribute('aria-expanded', 'false'); } });
@@ -110,6 +122,7 @@ function renderSuggest(inp) {
   if (!found.length || (found.length === 1 && norm(found[0]) === q)) { ul.hidden = true; return; }   // nada que sugerir
   ul.innerHTML = found.map((x, i) => `<li><button type="button" role="option" class="${i === 0 && q ? 'on' : ''}" data-v="${esc(x)}">${esc(x)}</button></li>`).join('');
   ul.hidden = false;
+  placeDrop(ul, inp);
 }
 function pickSuggest(inp, v) {
   inp.value = v; inp.parentElement.querySelector('.combo-list').hidden = true;
@@ -182,7 +195,11 @@ function closeMenu() {
 }
 document.addEventListener('pointerdown', e => { if (menuBtn && !e.target.closest('.pop-menu') && e.target.closest('[data-action$="-menu"]') !== menuBtn) closeMenu(); }, true);
 window.addEventListener('resize', () => closeMenu());
-window.addEventListener('scroll', () => { if (menuBtn && Date.now() - menuAt > 300) closeMenu(); }, true);   // al desplazar la página (no al abrirlo)
+window.addEventListener('scroll', () => { if (menuBtn && Date.now() - menuAt > 300) closeMenu(); }, true);
+document.addEventListener('wheel', e => {   // la rueda sobre el menú ⋮ no mueve la página de atrás
+  const m = e.target.closest && e.target.closest('.pop-menu');
+  if (m && (m.scrollHeight <= m.clientHeight || (e.deltaY > 0 && m.scrollTop + m.clientHeight >= m.scrollHeight - 1) || (e.deltaY < 0 && m.scrollTop <= 0))) e.preventDefault();
+}, { passive: false });   // al desplazar la página (no al abrirlo)
 
 /* ===== Ventana emergente para crear o editar =====
    Puede mover dentro un formulario que ya existe en la página (#formStore: conserva sus ids y eventos)
@@ -273,7 +290,7 @@ function formModal({ title, desc, fields, submit, check }) {
     const root = $('#modalRoot');
     root.innerHTML = `<div class="overlay" role="dialog" aria-modal="true" aria-label="${esc(title)}">
       <form class="modal" id="fm" autocomplete="off"><h3>${esc(title)}</h3><p>${desc}</p>
-        <div class="stack" style="margin-top:14px">${fields}<p class="err" id="fmErr" hidden></p></div>
+        <div class="stack fm-body">${fields}<p class="err" id="fmErr" hidden></p></div>
         <div class="modal-actions"><button type="button" class="btn btn-ghost" data-c>Cancelar</button><button class="btn btn-primary">${esc(submit)}</button></div>
       </form></div>`;
     const f = $('#fm', root), err = $('#fmErr', root);

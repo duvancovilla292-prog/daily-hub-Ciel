@@ -12,7 +12,7 @@
 .fontbtn.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
 
-.admin-modal { max-width: 820px; max-height: calc(100dvh - 32px); overflow: auto; position: relative; }
+.admin-modal { max-width: 820px; max-height: calc(100dvh - 32px); overflow: auto; overscroll-behavior: contain; position: relative; }
 body.no-scroll { overflow: hidden; }
 .admin-grid { display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 22px; }
 .admin-access h2 { margin-bottom: 12px; }

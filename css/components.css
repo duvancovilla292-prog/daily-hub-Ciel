@@ -1,6 +1,13 @@
 /* ===== components.css — modales, toasts y utilidades ===== */
-.overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, .6); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 16px; z-index: 50; animation: fade .2s; }
-.modal { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 22px; max-width: 440px; width: 100%; box-shadow: var(--shadow); animation: pop .25s; }
+.overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, .6); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 16px; z-index: 50; animation: fade .2s; overscroll-behavior: contain; }
+.modal { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 22px; max-width: 440px; width: 100%; box-shadow: var(--shadow); animation: pop .25s;
+  max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; }
+/* Con una ventana abierta, la página de atrás no se mueve (antes el deslizamiento "se pasaba" a ella) */
+html:has(#sheetRoot .overlay), html:has(#modalRoot .overlay), html:has(#adminPanel:not([hidden])) { overflow: hidden; }
+/* Ventana de editar (Editar tarea, fecha, horario…): título y botones fijos, solo los campos deslizan */
+#fm { display: flex; flex-direction: column; overflow: hidden; }
+#fm > h3, #fm > p, #fm > .modal-actions { flex: none; }
+#fm .fm-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin: 14px -22px 0; padding: 2px 22px 4px; }
 .modal h3 { font-size: 1.05rem; margin-bottom: 8px; }
 .modal p { color: var(--muted); font-size: .92rem; line-height: 1.5; }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; flex-wrap: wrap; }
@@ -21,8 +28,11 @@
 .err { color: var(--danger); font-size: .82rem; }
 
 /* Ventana emergente para crear/editar (formularios) */
-.sheet-overlay { z-index: 55; align-items: start; overflow-y: auto; }
-.form-sheet { position: relative; max-width: 480px; margin: 4vh auto; }
+.sheet-overlay { z-index: 55; }
+/* Ventana de crear (Nueva tarea, ficha de persona…): título y ✕ fijos, el contenido desliza por dentro */
+.form-sheet { position: relative; max-width: 480px; margin: auto; display: flex; flex-direction: column; overflow: hidden; max-height: calc(100dvh - 32px); }
+.form-sheet > h3 { flex: none; }
+.sheet-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin: 0 -22px -22px; padding: 2px 22px 22px; }
 .form-sheet.wide { max-width: 640px; }
 .form-sheet > h3 { padding-right: 40px; margin-bottom: 14px; }
 .form-sheet .sheet-x { position: absolute; top: 12px; right: 12px; }
@@ -37,9 +47,14 @@
 .add-btn { margin-top: 12px; }
 .note-empty { padding: 18px 4px; }
 @media (max-width: 720px) {
-  .form-sheet { margin: 0 auto 70px; }
-  .sheet-overlay { padding: 10px; }
+  .form-sheet { max-height: calc(100dvh - 20px); }
+  .sheet-overlay, #modalRoot .overlay { padding: 10px; }
+  .modal { max-height: calc(100dvh - 20px); }
 }
 /* Las confirmaciones siempre por encima de la ventana de formulario; los avisos encima de todo */
 #modalRoot .overlay { z-index: 60; }
 #toasts { z-index: 70; }
+
+/* Campos en dos o tres columnas: nunca más anchos que su columna (la hora y la fecha se salían en celular) */
+.row2 > *, .row3 > *, .row3b > * { min-width: 0; }
+.row2 input, .row3 input, .row3b input, .row2 select, .row3 select, .row3b select { min-width: 0; max-width: 100%; }
